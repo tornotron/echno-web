@@ -15,8 +15,8 @@ import {
   LeaveRequest,
   LeavePolicy,
   LeaveStatus,
-  getLeaveStatusLabel,
 } from '@tornotron/echno-core/leave/types';
+import { leaveStatusLabel } from '@/features/leave/lib/leave-status-label';
 import { format, isFuture, isToday, differenceInCalendarDays } from 'date-fns';
 import { routes } from '@/nav';
 
@@ -166,7 +166,7 @@ export function LeaveOverview({ requests, policies }: LeaveOverviewProps) {
                       width: `${widthPct}%`,
                       backgroundColor: seg.color,
                     }}
-                    title={`${getLeaveStatusLabel(seg.status)}: ${count}`}
+                    title={`${leaveStatusLabel(seg.status)}: ${count}`}
                   />
                 );
               })}
@@ -181,7 +181,7 @@ export function LeaveOverview({ requests, policies }: LeaveOverviewProps) {
                     style={{ backgroundColor: seg.color }}
                   />
                   <span className="flex-1 truncate text-xs text-zinc-500 dark:text-zinc-400">
-                    {getLeaveStatusLabel(seg.status)}
+                    {leaveStatusLabel(seg.status)}
                   </span>
                   <span className="text-xs font-semibold text-zinc-900 tabular-nums dark:text-zinc-100">
                     {segmentCounts[seg.status]}
@@ -202,14 +202,14 @@ export function LeaveOverview({ requests, policies }: LeaveOverviewProps) {
           </div>
         </div>
 
-        {/* Column 2 — Upcoming leaves */}
+        {/* Column 2 — Upcoming Leave */}
         <div className="py-6 sm:px-8 sm:py-0">
           <p className="mb-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-            Upcoming Leaves
+            Upcoming Leave
           </p>
           {upcoming.length === 0 ? (
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              No upcoming approved leaves
+              No upcoming approved leave
             </p>
           ) : (
             <div className="divide-border/50 divide-y">

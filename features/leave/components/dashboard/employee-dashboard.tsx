@@ -6,8 +6,8 @@
  * Features:
  * - Prominent "Apply for Leave" CTA
  * - Leave balance cards with visual indicators
- * - Recent requests (last 5)
- * - Upcoming approved leave preview
+ * - My Leave Requests (last 5)
+ * - Upcoming Leave preview
  * - Quick actions for common tasks
  */
 
@@ -58,7 +58,7 @@ export function EmployeeDashboard() {
 
   const isLoading = balanceLoading || requestsLoading;
 
-  // Get recent requests (last 5)
+  // The five most recent of the employee's own leave requests.
   const recentRequests = allRequests?.slice(0, 5);
 
   // Calculate stats from all requests (not just recent)
@@ -90,9 +90,7 @@ export function EmployeeDashboard() {
             </p>
           </div>
           <div className="flex flex-col gap-1 sm:px-6">
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Pending Requests
-            </p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Pending</p>
             <div className="flex items-center justify-between">
               <p className="text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
                 {pendingRequests.length}
@@ -185,11 +183,11 @@ export function EmployeeDashboard() {
             )}
           </div>
 
-          {/* Recent Requests */}
+          {/* My Leave Requests */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-sm font-semibold">Recent Requests</h2>
+                <h2 className="text-sm font-semibold">My Leave Requests</h2>
                 <p className="text-muted-foreground text-xs">
                   Your last 5 leave requests
                 </p>
@@ -305,7 +303,7 @@ export function EmployeeDashboard() {
                 }
               >
                 <FileText className="mr-2 h-4 w-4" />
-                My Requests
+                My Leave Requests
               </Button>
               <Button
                 variant="outline"
@@ -392,7 +390,7 @@ export function EmployeeDashboard() {
                   Upcoming Leave
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Your scheduled time off
+                  Your approved leave coming up
                 </CardDescription>
               </CardHeader>
               <CardContent>

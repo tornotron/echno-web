@@ -135,7 +135,7 @@ export function MyRequestsTab({ employeeId }: MyRequestsTabProps) {
                   <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value={LeaveStatus.DRAFT}>Draft</SelectItem>
                   <SelectItem value={LeaveStatus.PENDING_APPROVAL}>
-                    Pending Approval
+                    Pending
                   </SelectItem>
                   <SelectItem value={LeaveStatus.APPROVED}>Approved</SelectItem>
                   <SelectItem value={LeaveStatus.REJECTED}>Rejected</SelectItem>
