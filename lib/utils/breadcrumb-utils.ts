@@ -218,18 +218,19 @@ export function applyBreadcrumbOverrides(
   const taskIdParam = searchParams.get('taskId');
   const editParam = searchParams.get('edit');
 
-  // 1. Leave request detail — override "Requests" / "My Requests" based on `from`
+  // 1. Leave request detail — override "Requests" / "My Leave Requests" based
+  //    on `from`
   const isLeaveRequestDetail = /\/workforce\/leaves\/requests\/\d+$/.test(
     pathname
   );
   if (isLeaveRequestDetail && fromParam && leaveFromMap[fromParam]) {
     const override = leaveFromMap[fromParam];
     const requestsIndex = items.findIndex(
-      (item) => item.label === 'Requests' || item.label === 'My Requests'
+      (item) => item.label === 'Requests' || item.label === 'My Leave Requests'
     );
     if (requestsIndex !== -1) {
       if (override.label === 'Leave Management') {
-        // From a dashboard — remove the "My Requests" breadcrumb since
+        // From a dashboard — remove the "My Leave Requests" breadcrumb since
         // "Leave Management" is already shown from the `leaves` segment
         items.splice(requestsIndex, 1);
         recalcIsLast(items);

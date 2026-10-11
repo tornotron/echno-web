@@ -3,7 +3,7 @@ import { routes } from '@/nav';
 /** Map of `from` query-param values → breadcrumb overrides for leave request detail pages. */
 export const leaveFromMap: Record<string, { label: string; href: string }> = {
   'my-requests': {
-    label: 'My Requests',
+    label: 'My Leave Requests',
     href: `${routes.workforce.leaves.manage.requests.href}?tab=my`,
   },
   'org-requests': {

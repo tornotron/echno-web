@@ -143,11 +143,11 @@ export function AdminDashboard() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Column - Recent Activity */}
         <div className="space-y-6 lg:col-span-2">
-          {/* Recent Requests */}
+          {/* Recent leave requests, organisation-wide */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-sm font-semibold">Recent Requests</h2>
+                <h2 className="text-sm font-semibold">Recent Leave Requests</h2>
                 <p className="text-muted-foreground text-xs">
                   Latest leave requests across organization
                 </p>
