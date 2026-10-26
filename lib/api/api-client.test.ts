@@ -27,7 +27,8 @@ mock.module('next-auth/react', () => ({
 // Reach for the client instance rather than the bound `api` helpers: a sibling
 // suite swaps those helpers for spies through the shared module registry, while
 // the instance itself passes through untouched.
-const { apiClient, ApiError } = await import('./api-client');
+const { apiClient, ApiError, normalizeFieldErrors } =
+  await import('./api-client');
 
 // Responses the stubbed fetch hands back, in order, plus the URLs it was called
 // with so a replay can be told apart from a single call.
@@ -282,9 +283,7 @@ describe('the failures this client raises are the ones the package reads', () =>
   });
 
   test('a 403 with no title of its own still avoids telling a signed-in user to sign in', async () => {
-    queuedResponses = [
-      jsonResponse({ message: 'Access is denied' }, 403),
-    ];
+    queuedResponses = [jsonResponse({ message: 'Access is denied' }, 403)];
 
     const error = await apiClient
       .get('/v1/leave-requests/9/approve')
@@ -388,5 +387,64 @@ describe('the failures this client raises are the ones the package reads', () =>
     expect(getErrorMessage(error)).toContain(
       'endDate: must not be before the start date'
     );
+  });
+});
+
+describe('field errors reach a form as whole messages', () => {
+  test('a field sent as one string is a one-item list with the whole message', async () => {
+    // GlobalExceptionHandler writes Map<String, String>, one string per field,
+    // and the 409 duplicate response names the clashing field the same way.
+    queuedResponses = [
+      jsonResponse(
+        {
+          title: 'Conflict',
+          message: 'An account with this email or username already exists.',
+          errors: { email: 'An account with this email already exists.' },
+        },
+        409
+      ),
+    ];
+
+    const error = await apiClient
+      .post('/auth/register', {})
+      .catch((error_: unknown) => error_);
+
+    expect(error instanceof ApiError).toBe(true);
+    const fieldErrors = (error as InstanceType<typeof ApiError>).errors;
+    expect(fieldErrors).toEqual({
+      email: ['An account with this email already exists.'],
+    });
+    // The registration form shows messages[0] under the field.
+    expect(fieldErrors?.email[0]).toBe(
+      'An account with this email already exists.'
+    );
+    expect(getErrorMessage(error)).toContain(
+      'email: An account with this email already exists.'
+    );
+  });
+
+  test('a list of messages per field is unchanged', () => {
+    expect(
+      normalizeFieldErrors({ password: ['too short', 'needs a digit'] })
+    ).toEqual({ password: ['too short', 'needs a digit'] });
+  });
+
+  test('values that are not messages are dropped, and so is a field left empty', () => {
+    expect(
+      normalizeFieldErrors({
+        name: 'must not be blank',
+        age: 42,
+        nested: { reason: 'x' },
+        nothing: null,
+        mixed: ['kept', 7, ''],
+      })
+    ).toEqual({ name: ['must not be blank'], mixed: ['kept'] });
+  });
+
+  test('an errors value that is not a map gives no field errors', () => {
+    expect(normalizeFieldErrors(['email is invalid'])).toBeUndefined();
+    expect(normalizeFieldErrors('email is invalid')).toBeUndefined();
+    expect(normalizeFieldErrors(undefined)).toBeUndefined();
+    expect(normalizeFieldErrors({ age: 42 })).toBeUndefined();
   });
 });
