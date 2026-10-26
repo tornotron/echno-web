@@ -6,6 +6,13 @@ import { PhoneInput } from '@/components/shadcn/phone-input';
 import { Label } from '@/components/shadcn/label';
 import { Button } from '@/components/shadcn/button';
 import { Checkbox } from '@/components/shadcn/checkbox';
+import { Calendar } from '@/components/shadcn/calendar';
+import {
+  Popover,
+  PopoverAnchor,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/shadcn/popover';
 import {
   Select,
   SelectContent,
@@ -13,7 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/shadcn/select';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { CalendarIcon, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { format, isValid, parse, subYears } from 'date-fns';
 import { signIn } from 'next-auth/react';
 import { toast } from '@/lib/styles/toast-styles';
 import {
@@ -21,12 +29,10 @@ import {
   initialRegistrationFormData,
   toRegistrationRequest,
 } from '@/types/auth/registration';
-import { parseLocalDate } from '@tornotron/echno-core';
 import { UserRole, getUserRoleLabel } from '@tornotron/echno-core/user/types';
 import { authService } from '@/services/auth-service';
 import { ApiError } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
-import { toLocalDateInputValue } from '@/lib/utils/date-utils';
 import {
   required,
   compose,
@@ -42,6 +48,44 @@ const REGISTRATION_ROLES = Object.values(UserRole);
 
 const GENDER_OPTIONS = ['Male', 'Female', 'Other'] as const;
 
+const EARLIEST_DOB = new Date(1900, 0, 1);
+const DOB_FORMAT = 'dd/MM/yyyy';
+const DOB_PLACEHOLDER = 'dd/mm/yyyy';
+const DOB_FORMAT_ERROR = `Enter a valid date as ${DOB_PLACEHOLDER}`;
+
+function joinDobDigits(digits: string, trailingSlash: boolean): string {
+  const text = [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4)]
+    .filter(Boolean)
+    .join('/');
+  return trailingSlash && (digits.length === 2 || digits.length === 4)
+    ? `${text}/`
+    : text;
+}
+
+// Keep only digits and add each slash as soon as the day or month is
+// complete, like a card expiry field, so 1508 reads as 15/08/
+function formatDobText(value: string, previous: string): string {
+  const isDeleting = value.length < previous.length;
+  let digits = value.replaceAll(/\D/g, '').slice(0, 8);
+  // A separator typed after a single digit pads it, so 5/ reads as 05/
+  if (!isDeleting && /[/.-]$/.test(value)) {
+    if (digits.length === 1) digits = `0${digits}`;
+    else if (digits.length === 3) digits = `${digits.slice(0, 2)}0${digits[2]}`;
+  }
+  const text = joinDobDigits(digits, !isDeleting);
+  // Backspacing over a slash in the middle would put it straight back, so
+  // drop the digit before it instead
+  return isDeleting && text === previous
+    ? joinDobDigits(digits.slice(0, -1), false)
+    : text;
+}
+
+function parseDobText(text: string): Date | null {
+  if (text.length !== DOB_FORMAT.length) return null;
+  const date = parse(text, DOB_FORMAT, new Date());
+  return isValid(date) && date >= EARLIEST_DOB ? date : null;
+}
+
 export function RegistrationForm() {
   const [formData, setFormData] = useState<RegistrationFormData>(
     initialRegistrationFormData
@@ -50,6 +94,10 @@ export function RegistrationForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isDobOpen, setIsDobOpen] = useState(false);
+  const [dobText, setDobText] = useState('');
+  // Anyone born after this is under 18 and cannot register
+  const latestDob = subYears(new Date(), 18);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -89,7 +137,9 @@ export function RegistrationForm() {
         newErrors.dateOfBirth = 'You must be at least 18 years old';
       }
     } else {
-      newErrors.dateOfBirth = 'Date of birth is required';
+      newErrors.dateOfBirth = dobText
+        ? DOB_FORMAT_ERROR
+        : 'Date of birth is required';
     }
 
     const roleError = required('Role')(formData.role);
@@ -171,6 +221,18 @@ export function RegistrationForm() {
         delete newErrors[field];
         return newErrors;
       });
+    }
+  };
+
+  const handleDobTextChange = (value: string) => {
+    const text = formatDobText(value, dobText);
+    setDobText(text);
+    handleChange('dateOfBirth', parseDobText(text));
+  };
+
+  const handleDobBlur = () => {
+    if (dobText && !parseDobText(dobText)) {
+      setErrors((prev) => ({ ...prev, dateOfBirth: DOB_FORMAT_ERROR }));
     }
   };
 
@@ -342,23 +404,53 @@ export function RegistrationForm() {
           >
             Date of Birth <span className="text-red-500">*</span>
           </Label>
-          <Input
-            variant="auth"
-            id="dateOfBirth"
-            type="date"
-            value={
-              formData.dateOfBirth
-                ? toLocalDateInputValue(formData.dateOfBirth)
-                : ''
-            }
-            onChange={(e) =>
-              handleChange(
-                'dateOfBirth',
-                parseLocalDate(e.target.value || null)
-              )
-            }
-            aria-invalid={!!errors.dateOfBirth}
-          />
+          {/* Safari's native date picker can only step month by month, so take typed input and offer a calendar with month/year dropdowns */}
+          <Popover open={isDobOpen} onOpenChange={setIsDobOpen}>
+            <PopoverAnchor asChild>
+              <div className="relative">
+                <Input
+                  variant="auth"
+                  id="dateOfBirth"
+                  value={dobText}
+                  onChange={(e) => handleDobTextChange(e.target.value)}
+                  onBlur={handleDobBlur}
+                  placeholder={DOB_PLACEHOLDER}
+                  inputMode="numeric"
+                  autoComplete="bday"
+                  maxLength={DOB_FORMAT.length}
+                  className="pr-9"
+                  aria-invalid={!!errors.dateOfBirth}
+                />
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label="Open calendar"
+                    className="absolute top-1/2 right-2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300"
+                  >
+                    <CalendarIcon className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+              </div>
+            </PopoverAnchor>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                captionLayout="dropdown"
+                selected={formData.dateOfBirth ?? undefined}
+                defaultMonth={formData.dateOfBirth ?? subYears(latestDob, 7)}
+                startMonth={EARLIEST_DOB}
+                endMonth={latestDob}
+                disabled={[{ after: latestDob }, { before: EARLIEST_DOB }]}
+                onSelect={(date) => {
+                  handleChange('dateOfBirth', date ?? null);
+                  setDobText(date ? format(date, DOB_FORMAT) : '');
+                  if (date) setIsDobOpen(false);
+                }}
+              />
+            </PopoverContent>
+          </Popover>
           {errors.dateOfBirth && (
             <p className="text-xs text-red-500">{errors.dateOfBirth}</p>
           )}
