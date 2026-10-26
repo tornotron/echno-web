@@ -51,7 +51,50 @@ export interface ApiErrorData {
   status: number;
   title?: unknown;
   details?: unknown;
-  errors?: Record<string, string[]>;
+  /**
+   * Per-field messages as the backend sends them: one string per field from
+   * `GlobalExceptionHandler`, though a list is accepted too. Brought to a
+   * list per field by {@link normalizeFieldErrors} before it reaches
+   * {@link ApiError}.
+   */
+  errors?: unknown;
+}
+
+/**
+ * Brings a field-error map from a response body to a list of messages per
+ * field, the shape `ApiError.errors` declares and every consumer reads.
+ *
+ * Without it a string-valued field read as `errors[field][0]` showed its first
+ * character, and `getErrorMessage` threw on `messages.map`. A string becomes a
+ * one-item list and a list keeps its string items. Other values (a number,
+ * `null`, an object) are dropped rather than stringified, since none is a
+ * message written for the user. A field left with nothing is omitted and an
+ * empty map is `undefined`, so `if (error.errors)` still means there is
+ * something to show.
+ *
+ * `@tornotron/echno-core` 11.3.2 does the same inside `ApiError`; once this
+ * app is on that version the call below is redundant but harmless.
+ *
+ * @param raw - The `errors` value from a parsed error body, of any shape.
+ * @returns The messages per field, or `undefined` when there are none.
+ */
+export function normalizeFieldErrors(
+  raw: unknown
+): Record<string, string[]> | undefined {
+  if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
+    return undefined;
+  }
+  const result: Record<string, string[]> = {};
+  for (const [field, value] of Object.entries(raw)) {
+    const items: unknown[] = Array.isArray(value) ? value : [value];
+    const messages = items.filter(
+      (item): item is string => typeof item === 'string' && item.length > 0
+    );
+    if (messages.length > 0) {
+      result[field] = messages;
+    }
+  }
+  return Object.keys(result).length > 0 ? result : undefined;
 }
 
 /** Optional per-request settings. */
@@ -146,7 +189,7 @@ class ApiClient {
         errorData.message || this.getDefaultErrorMessage(response.status),
         response.status,
         typeof errorData.details === 'string' ? errorData.details : undefined,
-        errorData.errors,
+        normalizeFieldErrors(errorData.errors),
         typeof errorData.title === 'string' ? errorData.title : undefined
       );
     }
