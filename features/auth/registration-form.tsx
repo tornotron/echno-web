@@ -74,10 +74,19 @@ function formatDobText(value: string, previous: string): string {
   }
   const text = joinDobDigits(digits, !isDeleting);
   // Backspacing over a slash in the middle would put it straight back, so
-  // drop the digit before it instead
-  return isDeleting && text === previous
-    ? joinDobDigits(digits.slice(0, -1), false)
-    : text;
+  // drop the digit before that slash instead
+  if (isDeleting && text === previous) {
+    let removedAt = 0;
+    while (value[removedAt] === previous[removedAt]) removedAt++;
+    const digitsBefore = previous
+      .slice(0, removedAt)
+      .replaceAll(/\D/g, '').length;
+    return joinDobDigits(
+      digits.slice(0, digitsBefore - 1) + digits.slice(digitsBefore),
+      false
+    );
+  }
+  return text;
 }
 
 function parseDobText(text: string): Date | null {
@@ -420,6 +429,9 @@ export function RegistrationForm() {
                   maxLength={DOB_FORMAT.length}
                   className="pr-9"
                   aria-invalid={!!errors.dateOfBirth}
+                  aria-describedby={
+                    errors.dateOfBirth ? 'dateOfBirth-error' : undefined
+                  }
                 />
                 <PopoverTrigger asChild>
                   <Button
@@ -452,7 +464,9 @@ export function RegistrationForm() {
             </PopoverContent>
           </Popover>
           {errors.dateOfBirth && (
-            <p className="text-xs text-red-500">{errors.dateOfBirth}</p>
+            <p id="dateOfBirth-error" className="text-xs text-red-500">
+              {errors.dateOfBirth}
+            </p>
           )}
         </div>
 
