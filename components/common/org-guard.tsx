@@ -1,4 +1,5 @@
 import { Loader2, AlertCircle } from 'lucide-react';
+import { LoadErrorNotice } from './load-error';
 
 interface OrgGuardProps {
   isLoading: boolean;
@@ -22,15 +23,7 @@ export function OrgGuard({
   }
 
   if (error) {
-    return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center">
-        <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
-        <h2 className="mb-2 text-xl font-semibold">Something went wrong</h2>
-        <p className="text-zinc-500">
-          Failed to load data. Please try again later.
-        </p>
-      </div>
-    );
+    return <LoadErrorNotice error={error} />;
   }
 
   if (!organizationId) {

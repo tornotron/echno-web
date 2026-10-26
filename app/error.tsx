@@ -13,6 +13,7 @@ import {
 import { AlertTriangle, Home, RotateCcw } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { routes } from '@/nav';
+import { LoadErrorNotice, loadErrorKind } from '@/components/common/load-error';
 
 export default function Error({
   error,
@@ -28,6 +29,16 @@ export default function Error({
       stack: error.stack,
     });
   }, [error]);
+
+  // A refusal, an expired session or a missing record is not a fault to
+  // retry: say which it is and offer the step that helps.
+  if (loadErrorKind(error) !== 'generic') {
+    return (
+      <div className="bg-background flex min-h-screen items-center justify-center p-4">
+        <LoadErrorNotice error={error} />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-background flex min-h-screen items-center justify-center p-4">
