@@ -14,7 +14,11 @@ import {
   FileCheck2,
 } from 'lucide-react';
 import type { MetadataRegistry, RouteMetadata } from '../types';
-import { CONSTRUCTION_INVOICES_ACCESS } from '../access/roles';
+import {
+  CONSTRUCTION_INVOICES_ACCESS,
+  FINANCE_LEDGER_ACCESS,
+  PAYABLES_ACCESS,
+} from '../access/roles';
 
 /**
  * Construction invoices are `system-admin` or `project-manager` on every
@@ -52,6 +56,7 @@ export const financeMetadata = {
     icon: CreditCard,
     description: 'Record payments made to vendors and settle invoices.',
     order: 2,
+    access: FINANCE_LEDGER_ACCESS,
   },
   'finance-payments-new': { label: 'New Payment', sidebarHidden: true },
   'finance-payments-[id]': { label: 'Payment', sidebarHidden: true },
@@ -88,6 +93,7 @@ export const financeMetadata = {
     description:
       'Issue and cancel the receivables raised to a customer, and see what is still owed.',
     order: 4,
+    access: FINANCE_LEDGER_ACCESS,
   },
 
   // ── payables (accounts payable) ───────────────────────────────────────────
@@ -97,6 +103,7 @@ export const financeMetadata = {
     description:
       'Track what is owed to contractors and vendors, and record payments against it.',
     order: 5,
+    access: PAYABLES_ACCESS,
   },
 
   // ── contract billing (Work Progress module) ──────────────────────────────
@@ -145,6 +152,7 @@ export const financeMetadata = {
     description:
       'Per-project budget allocation and spend across the organization.',
     order: 7,
+    access: FINANCE_LEDGER_ACCESS,
   },
 
   // ── chart of accounts ───────────────────────────────────────────────────────
@@ -154,6 +162,7 @@ export const financeMetadata = {
     description:
       'Maintain ledger accounts and import or export the chart as CSV.',
     order: 8,
+    access: FINANCE_LEDGER_ACCESS,
   },
 
   // ── journal entries ─────────────────────────────────────────────────────────
@@ -163,6 +172,7 @@ export const financeMetadata = {
     description:
       'Review ledger postings and reverse an entry that was posted in error.',
     order: 9,
+    access: FINANCE_LEDGER_ACCESS,
   },
 
   // ── cost categories ─────────────────────────────────────────────────────────
@@ -171,6 +181,7 @@ export const financeMetadata = {
     icon: Tags,
     description: 'Define the budget heads used to allocate and tag costs.',
     order: 10,
+    access: FINANCE_LEDGER_ACCESS,
   },
 
   // ── finance settings ────────────────────────────────────────────────────────
@@ -180,5 +191,6 @@ export const financeMetadata = {
     description:
       'Configure ledger posting accounts and the invoice approval threshold.',
     order: 11,
+    access: FINANCE_LEDGER_ACCESS,
   },
 } satisfies MetadataRegistry;

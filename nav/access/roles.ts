@@ -269,6 +269,35 @@ export const FINANCE_REPORTS_ACCESS: AccessConfig = {
 } as const;
 
 /**
+ * The finance ledger pages whose list endpoints admit `system-admin` or
+ * `project-manager` only: construction payments, customer invoices, budgets
+ * (per-project cost control), chart of accounts, journal entries, cost
+ * categories and finance settings.
+ */
+export const FINANCE_LEDGER_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN, OrgRole.PROJECT_MANAGER],
+} as const;
+
+/** Payables (`/payables/web`): `system-admin` only. */
+export const PAYABLES_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN],
+} as const;
+
+/**
+ * Reading the employee directory (`GET /employee/web` and
+ * `/employee/web/paginated`): `system-admin`, `hr-admin` or
+ * `project-manager`. Anyone else gets a 403, so the Employees menu item is
+ * shown only to these roles.
+ */
+export const EMPLOYEE_LIST_ACCESS: AccessConfig = {
+  allowOrgRoles: [
+    OrgRole.SYSTEM_ADMIN,
+    OrgRole.HR_ADMIN,
+    OrgRole.PROJECT_MANAGER,
+  ],
+} as const;
+
+/**
  * Reading every leave request in the organization
  * (`/leave-requests/web/organization`): `system-admin` or `hr-admin`.
  */
