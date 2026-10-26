@@ -8,7 +8,7 @@ import {
   Settings,
 } from 'lucide-react';
 import type { MetadataRegistry } from '../types';
-import { MANAGER_AND_ABOVE } from '../access/roles';
+import { EMPLOYEE_LIST_ACCESS, MANAGER_AND_ABOVE } from '../access/roles';
 
 export const workforceMetadata = {
   workforce: {
@@ -24,6 +24,7 @@ export const workforceMetadata = {
     label: 'Employees',
     icon: Users,
     order: 1,
+    access: EMPLOYEE_LIST_ACCESS,
   },
   'workforce-employees-employee-management': {
     label: 'Employee Management',

@@ -269,6 +269,20 @@ export const FINANCE_REPORTS_ACCESS: AccessConfig = {
 } as const;
 
 /**
+ * Reading the employee directory (`GET /employee/web` and
+ * `/employee/web/paginated`): `system-admin`, `hr-admin` or
+ * `project-manager`. Anyone else gets a 403, so the Employees menu item is
+ * shown only to these roles.
+ */
+export const EMPLOYEE_LIST_ACCESS: AccessConfig = {
+  allowOrgRoles: [
+    OrgRole.SYSTEM_ADMIN,
+    OrgRole.HR_ADMIN,
+    OrgRole.PROJECT_MANAGER,
+  ],
+} as const;
+
+/**
  * Reading every leave request in the organization
  * (`/leave-requests/web/organization`): `system-admin` or `hr-admin`.
  */
