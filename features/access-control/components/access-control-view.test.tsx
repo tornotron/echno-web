@@ -65,6 +65,23 @@ describe('AccessControlView', () => {
     });
   });
 
+  test('the View + Approve preset grants approval without editing', async () => {
+    const view = await openTable();
+    fireEvent.keyDown(
+      view.getByRole('button', { name: 'Client: Finance: No Access' }),
+      { key: 'Enter' }
+    );
+    fireEvent.click(
+      await view.findByRole('menuitem', { name: 'View + Approve' })
+    );
+    await waitFor(async () => {
+      const roles = await accessControlService.getRoles();
+      expect(
+        roles.find((r) => r.name === 'Client')?.permissions.finance
+      ).toEqual(['view', 'approve']);
+    });
+  });
+
   test('a custom tick adds Delete on its own, bringing View with it', async () => {
     const view = await openTable();
     fireEvent.keyDown(

@@ -26,8 +26,16 @@ const PRESETS: { label: string; actions: AccessAction[] }[] = [
   { label: 'No access', actions: [] },
   { label: 'View only', actions: ['view'] },
   { label: 'View and create', actions: ['view', 'create'] },
+  { label: 'View and approve', actions: ['view', 'approve'] },
   { label: 'View, create and edit', actions: ['view', 'create', 'edit'] },
-  { label: 'Full access', actions: ['view', 'create', 'edit', 'delete'] },
+  {
+    label: 'View, create, edit and approve',
+    actions: ['view', 'create', 'edit', 'approve'],
+  },
+  {
+    label: 'Full access',
+    actions: ['view', 'create', 'edit', 'approve', 'delete'],
+  },
 ];
 
 /** "No access", "Full access", or the actions by name: "View, Edit". */
@@ -51,7 +59,7 @@ interface PermissionEditorProps {
   subject: string;
 }
 
-/** Modules grouped by section, each with a View / Create / Edit / Delete dropdown. */
+/** Modules grouped by section, each with a View / Create / Edit / Approve / Delete dropdown. */
 export function PermissionEditor({
   permissions,
   onChange,

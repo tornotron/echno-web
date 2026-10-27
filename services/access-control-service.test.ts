@@ -67,6 +67,7 @@ describe('roles', () => {
       'view',
       'create',
       'edit',
+      'approve',
       'delete',
     ]);
     expect(updated.userIds).toEqual([2, 3]);

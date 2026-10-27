@@ -36,6 +36,14 @@ describe('normalizeActions', () => {
     ]);
     expect(normalizeActions([])).toEqual([]);
   });
+
+  test('puts approve between edit and delete, and brings view with it', () => {
+    expect(normalizeActions(['delete', 'approve'])).toEqual([
+      'view',
+      'approve',
+      'delete',
+    ]);
+  });
 });
 
 describe('resolveEffectiveAccess', () => {

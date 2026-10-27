@@ -20,15 +20,16 @@
 
 /**
  * What a permission allows on a module. Each is granted on its own; create,
- * edit and delete all need view, which {@link normalizeActions} adds.
+ * edit, approve and delete all need view, which {@link normalizeActions} adds.
  */
-export type AccessAction = 'view' | 'create' | 'edit' | 'delete';
+export type AccessAction = 'view' | 'create' | 'edit' | 'approve' | 'delete';
 
 /** Display order. */
 export const ACCESS_ACTIONS = [
   'view',
   'create',
   'edit',
+  'approve',
   'delete',
 ] as const satisfies AccessAction[];
 
@@ -36,6 +37,7 @@ export const ACCESS_ACTION_LABELS: Record<AccessAction, string> = {
   view: 'View',
   create: 'Create',
   edit: 'Edit',
+  approve: 'Approve',
   delete: 'Delete',
 };
 
@@ -43,6 +45,7 @@ export const ACCESS_ACTION_DESCRIPTIONS: Record<AccessAction, string> = {
   view: 'See the module and read its records',
   create: 'Add new records',
   edit: 'Change existing records',
+  approve: 'Approve or reject items waiting for sign-off',
   delete: 'Remove records',
 };
 

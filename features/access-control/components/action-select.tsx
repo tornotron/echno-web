@@ -24,14 +24,19 @@ const PRESETS: { label: string; actions: AccessAction[] }[] = [
   { label: 'No Access', actions: [] },
   { label: 'View', actions: ['view'] },
   { label: 'View + Create', actions: ['view', 'create'] },
+  { label: 'View + Approve', actions: ['view', 'approve'] },
   { label: 'Edit', actions: ['view', 'create', 'edit'] },
-  { label: 'Full', actions: ['view', 'create', 'edit', 'delete'] },
+  { label: 'Edit + Approve', actions: ['view', 'create', 'edit', 'approve'] },
+  {
+    label: 'Full',
+    actions: ['view', 'create', 'edit', 'approve', 'delete'],
+  },
 ];
 
 const sameActions = (a: readonly AccessAction[], b: readonly AccessAction[]) =>
   a.length === b.length && a.every((x) => b.includes(x));
 
-/** "Full", "Edit", "View + Delete", "V · E · D": the cell's text. */
+/** "Full", "Edit", "View + Delete", "V · E · A": the cell's text. */
 export function actionsLabel(actions: readonly AccessAction[]): string {
   const preset = PRESETS.find((p) => sameActions(p.actions, actions));
   if (preset) return preset.label;
@@ -69,7 +74,7 @@ interface ActionSelectProps {
 
 /**
  * A coloured dropdown for one permission: pick a preset, or tick View,
- * Create, Edit and Delete one by one. As everywhere, any action brings
+ * Create, Edit, Approve and Delete one by one. As everywhere, any action brings
  * View with it and clearing View clears the rest.
  */
 export function ActionSelect({

@@ -15,14 +15,16 @@ import {
 const ACTION_CODES: Record<string, AccessAction[]> = {
   N: [],
   V: ['view'],
+  A: ['view', 'approve'],
   E: ['view', 'create', 'edit'],
-  F: ['view', 'create', 'edit', 'delete'],
+  P: ['view', 'create', 'edit', 'approve'],
+  F: ['view', 'create', 'edit', 'approve', 'delete'],
 };
 
 /**
  * Expands one matrix column, a letter per module in {@link ACCESS_MODULES}
- * order, into a permission map: N nothing, V view, E view, create and
- * edit, F all four.
+ * order, into a permission map: N nothing, V view, A view and approve,
+ * E view, create and edit, P those three and approve, F all five.
  */
 export function permissionsFromCodes(codes: string): PermissionMap {
   if (codes.length !== ACCESS_MODULES.length) {
@@ -168,7 +170,7 @@ export const seedRoles: AccessRole[] = [
     description:
       'Oversees projects and the organization; reads most modules and shapes project plans.',
     isSystem: false,
-    permissions: permissionsFromCodes('VEEVVVVVVVVVVNVEVVVVV'),
+    permissions: permissionsFromCodes('VEEVVVVVVAVVVNAEVAVVV'),
     userIds: [3],
   },
   {
@@ -178,7 +180,7 @@ export const seedRoles: AccessRole[] = [
     description:
       'Manages project planning, execution, site teams, and progress. Has edit access to key project modules.',
     isSystem: false,
-    permissions: permissionsFromCodes('VEEEVEEVVVVVVNVVEEEVV'),
+    permissions: permissionsFromCodes('VEEEVEEVVVVVVNAVEPPVV'),
     userIds: [1, 4, 11],
   },
   {
@@ -197,7 +199,7 @@ export const seedRoles: AccessRole[] = [
     subtitle: 'Quality',
     description: 'Raises and closes inspections, observations and NCRs.',
     isSystem: false,
-    permissions: permissionsFromCodes('VVVVEVNNNNNNNNNVNNNNV'),
+    permissions: permissionsFromCodes('VVVVPVNNNNNNNNNVNNNNV'),
     userIds: [7],
   },
   {
@@ -226,7 +228,7 @@ export const seedRoles: AccessRole[] = [
     subtitle: 'Finance',
     description: 'Runs the ledger, invoices and payments.',
     isSystem: false,
-    permissions: permissionsFromCodes('VNNNNNNNNNNNNEVNNNNNV'),
+    permissions: permissionsFromCodes('VNNNNNNNNNNNNPVNNNNNV'),
     userIds: [10],
   },
   {
@@ -236,7 +238,7 @@ export const seedRoles: AccessRole[] = [
     description:
       "The owner's representative: reads progress, inspections and shared documents.",
     isSystem: false,
-    permissions: permissionsFromCodes('VNNNVNNNNNNNNNNVNNNNV'),
+    permissions: permissionsFromCodes('VNNNANNNNNNNNNNVNNNNV'),
     userIds: [13],
   },
 ];
