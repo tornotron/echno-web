@@ -17,6 +17,7 @@ import {
   Network,
   Loader2,
   Star,
+  ShieldCheck,
 } from 'lucide-react';
 import Link from 'next/link';
 import { routes } from '@/nav';
@@ -31,6 +32,9 @@ import {
   OrganizationHierarchyTab,
 } from '@/features/organization';
 import { EmployeeTreeNode } from '@/features/employee';
+import { AccessControlView } from '@/features/access-control';
+import { useCan } from '@/hooks/use-can';
+import { ACCESS_CONTROL_ACCESS } from '@/nav/access/roles';
 
 interface OrganizationDetailPageProps {
   params: Promise<{
@@ -44,8 +48,9 @@ export default function OrganizationDetailPage({
   const resolvedParams = use(params);
   const organizationId = Number.parseInt(resolvedParams.id);
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'settings' | 'hierarchy'
+    'overview' | 'settings' | 'hierarchy' | 'access'
   >('overview');
+  const { allowed: canManageAccess } = useCan(ACCESS_CONTROL_ACCESS);
   const [selectedDepartment, setSelectedDepartment] =
     useState<Department | null>(null);
 
@@ -100,6 +105,9 @@ export default function OrganizationDetailPage({
     { id: 'overview', label: 'Overview', icon: Building2 },
     { id: 'settings', label: 'Settings', icon: Settings },
     { id: 'hierarchy', label: 'Hierarchy', icon: Network },
+    ...(canManageAccess
+      ? [{ id: 'access', label: 'Roles & Permissions', icon: ShieldCheck }]
+      : []),
   ];
 
   const hierarchyEmployees = orgEmployees;
@@ -206,7 +214,7 @@ export default function OrganizationDetailPage({
 
       {/* Tabs */}
       <div className="mb-6 border-b border-zinc-200 dark:border-zinc-800">
-        <nav className="flex space-x-8">
+        <nav className="flex space-x-8 overflow-x-auto whitespace-nowrap">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -254,6 +262,8 @@ export default function OrganizationDetailPage({
           renderNode={(node) => <EmployeeTreeNode node={node} />}
         />
       )}
+
+      {activeTab === 'access' && canManageAccess && <AccessControlView />}
     </div>
   );
 }

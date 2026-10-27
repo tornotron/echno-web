@@ -115,6 +115,15 @@ export const BILLING_ACCESS: AccessConfig = {
   allowOrgRoles: [OrgRole.SYSTEM_ADMIN],
 } as const;
 
+/**
+ * The Roles & Permissions tab on the organization page (roles, departments
+ * and groups, per-user grants). Changing who can reach what is the system
+ * administrator's call alone, the same narrow gate as billing.
+ */
+export const ACCESS_CONTROL_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN],
+} as const;
+
 // ---------------------------------------------------------------------------
 // Roles-matrix gates (echno-backend #853)
 // ---------------------------------------------------------------------------
