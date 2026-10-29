@@ -1,7 +1,7 @@
 /**
  * The Roles & Permissions tab on the access endpoints: a table per tier,
- * with the editor in a drawer. Pins a cell saving the role's whole grant
- * list, the scope applying to the whole cell, locked grants and roles the
+ * with the editor in a drawer. Pins cell edits waiting for Save changes,
+ * then sending the role's whole grant list, five roles a page, the scope applying to the whole cell, locked grants and roles the
  * caller may not change staying read-only, the discard guard, and a
  * person's access from their groups.
  */
@@ -83,6 +83,8 @@ const roles = [
     grants: [grant('assets:view'), grant('assets:create')],
   }),
   role({ id: 'owner', name: 'Owner', grants: all('finance') }),
+  // The sixth role, so the matrix has a second page.
+  role({ id: 'engineer', name: 'Site Engineer', grants: [] }),
 ];
 
 const groups = [
@@ -186,6 +188,18 @@ const openCell = async (view: ReturnType<typeof render>, name: string) => {
   return within(await view.findByRole('menu'));
 };
 
+/** Closes a cell's menu if a choice left it open (the scope and the checkboxes do). */
+function closeMenu(view: ReturnType<typeof render>) {
+  const menu = view.queryByRole('menu');
+  if (menu) fireEvent.keyDown(menu, { key: 'Escape' });
+}
+
+/** Clicks the matrix's Save changes and waits for the write. */
+async function saveMatrix(view: ReturnType<typeof render>) {
+  fireEvent.click(view.getByRole('button', { name: 'Save changes' }));
+  await waitFor(() => expect(setRoleGrants).toHaveBeenCalled());
+}
+
 /** The grants the last cell write sent, as `permission@scope`. */
 const sent = () =>
   (setRoleGrants.mock.calls.at(-1)?.[1] as AccessGrantRequest[])
@@ -193,11 +207,14 @@ const sent = () =>
     .toSorted();
 
 describe('AccessControlView', () => {
-  test("a cell saves at once, sending the role's whole grant list", async () => {
+  test("a cell's change waits for Save changes, which sends the role's whole grant list", async () => {
     const view = await openTable();
     const menu = await openCell(view, 'Asset Clerk: Finance: No Access');
     fireEvent.click(menu.getByRole('menuitem', { name: 'View + Create' }));
-    await waitFor(() => expect(setRoleGrants).toHaveBeenCalled());
+    closeMenu(view);
+    expect(setRoleGrants).not.toHaveBeenCalled();
+    expect(view.getByText(/Unsaved changes to 1 role/)).toBeTruthy();
+    await saveMatrix(view);
     expect(setRoleGrants.mock.calls[0][0]).toBe('clerk');
     expect(sent()).toEqual([
       'assets:create@ALL',
@@ -213,7 +230,8 @@ describe('AccessControlView', () => {
     fireEvent.click(
       menu.getByRole('menuitemradio', { name: 'Assigned projects' })
     );
-    await waitFor(() => expect(setRoleGrants).toHaveBeenCalled());
+    closeMenu(view);
+    await saveMatrix(view);
     expect(sent()).toEqual(
       STANDARD.map((a) => `assets:${a}@ASSIGNED_PROJECTS`).toSorted()
     );
@@ -228,10 +246,13 @@ describe('AccessControlView', () => {
     expect(menu.getByRole('menuitemradio', { name: 'All' })).toHaveAttribute(
       'data-disabled'
     );
+    // Clearing the cell keeps what is locked, so nothing is left to save.
     fireEvent.click(menu.getByRole('menuitem', { name: 'No Access' }));
-    await waitFor(() => expect(setRoleGrants).toHaveBeenCalled());
-    expect(sent()).toContain('leave:view@OWN');
-    expect(sent()).toContain('leave:create@OWN');
+    closeMenu(view);
+    expect(
+      view.getByRole('button', { name: 'Member: Leave: View + Create · Own' })
+    ).toBeTruthy();
+    expect(view.queryByText(/Unsaved changes/)).toBeNull();
   });
 
   test("a role the caller's roles may not assign is read-only", async () => {
@@ -244,6 +265,46 @@ describe('AccessControlView', () => {
         name: 'Asset Clerk: Assets: View + Create · All',
       })
     ).toHaveProperty('disabled', false);
+  });
+
+  test('Discard drops the pending edits without a write', async () => {
+    const view = await openTable();
+    const menu = await openCell(view, 'Asset Clerk: Finance: No Access');
+    fireEvent.click(menu.getByRole('menuitem', { name: 'Full' }));
+    closeMenu(view);
+    expect(
+      view.getByRole('button', { name: 'Asset Clerk: Finance: Full · All' })
+    ).toBeTruthy();
+    fireEvent.click(view.getByRole('button', { name: 'Discard' }));
+    expect(
+      view.getByRole('button', { name: 'Asset Clerk: Finance: No Access' })
+    ).toBeTruthy();
+    expect(view.queryByText(/Unsaved changes/)).toBeNull();
+    expect(setRoleGrants).not.toHaveBeenCalled();
+  });
+
+  test('leaving the matrix with pending edits asks first', async () => {
+    const view = await openTable();
+    const menu = await openCell(view, 'Asset Clerk: Finance: No Access');
+    fireEvent.click(menu.getByRole('menuitem', { name: 'View' }));
+    closeMenu(view);
+    fireEvent.mouseDown(view.getByRole('tab', { name: /^Users/ }));
+    await waitFor(() =>
+      expect(view.getByText('Discard unsaved changes?')).toBeTruthy()
+    );
+  });
+
+  test('shows five roles a page', async () => {
+    const view = await openTable();
+    expect(view.getByText('Roles 1–5 of 6')).toBeTruthy();
+    expect(
+      view.queryByRole('button', { name: /^Site Engineer(?!:)/ })
+    ).toBeNull();
+    fireEvent.click(view.getByRole('button', { name: 'Next roles' }));
+    expect(
+      view.getByRole('button', { name: /^Site Engineer(?!:)/ })
+    ).toBeTruthy();
+    expect(view.queryByRole('button', { name: /^Admin(?!:)/ })).toBeNull();
   });
 
   test('a column header opens the role in a drawer with a dropdown per area', async () => {

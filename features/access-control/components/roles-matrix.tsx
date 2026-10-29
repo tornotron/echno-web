@@ -1,7 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
+  ChevronLeft,
+  ChevronRight,
   Copy,
   Loader2,
   Lock,
@@ -28,14 +30,18 @@ import {
   EmptyTitle,
 } from '@/components/shadcn/empty';
 import { toast } from '@/lib/styles/toast-styles';
-import { useSetRoleCell } from '@/hooks/access-control';
+import { useSaveRoleGrants } from '@/hooks/access-control';
+import { cn } from '@/lib/utils';
 import { errorMessage } from '../lib/error-message';
 import {
   lockedActions,
   mayChangeRole,
+  samePermissions,
+  setCell,
   toPermissionMap,
   type AccessCatalog,
   type AccessRole,
+  type PermissionMap,
 } from '@/types/access-control';
 import { areaIcon } from '../lib/module-icons';
 import { ActionSelect } from './action-select';
@@ -45,6 +51,9 @@ interface RolesMatrixProps {
   roles: AccessRole[];
   /** Roles the caller may change; other columns are read-only. */
   assignable: Set<string>;
+  /** Unsaved cell edits: each changed role's whole permission map. */
+  draft: Record<string, PermissionMap>;
+  onDraftChange: (draft: Record<string, PermissionMap>) => void;
   isLoading: boolean;
   isError: boolean;
   onOpen: (role: AccessRole) => void;
@@ -52,16 +61,22 @@ interface RolesMatrixProps {
   onCreate: () => void;
 }
 
+/** Roles shown side by side; the rest are a page away. */
+export const ROLES_PER_PAGE = 5;
+
 /**
  * The table layout: areas down the side under their section headings, one
- * column per role, a coloured dropdown in every cell. A cell saves as soon
- * as it changes; a column header opens the role's full editor. A column the
- * caller may not change is read-only, and a locked grant cannot be cleared.
+ * column per role, a coloured dropdown in every cell, five roles a page. A
+ * cell's change waits, marked, until Save changes; Discard drops them all.
+ * A column header opens the role's full editor. A column the caller may not
+ * change is read-only, and a locked grant cannot be cleared.
  */
 export function RolesMatrix({
   catalog,
   roles,
   assignable,
+  draft,
+  onDraftChange,
   isLoading,
   isError,
   onOpen,
@@ -69,7 +84,8 @@ export function RolesMatrix({
   onCreate,
 }: RolesMatrixProps) {
   const [query, setQuery] = useState('');
-  const setCell = useSetRoleCell();
+  const [page, setPage] = useState(0);
+  const save = useSaveRoleGrants();
   const areas = useMemo(() => catalog?.areas ?? [], [catalog]);
 
   // A query that names a role narrows the columns; one that names an area
@@ -111,19 +127,119 @@ export function RolesMatrix({
     rows.some((a) => a.section === s)
   );
 
+  const pageCount = Math.max(1, Math.ceil(columns.length / ROLES_PER_PAGE));
+  const safePage = Math.min(page, pageCount - 1);
+  const shown = columns.slice(
+    safePage * ROLES_PER_PAGE,
+    (safePage + 1) * ROLES_PER_PAGE
+  );
+
+  // Once the roles reload, an edit the server now holds is no longer pending.
+  // This also clears what a save got through before a refused role stopped it.
+  useEffect(() => {
+    const kept = Object.entries(draft).filter(([id, map]) => {
+      const server = cells.get(id)?.map;
+      return server !== undefined && !samePermissions(map, server);
+    });
+    if (kept.length !== Object.keys(draft).length)
+      onDraftChange(Object.fromEntries(kept));
+  }, [cells, draft, onDraftChange]);
+
+  const changedRoles = Object.keys(draft).length;
+
+  function edit(role: AccessRole, area: string, cell: PermissionMap[string]) {
+    const server = cells.get(role.id)?.map ?? {};
+    const next = setCell(draft[role.id] ?? server, area, cell);
+    const rest = { ...draft };
+    delete rest[role.id];
+    onDraftChange(
+      samePermissions(next, server) ? rest : { ...rest, [role.id]: next }
+    );
+  }
+
+  async function handleSave() {
+    try {
+      await save.mutateAsync(draft);
+      toast.success(
+        `Saved ${changedRoles} role${changedRoles === 1 ? '' : 's'}`
+      );
+    } catch (error) {
+      toast.error(errorMessage(error, 'Could not save the changes'));
+    }
+  }
+
   return (
     <div className="flex min-w-0 flex-col">
-      <div className="border-b px-4 py-2">
+      <div className="flex flex-wrap items-center gap-3 border-b px-4 py-2">
         <div className="relative w-full max-w-xs">
           <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
           <Input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setPage(0);
+            }}
             placeholder="Search modules or roles…"
             aria-label="Search modules or roles"
             className="h-8 pl-8 text-sm"
           />
         </div>
+        {changedRoles > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-zinc-500" aria-live="polite">
+              Unsaved changes to {changedRoles} role
+              {changedRoles === 1 ? '' : 's'}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8"
+              onClick={() => onDraftChange({})}
+              disabled={save.isPending}
+            >
+              Discard
+            </Button>
+            <Button
+              size="sm"
+              className="h-8"
+              onClick={handleSave}
+              disabled={save.isPending}
+            >
+              {save.isPending && (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              )}
+              Save changes
+            </Button>
+          </div>
+        )}
+        {pageCount > 1 && (
+          <div className="ml-auto flex items-center gap-1 text-xs text-zinc-500">
+            <span aria-live="polite">
+              Roles {safePage * ROLES_PER_PAGE + 1}–
+              {safePage * ROLES_PER_PAGE + shown.length} of {columns.length}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              aria-label="Previous roles"
+              disabled={safePage === 0}
+              onClick={() => setPage(safePage - 1)}
+            >
+              <ChevronLeft className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              aria-label="Next roles"
+              disabled={safePage >= pageCount - 1}
+              onClick={() => setPage(safePage + 1)}
+            >
+              <ChevronRight className="size-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
       {(() => {
@@ -173,21 +289,21 @@ export function RolesMatrix({
             </div>
           );
         return (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-sm">
+          <div className="max-h-[70vh] overflow-auto">
+            <table className="w-full border-separate border-spacing-0 text-sm">
               <thead>
-                <tr className="border-b">
+                <tr>
                   <th
                     scope="col"
-                    className="bg-card sticky left-0 z-10 min-w-56 px-4 py-3 text-left text-sm font-semibold text-zinc-900 dark:text-zinc-100"
+                    className="bg-card sticky top-0 left-0 z-30 min-w-56 border-b px-4 py-3 text-left text-sm font-semibold text-zinc-900 dark:text-zinc-100"
                   >
                     Area
                   </th>
-                  {columns.map((role) => (
+                  {shown.map((role) => (
                     <th
                       key={role.id}
                       scope="col"
-                      className="min-w-32 border-l px-2 py-2 align-top font-normal"
+                      className="bg-card sticky top-0 z-20 min-w-40 border-b border-l px-2 py-2 align-top font-normal"
                     >
                       <RoleColumnHeader
                         role={role}
@@ -200,11 +316,11 @@ export function RolesMatrix({
               </thead>
               {sections.map((section) => (
                 <tbody key={section}>
-                  <tr className="border-b bg-zinc-50/60 dark:bg-zinc-900/40">
+                  <tr className="bg-zinc-50 dark:bg-zinc-900">
                     <th
                       scope="colgroup"
-                      colSpan={columns.length + 1}
-                      className="sticky left-0 px-4 py-1.5 text-left text-xs font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-400"
+                      colSpan={shown.length + 1}
+                      className="border-b px-4 py-1.5 text-left text-xs font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-400"
                     >
                       {section}
                     </th>
@@ -216,11 +332,11 @@ export function RolesMatrix({
                       return (
                         <tr
                           key={module.id}
-                          className="border-b hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                          className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                         >
                           <th
                             scope="row"
-                            className="bg-card sticky left-0 z-10 px-4 py-1.5 text-left font-normal"
+                            className="bg-card sticky left-0 z-10 border-b px-4 py-1.5 text-left font-normal"
                           >
                             <span className="flex items-center gap-2.5 text-zinc-700 dark:text-zinc-300">
                               <Icon className="size-4 shrink-0 text-zinc-500" />
@@ -229,34 +345,50 @@ export function RolesMatrix({
                               </span>
                             </span>
                           </th>
-                          {columns.map((role) => (
-                            <td key={role.id} className="border-l px-2 py-1.5">
-                              <div className="flex justify-center">
-                                <ActionSelect
-                                  area={module}
-                                  value={cells.get(role.id)?.map[module.id]}
-                                  locked={cells.get(role.id)?.locked[module.id]}
-                                  scopes={catalog.scopes}
-                                  disabled={!mayChangeRole(role, assignable)}
-                                  ariaLabel={`${role.name}: ${module.label}`}
-                                  onChange={(cell) =>
-                                    setCell.mutate(
-                                      { role, area: module.id, cell },
-                                      {
-                                        onError: (error) =>
-                                          toast.error(
-                                            errorMessage(
-                                              error,
-                                              'Could not change the permission'
-                                            )
-                                          ),
-                                      }
-                                    )
-                                  }
-                                />
-                              </div>
-                            </td>
-                          ))}
+                          {shown.map((role) => {
+                            const server = cells.get(role.id)?.map[module.id];
+                            const value = draft[role.id]
+                              ? draft[role.id][module.id]
+                              : server;
+                            const changed =
+                              draft[role.id] !== undefined &&
+                              !samePermissions(
+                                { [module.id]: value ?? {} },
+                                { [module.id]: server ?? {} }
+                              );
+                            return (
+                              <td
+                                key={role.id}
+                                className="border-b border-l px-2 py-1.5"
+                              >
+                                <div
+                                  className={cn(
+                                    'flex justify-center rounded-md',
+                                    changed &&
+                                      'ring-2 ring-blue-400 ring-offset-1 dark:ring-blue-500'
+                                  )}
+                                  data-changed={changed || undefined}
+                                >
+                                  <ActionSelect
+                                    area={module}
+                                    value={value}
+                                    locked={
+                                      cells.get(role.id)?.locked[module.id]
+                                    }
+                                    scopes={catalog.scopes}
+                                    disabled={
+                                      save.isPending ||
+                                      !mayChangeRole(role, assignable)
+                                    }
+                                    ariaLabel={`${role.name}: ${module.label}`}
+                                    onChange={(cell) =>
+                                      edit(role, module.id, cell)
+                                    }
+                                  />
+                                </div>
+                              </td>
+                            );
+                          })}
                         </tr>
                       );
                     })}

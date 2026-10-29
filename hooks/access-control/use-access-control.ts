@@ -19,7 +19,7 @@ import {
   type AccessGroup,
   type AccessRole,
   type AccessUser,
-  type AreaGrants,
+  type PermissionMap,
   type GroupDraft,
   type RoleDraft,
   type UserDraft,
@@ -47,69 +47,19 @@ function useRefreshAccess() {
 }
 
 /**
- * Sets one cell of the roles matrix by sending the role's whole grant list.
- * Patches the roles cache first so the cell settles at once, and rolls back
- * if the write is refused.
+ * Saves the roles matrix's pending edits: each changed role's whole grant
+ * list, one role at a time. A refused role stops the save; the roles before
+ * it stay saved, and the refresh shows them.
  */
-export const useSetRoleCell = () => {
-  const queryClient = useQueryClient();
+export const useSaveRoleGrants = () => {
+  const refresh = useRefreshAccess();
   return useMutation({
-    mutationFn: ({
-      role,
-      area,
-      cell,
-    }: {
-      role: AccessRole;
-      area: string;
-      cell: AreaGrants;
-    }) => {
-      const map = { ...toPermissionMap(role.grants), [area]: cell };
-      return accessService.setRoleGrants(role.id, toGrantRequests(map));
+    mutationFn: async (changes: Record<string, PermissionMap>) => {
+      for (const [roleId, permissions] of Object.entries(changes)) {
+        await accessService.setRoleGrants(roleId, toGrantRequests(permissions));
+      }
     },
-    onMutate: async ({ role, area, cell }) => {
-      await queryClient.cancelQueries({ queryKey: accessKeys.roles() });
-      const previous = queryClient.getQueryData<AccessRole[]>(
-        accessKeys.roles()
-      );
-      const others = role.grants.filter(
-        (g) => !g.permission.startsWith(`${area}:`)
-      );
-      const kept = role.grants.filter(
-        (g) => g.permission.startsWith(`${area}:`) && g.locked
-      );
-      const added = Object.entries(cell)
-        .map(([action, scope]) => ({
-          permission: `${area}:${action}`,
-          scope,
-          locked: false,
-        }))
-        .filter(
-          (g) =>
-            !kept.some(
-              (k) => k.permission === g.permission && k.scope === g.scope
-            )
-        );
-      queryClient.setQueryData<AccessRole[]>(accessKeys.roles(), (rows) =>
-        rows?.map((r) =>
-          r.id === role.id
-            ? { ...r, grants: [...others, ...kept, ...added] }
-            : r
-        )
-      );
-      return { previous };
-    },
-    onError: (_error, _vars, context) => {
-      if (context?.previous)
-        queryClient.setQueryData(accessKeys.roles(), context.previous);
-    },
-    onSuccess: (updated) => {
-      // PUT /access/web/roles/{roleId}/grants → AccessRoleDto (full)
-      queryClient.setQueryData<AccessRole[]>(accessKeys.roles(), (rows) =>
-        rows?.map((r) => (r.id === updated.id ? updated : r))
-      );
-    },
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: accessKeys.currentUser() }),
+    onSettled: refresh,
   });
 };
 

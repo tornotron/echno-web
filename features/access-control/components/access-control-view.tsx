@@ -23,6 +23,7 @@ import {
   assignableRoleIds,
   toPermissionMap,
   type AccessRole,
+  type PermissionMap,
   type RoleDraft,
 } from '@/types/access-control';
 import { ConfirmDialog } from './confirm-dialog';
@@ -55,8 +56,9 @@ function resolveSelection<T>(
 
 /**
  * Roles, departments and groups, and users, each as a table: the roles by
- * modules matrix edits in place, and a column header or a row opens the full
- * editor in a drawer. The three tiers are independent; each editor links to
+ * areas matrix holds its cell edits until Save changes, and a column header
+ * or a row opens the full editor in a drawer. Leaving either with unsaved
+ * edits asks first. The three tiers are independent; each editor links to
  * the other two through its member chips.
  */
 export function AccessControlView() {
@@ -85,12 +87,17 @@ export function AccessControlView() {
   const [roleTemplate, setRoleTemplate] = useState<RoleDraft>();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [dirty, setDirty] = useState(false);
+  /** The roles matrix's unsaved cell edits, by role id. */
+  const [matrixDraft, setMatrixDraft] = useState<Record<string, PermissionMap>>(
+    {}
+  );
+  const matrixDirty = Object.keys(matrixDraft).length > 0;
   /** A navigation held back until the user agrees to drop their edits. */
   const [pending, setPending] = useState<(() => void) | null>(null);
 
   /** Runs `go` now, or after a "discard changes?" confirm when there are edits. */
   const guard = (go: () => void) => {
-    if (dirty) setPending(() => go);
+    if (dirty || matrixDirty) setPending(() => go);
     else go();
   };
 
@@ -237,6 +244,8 @@ export function AccessControlView() {
           catalog={catalog}
           roles={roles}
           assignable={assignable}
+          draft={matrixDraft}
+          onDraftChange={setMatrixDraft}
           isLoading={rolesQuery.isLoading || catalogQuery.isLoading}
           isError={rolesQuery.isError || catalogQuery.isError}
           onOpen={(r) => openInSheet('roles', r.id)}
@@ -292,6 +301,7 @@ export function AccessControlView() {
           const go = pending;
           setPending(null);
           setDirty(false);
+          setMatrixDraft({});
           go?.();
         }}
       />
