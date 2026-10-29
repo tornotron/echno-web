@@ -13,7 +13,8 @@ import type { MetadataRegistry, RouteMetadata } from '../types';
 import {
   STORES_ACCESS,
   STORAGE_LOCATION_WRITE_ACCESS,
-  ASSET_WRITE_ACCESS,
+  ASSET_CREATE_ACCESS,
+  ASSET_EDIT_ACCESS,
 } from '../access/roles';
 
 /**
@@ -39,11 +40,17 @@ const storageLocationWrite = {
 } satisfies RouteMetadata;
 
 /**
- * Asset writes are `system-admin` or `project-manager` (echno-backend #853).
- * The register itself stays open to any member.
+ * Registering and changing an asset need `assets:create` and `assets:edit` on
+ * the access matrix (echno-backend #913). The register itself stays open to
+ * any member.
  */
-const assetWrite = {
-  access: ASSET_WRITE_ACCESS,
+const assetCreate = {
+  access: ASSET_CREATE_ACCESS,
+  hideWhenLocked: true,
+} satisfies RouteMetadata;
+
+const assetEdit = {
+  access: ASSET_EDIT_ACCESS,
   hideWhenLocked: true,
 } satisfies RouteMetadata;
 
@@ -62,13 +69,13 @@ export const resourcesMetadata = {
     order: 2,
   },
   'resources-assets-new': {
-    ...assetWrite,
+    ...assetCreate,
     label: 'New Asset',
     sidebarHidden: true,
   },
   'resources-assets-[id]': { label: 'Asset', sidebarHidden: true },
   'resources-assets-[id]-edit': {
-    ...assetWrite,
+    ...assetEdit,
     label: 'Edit',
     sidebarHidden: true,
   },

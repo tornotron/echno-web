@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useEmployeeRoles } from '@tornotron/echno-core/employee/hooks';
+import { useCurrentUserAccess } from '@tornotron/echno-core/access/hooks';
 import {
   isAdmin as hasAdminRole,
   isManagerOrAbove as hasManagerRole,
@@ -20,7 +21,10 @@ import {
   type ResolvedNavItem,
   type Role,
 } from '@/nav';
-import { useEnabledModuleIds, shouldShowNavSkeleton } from '@/hooks/use-enabled-module-ids';
+import {
+  useEnabledModuleIds,
+  shouldShowNavSkeleton,
+} from '@/hooks/use-enabled-module-ids';
 import { ChevronRight, Lock, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -154,6 +158,8 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
     moduleIds: enabledModules,
   });
 
+  const { access } = useCurrentUserAccess();
+
   const sections = useMemo(() => {
     const role = toNavRole(orgRoles as string[]);
     const items = resolveSidebarAccess(getSidebarItems(), {
@@ -161,12 +167,15 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
       // Passed alongside the collapsed tier so entries gated on a specific
       // backend role (allowOrgRoles, e.g. the store documents) can resolve.
       orgRoles,
+      // The caller's access on the matrix, for entries gated on one of its
+      // permissions (matrixPermission, e.g. the asset forms).
+      access,
       permissions: getPermissionsForRole(role),
       isAuthenticated: true,
       enabledModules,
     });
     return groupBySection(items);
-  }, [orgRoles, enabledModules]);
+  }, [orgRoles, access, enabledModules]);
 
   const activePath = useMemo(
     () =>
@@ -381,16 +390,17 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-        {!navPending && sections.map((group) => (
-          <SidebarGroup key={group.section.id}>
-            <SidebarGroupLabel>{group.section.label}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {group.items.map((item) => renderItem(item))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
+        {!navPending &&
+          sections.map((group) => (
+            <SidebarGroup key={group.section.id}>
+              <SidebarGroupLabel>{group.section.label}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {group.items.map((item) => renderItem(item))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))}
       </SidebarContent>
 
       <SidebarFooter>

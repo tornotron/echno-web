@@ -62,7 +62,8 @@ import {
 } from '@/features/assets/components';
 import { useCan } from '@/hooks/use-can';
 import {
-  ASSET_WRITE_ACCESS,
+  ASSET_DELETE_ACCESS,
+  ASSET_EDIT_ACCESS,
   SITE_TRANSFER_WRITE_ACCESS,
 } from '@/nav/access/roles';
 
@@ -79,9 +80,10 @@ const getUtilizationColor = (utilization: number) => {
 };
 
 export default function AssetDetailPage() {
-  // Editing, deleting and moving an asset are the project pair's
-  // (echno-backend #853); any member reads it.
-  const { allowed: canWrite } = useCan(ASSET_WRITE_ACCESS);
+  // Changing and removing an asset need assets:edit and assets:delete on the
+  // access matrix (echno-backend #913); any member reads it.
+  const { allowed: canEdit } = useCan(ASSET_EDIT_ACCESS);
+  const { allowed: canDelete } = useCan(ASSET_DELETE_ACCESS);
   // Moving an asset to another site is a site transfer, which the stores pair
   // raises (system-admin, store-keeper).
   const { allowed: canTransfer } = useCan(SITE_TRANSFER_WRITE_ACCESS);
@@ -142,22 +144,26 @@ export default function AssetDetailPage() {
         title={asset.name}
         description={asset.assetId}
         actions={
-          canWrite ? (
+          canEdit || canDelete ? (
             <>
-              <Button asChild variant="outline">
-                <Link href={routes.resources.assets.detail(asset.id).edit}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit
-                </Link>
-              </Button>
-              <Button
-                variant="outline"
-                className="text-red-600 hover:text-red-700"
-                onClick={handleDelete}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </Button>
+              {canEdit && (
+                <Button asChild variant="outline">
+                  <Link href={routes.resources.assets.detail(asset.id).edit}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                  </Link>
+                </Button>
+              )}
+              {canDelete && (
+                <Button
+                  variant="outline"
+                  className="text-red-600 hover:text-red-700"
+                  onClick={handleDelete}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </Button>
+              )}
             </>
           ) : undefined
         }

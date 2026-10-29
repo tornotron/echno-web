@@ -47,6 +47,9 @@ export type Permission =
   | 'toolbox-talks:read'
   | 'toolbox-talks:manage';
 
+/** A permission on the backend's access matrix: `<area>:<action>`. */
+export type MatrixPermission = `${string}:${string}`;
+
 // ---------------------------------------------------------------------------
 // Access config
 // ---------------------------------------------------------------------------
@@ -74,6 +77,17 @@ export interface AccessConfig {
 
   /** All listed permissions must be satisfied. */
   permissions?: Permission[];
+
+  /**
+   * A permission on the backend's access matrix, as `<area>:<action>` (for
+   * example `assets:create`), that the reader must hold at some scope. Use it
+   * where the backend guards the endpoint with `@access.can(area, action)`.
+   * Checked against `GET /access/web/current-user-access`, not against roles,
+   * so a role an organization made itself counts. Fail-closed: when the
+   * caller supplies no `access` in its context, a config that names one is
+   * denied.
+   */
+  matrixPermission?: MatrixPermission;
 
   /** Requires authentication but no specific role. Defaults to true for all nav items. */
   requireAuth?: boolean;
@@ -153,11 +167,24 @@ export const STORAGE_LOCATION_WRITE_ACCESS: AccessConfig = {
 } as const;
 
 /**
- * Registering, editing and deleting an asset, and recording a movement on
- * one, is `system-admin` or `project-manager`. Any member reads the register.
+ * The asset register's writes, one per backend check (echno-backend #913):
+ * registering an asset (and recording a movement) needs `assets:create`,
+ * changing one `assets:edit`, removing one `assets:delete`. Any member reads
+ * the register. Read from the access matrix, so whichever roles an
+ * organization gives these to pass.
  */
-export const ASSET_WRITE_ACCESS: AccessConfig = {
-  allowOrgRoles: [OrgRole.SYSTEM_ADMIN, OrgRole.PROJECT_MANAGER],
+export const ASSET_CREATE_ACCESS: AccessConfig = {
+  matrixPermission: 'assets:create',
+} as const;
+
+/** Changing an asset. See {@link ASSET_CREATE_ACCESS}. */
+export const ASSET_EDIT_ACCESS: AccessConfig = {
+  matrixPermission: 'assets:edit',
+} as const;
+
+/** Removing an asset. See {@link ASSET_CREATE_ACCESS}. */
+export const ASSET_DELETE_ACCESS: AccessConfig = {
+  matrixPermission: 'assets:delete',
 } as const;
 
 /**

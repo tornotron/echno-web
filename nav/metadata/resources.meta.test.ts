@@ -2,7 +2,8 @@ import { describe, expect, test } from 'bun:test';
 import { OrgRole } from '@tornotron/echno-core/employee/types';
 import { resourcesMetadata } from './resources.meta';
 import {
-  ASSET_WRITE_ACCESS,
+  ASSET_CREATE_ACCESS,
+  ASSET_EDIT_ACCESS,
   STORAGE_LOCATION_WRITE_ACCESS,
   STORES_ACCESS,
 } from '../access/roles';
@@ -35,12 +36,15 @@ const STORAGE_LOCATION_ENTRIES = {
   'resources-storage-locations-[id]-edit': STORAGE_LOCATION_WRITE_ACCESS,
 } as const;
 
-/** Assets: any member reads the register, the project pair writes it. */
+/**
+ * Assets: any member reads the register; registering and changing one need
+ * assets:create and assets:edit on the access matrix.
+ */
 const ASSET_ENTRIES = {
   'resources-assets': undefined,
-  'resources-assets-new': ASSET_WRITE_ACCESS,
+  'resources-assets-new': ASSET_CREATE_ACCESS,
   'resources-assets-[id]': undefined,
-  'resources-assets-[id]-edit': ASSET_WRITE_ACCESS,
+  'resources-assets-[id]-edit': ASSET_EDIT_ACCESS,
 } as const;
 
 const isGatedId = (id: string) =>

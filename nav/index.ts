@@ -67,7 +67,12 @@ export type {
   MetadataRegistry,
 } from './types';
 
-export type { Role, Permission, AccessConfig } from './access/roles';
+export type {
+  Role,
+  Permission,
+  MatrixPermission,
+  AccessConfig,
+} from './access/roles';
 export {
   OPEN_ACCESS,
   ADMIN_ONLY,
@@ -77,7 +82,9 @@ export {
   PROJECT_WRITE_ACCESS,
   CONSTRUCTION_INVOICES_ACCESS,
   STORAGE_LOCATION_WRITE_ACCESS,
-  ASSET_WRITE_ACCESS,
+  ASSET_CREATE_ACCESS,
+  ASSET_EDIT_ACCESS,
+  ASSET_DELETE_ACCESS,
   STOCK_ADJUSTMENT_DECIDE_ACCESS,
   VENDOR_READ_ACCESS,
   VENDOR_WRITE_ACCESS,
