@@ -29,10 +29,12 @@ import {
   EmptyTitle,
 } from '@/components/shadcn/empty';
 import { Pagination } from '@/components/common';
-import type {
-  AccessGroup,
-  AccessRole,
-  AccessUser,
+import {
+  rolesOf,
+  splitPermission,
+  type AccessGroup,
+  type AccessRole,
+  type AccessUser,
 } from '@/types/access-control';
 import { ChipList } from './chip-list';
 import { initialsOf } from './user-editor';
@@ -43,7 +45,7 @@ interface UsersTableProps {
   groups: AccessGroup[];
   isLoading: boolean;
   isError: boolean;
-  onOpen: (userId: number) => void;
+  onOpen: (employeeId: number) => void;
 }
 
 /** The table layout for users: who holds which roles and groups, one row each. */
@@ -63,20 +65,21 @@ export function UsersTable({
   const rows = useMemo(
     () =>
       users.map((user) => {
-        const userRoles = roles.filter((r) => r.userIds.includes(user.id));
+        // Everyone holds the baseline role, so it says nothing here.
+        const userRoles = rolesOf(user, roles, groups).filter(
+          (r) => !r.baseline
+        );
         const roleIds = new Set(userRoles.map((r) => r.id));
         return {
           user,
           roleIds,
           roleNames: userRoles.map((r) => r.name),
           groupNames: groups
-            .filter(
-              (g) =>
-                g.userIds.includes(user.id) ||
-                g.roleIds.some((id) => roleIds.has(id))
-            )
+            .filter((g) => user.groupIds.includes(g.id))
             .map((g) => g.name),
-          extraCount: Object.keys(user.permissions).length,
+          extraCount: new Set(
+            user.grants.map((g) => splitPermission(g.permission)[0])
+          ).size,
         };
       }),
     [users, roles, groups]
@@ -88,12 +91,12 @@ export function UsersTable({
       if (
         q &&
         !user.name.toLowerCase().includes(q) &&
-        !user.email.toLowerCase().includes(q) &&
-        !user.designation.toLowerCase().includes(q)
+        !user.email?.toLowerCase().includes(q) &&
+        !user.designation?.toLowerCase().includes(q)
       )
         return false;
       if (roleFilter === 'none') return roleIds.size === 0;
-      if (roleFilter !== 'all') return roleIds.has(Number(roleFilter));
+      if (roleFilter !== 'all') return roleIds.has(roleFilter);
       return true;
     });
   }, [rows, search, roleFilter]);
@@ -137,11 +140,13 @@ export function UsersTable({
           <SelectContent>
             <SelectItem value="all">All roles</SelectItem>
             <SelectItem value="none">No role</SelectItem>
-            {roles.map((r) => (
-              <SelectItem key={r.id} value={String(r.id)}>
-                {r.name}
-              </SelectItem>
-            ))}
+            {roles
+              .filter((r) => !r.baseline)
+              .map((r) => (
+                <SelectItem key={r.id} value={r.id}>
+                  {r.name}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
         <div className="ml-auto flex items-center gap-2 border-l pl-3">
@@ -210,10 +215,10 @@ export function UsersTable({
               <TableBody>
                 {paginated.map(
                   ({ user, roleNames, groupNames, extraCount }) => {
-                    const open = () => onOpen(user.id);
+                    const open = () => onOpen(user.employeeId);
                     return (
                       <TableRow
-                        key={user.id}
+                        key={user.employeeId}
                         role="button"
                         tabIndex={0}
                         aria-label={`Manage access for ${user.name}`}
@@ -251,11 +256,11 @@ export function UsersTable({
                         </TableCell>
                         <TableCell className="text-center text-sm text-zinc-700 dark:text-zinc-300">
                           {extraCount > 0
-                            ? `${extraCount} module${extraCount === 1 ? '' : 's'}`
+                            ? `${extraCount} area${extraCount === 1 ? '' : 's'}`
                             : '—'}
                         </TableCell>
                         <TableCell className="pr-4">
-                          {user.isActive ? (
+                          {user.active ? (
                             <Badge className="bg-green-100 font-normal text-green-700 dark:bg-green-900/30 dark:text-green-400">
                               Active
                             </Badge>

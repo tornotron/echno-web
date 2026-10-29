@@ -29,6 +29,7 @@ import {
 } from '@/components/shadcn/empty';
 import {
   ACCESS_GROUP_KIND_LABELS,
+  splitPermission,
   type AccessGroup,
   type AccessRole,
 } from '@/types/access-control';
@@ -39,7 +40,7 @@ interface GroupsTableProps {
   roles: AccessRole[];
   isLoading: boolean;
   isError: boolean;
-  onOpen: (groupId: number) => void;
+  onOpen: (groupId: string) => void;
 }
 
 /** The table layout for departments and groups: their roles, reach and own access. */
@@ -61,19 +62,17 @@ export function GroupsTable({
         (g) =>
           !q ||
           g.name.toLowerCase().includes(q) ||
-          g.description.toLowerCase().includes(q)
+          g.description?.toLowerCase().includes(q)
       )
       .map((group) => {
         const groupRoles = roles.filter((r) => group.roleIds.includes(r.id));
-        const members = new Set([
-          ...group.userIds,
-          ...groupRoles.flatMap((r) => r.userIds),
-        ]);
         return {
           group,
           roleNames: groupRoles.map((r) => r.name),
-          memberCount: members.size,
-          permissionCount: Object.keys(group.permissions).length,
+          memberCount: group.memberIds.length,
+          permissionCount: new Set(
+            group.grants.map((g) => splitPermission(g.permission)[0])
+          ).size,
         };
       });
   }, [groups, roles, search, kindFilter]);
@@ -102,8 +101,8 @@ export function GroupsTable({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All types</SelectItem>
-            <SelectItem value="department">Departments</SelectItem>
-            <SelectItem value="group">Groups</SelectItem>
+            <SelectItem value="DEPARTMENT">Departments</SelectItem>
+            <SelectItem value="GROUP">Groups</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -148,7 +147,7 @@ export function GroupsTable({
                 {rows.map(
                   ({ group, roleNames, memberCount, permissionCount }) => {
                     const Icon =
-                      group.kind === 'department' ? Building2 : UsersRound;
+                      group.kind === 'DEPARTMENT' ? Building2 : UsersRound;
                     const open = () => onOpen(group.id);
                     return (
                       <TableRow
@@ -194,7 +193,7 @@ export function GroupsTable({
                         </TableCell>
                         <TableCell className="pr-4 text-center text-sm text-zinc-700 dark:text-zinc-300">
                           {permissionCount > 0
-                            ? `${permissionCount} module${permissionCount === 1 ? '' : 's'}`
+                            ? `${permissionCount} area${permissionCount === 1 ? '' : 's'}`
                             : '—'}
                         </TableCell>
                       </TableRow>

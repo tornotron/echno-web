@@ -174,7 +174,8 @@ async function proxyRequest(
   // list. It is an ordinary anonymous call, and which endpoints accept one is
   // the backend's judgement to make, not this proxy's.
   const isSessionUnusable = tokens
-    ? Boolean(tokens.error) || isAccessTokenExpired(tokens.expiresAt, Date.now())
+    ? Boolean(tokens.error) ||
+      isAccessTokenExpired(tokens.expiresAt, Date.now())
     : await hasSessionCookie();
 
   if (isSessionUnusable) {
@@ -182,7 +183,8 @@ async function proxyRequest(
       sessionId: tokens?.sessionId
         ? tokens.sessionId.slice(0, 10) + '...'
         : undefined,
-      reason: tokens?.error ?? (tokens ? 'access token expired' : 'undecodable'),
+      reason:
+        tokens?.error ?? (tokens ? 'access token expired' : 'undecodable'),
     });
     return NextResponse.json(
       { error: SESSION_TOKEN_EXPIRED_ERROR },
@@ -292,6 +294,14 @@ async function proxyRequest(
     const isTextResponse = /json|text|xml|html|javascript/i.test(
       responseContentType
     );
+
+    // A response that may not carry a body (204 No Content, 205, 304) is
+    // passed on without one: the Response constructor throws on any body
+    // for these statuses, even an empty string, which turned a successful
+    // DELETE into a 502.
+    if ([204, 205, 304].includes(response.status)) {
+      return new NextResponse(null, { status: response.status });
+    }
 
     // On error responses, read the body as text so it can be logged and
     // returned regardless of the advertised content type.
