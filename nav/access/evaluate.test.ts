@@ -16,8 +16,10 @@ import {
   STORAGE_LOCATION_WRITE_ACCESS,
   STORES_ACCESS,
   VENDOR_READ_ACCESS,
+  type AccessConfig,
 } from './roles';
 import { OrgRole } from '@tornotron/echno-core/employee/types';
+import type { CurrentUserAccess } from '@tornotron/echno-core/access/types';
 import type { ComposedNavItem } from '../types';
 
 function item(overrides: Partial<ComposedNavItem>): ComposedNavItem {
@@ -340,5 +342,47 @@ describe('can: the org-role gate a page or a button asks', () => {
     // Guards against reaching for `can` with a tier constant and reading
     // the silence as a pass.
     expect(can(ADMIN_ONLY, [OrgRole.SYSTEM_ADMIN])).toBe(false);
+  });
+});
+
+const CREATE_ASSETS: AccessConfig = { matrixPermission: 'assets:create' };
+const EDIT_ASSETS: AccessConfig = { matrixPermission: 'assets:edit' };
+const DELETE_ASSETS: AccessConfig = { matrixPermission: 'assets:delete' };
+
+function access(grants: CurrentUserAccess['grants']): CurrentUserAccess {
+  return { organizationId: 5, employeeId: 42, grants };
+}
+
+describe('can: a gate on the access matrix', () => {
+  test('passes a holder of the permission, at any scope, whatever their roles', () => {
+    const holder = access({ 'assets:create': ['ALL'], 'assets:edit': ['OWN'] });
+    expect(can(CREATE_ASSETS, [], holder)).toBe(true);
+    expect(can(EDIT_ASSETS, [OrgRole.LABORER], holder)).toBe(true);
+  });
+
+  test('refuses a caller without it, even one holding the old role', () => {
+    // The project pair used to pass on its role name; now only the grant counts.
+    const viewer = access({ 'assets:view': ['ALL'] });
+    expect(can(DELETE_ASSETS, [OrgRole.PROJECT_MANAGER], viewer)).toBe(false);
+  });
+
+  test('fails closed while the access is unknown', () => {
+    expect(can(CREATE_ASSETS, [OrgRole.SYSTEM_ADMIN], undefined)).toBe(false);
+  });
+
+  test('a matrix gate has no effect on a config without one', () => {
+    expect(
+      can(PROJECT_WRITE_ACCESS, [OrgRole.PROJECT_MANAGER], undefined)
+    ).toBe(true);
+  });
+
+  test('a named action keeps everything after the first colon', () => {
+    const certifier = access({ 'progress-bills:certify': ['ALL'] });
+    expect(
+      can({ matrixPermission: 'progress-bills:certify' }, [], certifier)
+    ).toBe(true);
+    expect(
+      can({ matrixPermission: 'progress-bills:approve' }, [], certifier)
+    ).toBe(false);
   });
 });

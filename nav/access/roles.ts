@@ -47,6 +47,9 @@ export type Permission =
   | 'toolbox-talks:read'
   | 'toolbox-talks:manage';
 
+/** A permission on the backend's access matrix: `<area>:<action>`. */
+export type MatrixPermission = `${string}:${string}`;
+
 // ---------------------------------------------------------------------------
 // Access config
 // ---------------------------------------------------------------------------
@@ -74,6 +77,17 @@ export interface AccessConfig {
 
   /** All listed permissions must be satisfied. */
   permissions?: Permission[];
+
+  /**
+   * A permission on the backend's access matrix, as `<area>:<action>` (for
+   * example `assets:create`), that the reader must hold at some scope. Use it
+   * where the backend guards the endpoint with `@access.can(area, action)`.
+   * Checked against `GET /access/web/current-user-access`, not against roles,
+   * so a role an organization made itself counts. Fail-closed: when the
+   * caller supplies no `access` in its context, a config that names one is
+   * denied.
+   */
+  matrixPermission?: MatrixPermission;
 
   /** Requires authentication but no specific role. Defaults to true for all nav items. */
   requireAuth?: boolean;

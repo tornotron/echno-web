@@ -67,7 +67,12 @@ export type {
   MetadataRegistry,
 } from './types';
 
-export type { Role, Permission, AccessConfig } from './access/roles';
+export type {
+  Role,
+  Permission,
+  MatrixPermission,
+  AccessConfig,
+} from './access/roles';
 export {
   OPEN_ACCESS,
   ADMIN_ONLY,
