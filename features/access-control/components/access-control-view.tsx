@@ -13,11 +13,18 @@ import {
 } from '@/components/shadcn/sheet';
 import { Tabs, TabsList, TabsTrigger } from '@/components/shadcn/tabs';
 import {
+  useAccessCatalog,
   useAccessGroups,
   useAccessRoles,
   useAccessUsers,
+  useCurrentUserAccess,
 } from '@/hooks/access-control';
-import type { AccessRole, AccessRoleInput } from '@/types/access-control';
+import {
+  assignableRoleIds,
+  toPermissionMap,
+  type AccessRole,
+  type RoleDraft,
+} from '@/types/access-control';
 import { ConfirmDialog } from './confirm-dialog';
 import { GroupEditor } from './group-editor';
 import { RoleEditor } from './role-editor';
@@ -27,7 +34,8 @@ import { UsersTable } from './users-table';
 import { UserEditor } from './user-editor';
 
 type Tier = 'roles' | 'groups' | 'users';
-type Selection = number | 'new' | null;
+/** A role or group id, an employee id, `'new'` for a draft, or nothing. */
+type Selection = string | number | 'new' | null;
 
 const SHEET_TITLES: Record<Tier, string> = {
   roles: 'Role details',
@@ -36,12 +44,13 @@ const SHEET_TITLES: Record<Tier, string> = {
 };
 
 /** The selected record, `'new'` for a draft, or null when nothing (or something since deleted) is selected. */
-function resolveSelection<T extends { id: number }>(
+function resolveSelection<T>(
   rows: T[],
-  sel: Selection
+  sel: Selection,
+  idOf: (row: T) => string | number
 ): T | 'new' | null {
   if (sel === 'new') return 'new';
-  return rows.find((r) => r.id === sel) ?? null;
+  return rows.find((r) => idOf(r) === sel) ?? null;
 }
 
 /**
@@ -51,12 +60,21 @@ function resolveSelection<T extends { id: number }>(
  * the other two through its member chips.
  */
 export function AccessControlView() {
+  const catalogQuery = useAccessCatalog();
   const rolesQuery = useAccessRoles();
   const groupsQuery = useAccessGroups();
   const usersQuery = useAccessUsers();
+  const { access } = useCurrentUserAccess();
+  const catalog = catalogQuery.data;
   const roles = useMemo(() => rolesQuery.data ?? [], [rolesQuery.data]);
   const groups = useMemo(() => groupsQuery.data ?? [], [groupsQuery.data]);
   const users = useMemo(() => usersQuery.data ?? [], [usersQuery.data]);
+
+  // Which roles the caller may change and assign, from their own row.
+  const assignable = useMemo(() => {
+    const me = users.find((u) => u.employeeId === access?.employeeId);
+    return assignableRoleIds(me, roles, groups);
+  }, [users, roles, groups, access?.employeeId]);
 
   const [tier, setTier] = useState<Tier>('roles');
   const [selected, setSelected] = useState<Record<Tier, Selection>>({
@@ -64,7 +82,7 @@ export function AccessControlView() {
     groups: null,
     users: null,
   });
-  const [roleTemplate, setRoleTemplate] = useState<AccessRoleInput>();
+  const [roleTemplate, setRoleTemplate] = useState<RoleDraft>();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [dirty, setDirty] = useState(false);
   /** A navigation held back until the user agrees to drop their edits. */
@@ -81,11 +99,11 @@ export function AccessControlView() {
     setSelected((s) => ({ ...s, [t]: id }));
   };
 
-  const role = resolveSelection(roles, selected.roles);
-  const group = resolveSelection(groups, selected.groups);
-  const user = resolveSelection(users, selected.users);
+  const role = resolveSelection(roles, selected.roles, (r) => r.id);
+  const group = resolveSelection(groups, selected.groups, (g) => g.id);
+  const user = resolveSelection(users, selected.users, (u) => u.employeeId);
 
-  function startNewRole(template?: AccessRoleInput) {
+  function startNewRole(template?: RoleDraft) {
     guard(() => {
       setRoleTemplate(template);
       select('roles', 'new');
@@ -98,12 +116,16 @@ export function AccessControlView() {
     let name = `${source.name} (copy)`;
     for (let n = 2; taken.has(name.toLowerCase()); n++)
       name = `${source.name} (copy ${n})`;
+    // Locked grants come with the role they belong to; a copy starts without them.
     startNewRole({
       name,
-      subtitle: source.subtitle,
-      description: source.description,
-      permissions: { ...source.permissions },
-      userIds: [],
+      subtitle: source.subtitle ?? '',
+      description: source.description ?? '',
+      permissions: toPermissionMap(
+        source.grants.filter((g) => !g.locked),
+        catalog?.scopes
+      ),
+      memberIds: [],
       groupIds: [],
     });
   }
@@ -129,14 +151,17 @@ export function AccessControlView() {
   };
 
   function renderEditor() {
+    if (!catalog) return null;
     if (tier === 'roles' && role)
       return (
         <RoleEditor
           key={role === 'new' ? `new-${roleTemplate?.name ?? ''}` : role.id}
           role={role === 'new' ? null : role}
           template={roleTemplate}
+          catalog={catalog}
           users={users}
           groups={groups}
+          assignable={assignable}
           onDirtyChange={setDirty}
           onCreated={(id) => afterSave('roles', id)}
           onClose={() => afterSave('roles', null)}
@@ -147,8 +172,10 @@ export function AccessControlView() {
         <GroupEditor
           key={group === 'new' ? 'new' : group.id}
           group={group === 'new' ? null : group}
+          catalog={catalog}
           roles={roles}
           users={users}
+          assignable={assignable}
           onDirtyChange={setDirty}
           onCreated={(id) => afterSave('groups', id)}
           onClose={() => afterSave('groups', null)}
@@ -157,10 +184,12 @@ export function AccessControlView() {
     if (tier === 'users' && user && user !== 'new')
       return (
         <UserEditor
-          key={user.id}
+          key={user.employeeId}
           user={user}
+          catalog={catalog}
           roles={roles}
           groups={groups}
+          assignable={assignable}
           onDirtyChange={setDirty}
         />
       );
@@ -205,9 +234,11 @@ export function AccessControlView() {
 
       {tier === 'roles' && (
         <RolesMatrix
+          catalog={catalog}
           roles={roles}
-          isLoading={rolesQuery.isLoading}
-          isError={rolesQuery.isError}
+          assignable={assignable}
+          isLoading={rolesQuery.isLoading || catalogQuery.isLoading}
+          isError={rolesQuery.isError || catalogQuery.isError}
           onOpen={(r) => openInSheet('roles', r.id)}
           onDuplicate={duplicate}
           onCreate={() => startNewRole()}

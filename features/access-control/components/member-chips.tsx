@@ -17,34 +17,37 @@ import {
   PopoverTrigger,
 } from '@/components/shadcn/popover';
 
-export interface MemberOption {
-  id: number;
+/** A role or group id (a UUID), or an employee id. */
+export type MemberId = string | number;
+
+export interface MemberOption<Id extends MemberId = MemberId> {
+  id: Id;
   label: string;
   sublabel?: string;
 }
 
 /** A member held some other way, shown as a muted chip that cannot be removed here. */
-export interface IndirectMember {
-  id: number;
+export interface IndirectMember<Id extends MemberId = MemberId> {
+  id: Id;
   label: string;
   /** e.g. "through Project Manager". */
   reason: string;
 }
 
-interface MemberChipsProps {
+interface MemberChipsProps<Id extends MemberId> {
   /** Row label, e.g. "Members". */
   label: string;
   /** Plural noun for the picker, e.g. "users". */
   noun: string;
-  options: MemberOption[];
-  selectedIds: number[];
-  onChange: (ids: number[]) => void;
-  indirect?: IndirectMember[];
+  options: MemberOption<Id>[];
+  selectedIds: Id[];
+  onChange: (ids: Id[]) => void;
+  indirect?: IndirectMember<Id>[];
   disabled?: boolean;
 }
 
 /** The current set as removable chips, and an Add button with a searchable picker. */
-export function MemberChips({
+export function MemberChips<Id extends MemberId>({
   label,
   noun,
   options,
@@ -52,7 +55,7 @@ export function MemberChips({
   onChange,
   indirect = [],
   disabled,
-}: MemberChipsProps) {
+}: MemberChipsProps<Id>) {
   const [open, setOpen] = useState(false);
   const byId = new Map(options.map((o) => [o.id, o]));
   const selected = new Set(selectedIds);

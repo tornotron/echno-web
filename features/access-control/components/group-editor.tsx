@@ -1,93 +1,86 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Input } from '@/components/shadcn/input';
 import { Label } from '@/components/shadcn/label';
 import { Textarea } from '@/components/shadcn/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/shadcn/toggle-group';
 import { toast } from '@/lib/styles/toast-styles';
-import {
-  useCreateAccessGroup,
-  useDeleteAccessGroup,
-  useUpdateAccessGroup,
-} from '@/hooks/access-control';
+import { useDeleteAccessGroup, useSaveGroup } from '@/hooks/access-control';
 import {
   ACCESS_GROUP_KIND_LABELS,
+  toPermissionMap,
+  type AccessCatalog,
   type AccessGroup,
-  type AccessGroupInput,
   type AccessGroupKind,
   type AccessRole,
   type AccessUser,
+  type GroupDraft,
 } from '@/types/access-control';
+import { errorMessage } from '../lib/error-message';
 import { useDraft } from '../lib/use-draft';
 import { ConfirmDialog } from './confirm-dialog';
 import { EditorShell } from './editor-shell';
-import { MemberChips, type IndirectMember } from './member-chips';
+import { MemberChips } from './member-chips';
 import { PermissionEditor } from './permission-editor';
 
-const EMPTY_GROUP: AccessGroupInput = {
+const EMPTY_GROUP: GroupDraft = {
   name: '',
   description: '',
-  kind: 'department',
+  kind: 'DEPARTMENT',
   permissions: {},
   roleIds: [],
-  userIds: [],
+  memberIds: [],
 };
 
 interface GroupEditorProps {
   /** The group to edit, or `null` for a new one. */
   group: AccessGroup | null;
+  catalog: AccessCatalog;
   roles: AccessRole[];
   users: AccessUser[];
+  /** Roles the caller may assign; only these can be added or taken off. */
+  assignable: Set<string>;
   onDirtyChange: (dirty: boolean) => void;
-  onCreated: (id: number) => void;
+  onCreated: (id: string) => void;
   /** Leave this record: after a delete, or when a new draft is discarded. */
   onClose: () => void;
 }
 
 export function GroupEditor({
   group,
+  catalog,
   roles,
   users,
+  assignable,
   onDirtyChange,
   onCreated,
   onClose,
 }: GroupEditorProps) {
-  const { draft, update, reset, commit, dirty } = useDraft<AccessGroupInput>(
+  const { draft, update, reset, commit, dirty } = useDraft<GroupDraft>(
     () =>
       group
         ? {
             name: group.name,
-            description: group.description,
+            description: group.description ?? '',
             kind: group.kind,
-            permissions: { ...group.permissions },
+            permissions: toPermissionMap(group.grants, catalog.scopes),
             roleIds: [...group.roleIds],
-            userIds: [...group.userIds],
+            memberIds: [...group.memberIds],
           }
         : structuredClone(EMPTY_GROUP),
     onDirtyChange
   );
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const create = useCreateAccessGroup();
-  const save = useUpdateAccessGroup();
+  const save = useSaveGroup();
   const remove = useDeleteAccessGroup();
   const isNew = group === null;
   const noun = ACCESS_GROUP_KIND_LABELS[draft.kind].toLowerCase();
-
-  // People who hold one of the group's roles are in already.
-  const viaRole = useMemo<IndirectMember[]>(() => {
-    const seen = new Map<number, IndirectMember>();
-    for (const r of roles) {
-      if (!draft.roleIds.includes(r.id)) continue;
-      for (const uid of r.userIds) {
-        const u = users.find((x) => x.id === uid);
-        if (u && !seen.has(uid))
-          seen.set(uid, { id: uid, label: u.name, reason: `via ${r.name}` });
-      }
-    }
-    return [...seen.values()];
-  }, [roles, users, draft.roleIds]);
+  // The baseline is never listed: everyone holds it already.
+  const roleOptions = roles.filter(
+    (r) => !r.baseline && (assignable.has(r.id) || draft.roleIds.includes(r.id))
+  );
 
   async function handleSave() {
     if (!draft.name.trim()) {
@@ -95,20 +88,17 @@ export function GroupEditor({
       return;
     }
     try {
+      const saved = await save.mutateAsync({ group, draft });
       if (group) {
-        await save.mutateAsync({ id: group.id, input: draft });
         commit({ ...draft, name: draft.name.trim() });
-        toast.success(`${draft.name.trim()} saved`);
+        toast.success(`${saved.name} saved`);
       } else {
-        const created = await create.mutateAsync(draft);
         onDirtyChange(false);
-        toast.success(`${created.name} created`);
-        onCreated(created.id);
+        toast.success(`${saved.name} created`);
+        onCreated(saved.id);
       }
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : `Could not save the ${noun}`
-      );
+      toast.error(errorMessage(error, `Could not save the ${noun}`));
     }
   }
 
@@ -120,9 +110,7 @@ export function GroupEditor({
       onDirtyChange(false);
       onClose();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : `Could not delete the ${noun}`
-      );
+      toast.error(errorMessage(error, `Could not delete the ${noun}`));
     }
   }
 
@@ -130,7 +118,7 @@ export function GroupEditor({
     <>
       <EditorShell
         dirty={isNew || dirty}
-        saving={create.isPending || save.isPending}
+        saving={save.isPending}
         saveLabel={isNew ? `Create ${noun}` : 'Save changes'}
         onSave={handleSave}
         onDiscard={isNew ? onClose : reset}
@@ -149,7 +137,7 @@ export function GroupEditor({
                     update((d) => ({ ...d, name: e.target.value }))
                   }
                   placeholder={
-                    draft.kind === 'department'
+                    draft.kind === 'DEPARTMENT'
                       ? 'e.g. Engineering'
                       : 'e.g. Site Leadership'
                   }
@@ -170,7 +158,7 @@ export function GroupEditor({
                   }
                   aria-label="Type"
                 >
-                  {(['department', 'group'] as const).map((kind) => (
+                  {(['DEPARTMENT', 'GROUP'] as const).map((kind) => (
                     <ToggleGroupItem
                       key={kind}
                       value={kind}
@@ -205,10 +193,10 @@ export function GroupEditor({
             <MemberChips
               label="Roles"
               noun="roles"
-              options={roles.map((r) => ({
+              options={roleOptions.map((r) => ({
                 id: r.id,
                 label: r.name,
-                sublabel: `${r.userIds.length} user${r.userIds.length === 1 ? '' : 's'}`,
+                sublabel: r.subtitle,
               }))}
               selectedIds={draft.roleIds}
               onChange={(roleIds) => update((d) => ({ ...d, roleIds }))}
@@ -217,22 +205,22 @@ export function GroupEditor({
               label="Users"
               noun="users"
               options={users.map((u) => ({
-                id: u.id,
+                id: u.employeeId,
                 label: u.name,
                 sublabel: u.designation,
               }))}
-              selectedIds={draft.userIds}
-              onChange={(userIds) => update((d) => ({ ...d, userIds }))}
-              indirect={viaRole}
+              selectedIds={draft.memberIds}
+              onChange={(memberIds) => update((d) => ({ ...d, memberIds }))}
             />
           </>
         }
       >
         <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-400">
-          Optional. Everyone in this {noun}, directly or through one of its
-          roles, gets this on top of their own access.
+          Optional. Everyone in this {noun} gets its roles and this access on
+          top of their own.
         </p>
         <PermissionEditor
+          catalog={catalog}
           permissions={draft.permissions}
           onChange={(permissions) => update((d) => ({ ...d, permissions }))}
           subject={draft.name || `New ${noun}`}
@@ -244,7 +232,7 @@ export function GroupEditor({
           open={confirmDelete}
           onOpenChange={setConfirmDelete}
           title={`Delete ${group.name}?`}
-          description={`Its members keep their roles and their own access but lose what this ${noun} adds. This cannot be undone.`}
+          description={`Its members keep their own roles and access but lose the roles and access this ${noun} gives them. This cannot be undone.`}
           confirmLabel="Delete"
           onConfirm={handleDelete}
           pending={remove.isPending}

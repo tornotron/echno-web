@@ -1,39 +1,46 @@
 /**
  * types/access-control
  *
- * The three tiers of the access model. Each tier is independent; any
- * combination may hold the others:
+ * The Roles & Permissions screen's view of the access matrix. The records
+ * come from echno-core (`@tornotron/echno-core/access/types`); this file
+ * turns their grant lists into the per-area cells the tables edit, and works
+ * out what a person holds and which roles the caller may change.
  *
- * - {@link AccessGroup} (a department or an ad-hoc group) may carry its own
- *   module permissions, a set of roles and a set of users.
- * - {@link AccessRole} carries module permissions and a set of users, and may
- *   sit inside any number of groups.
- * - {@link AccessUser} holds roles and may carry direct permissions on top.
+ * - A role holds grants and is assigned to people directly. Everyone holds
+ *   the baseline role (Member) without being assigned it.
+ * - A department or group holds grants and roles, and gives both to its
+ *   members.
+ * - A person holds roles, groups and grants of their own.
  *
- * Membership is stored once, on the owning side: a role lists its users and a
- * group lists its roles and users. A user's roles and groups are derived.
+ * A grant is one `<area>:<action>` at one scope. The tables show one scope
+ * per cell, applied to every action in it.
  */
 
+import type {
+  AccessArea,
+  AccessGrant,
+  AccessGrantRequest,
+  AccessGroup,
+  AccessGroupKind,
+  AccessRole,
+  AccessUser,
+} from '@tornotron/echno-core/access/types';
+
+export type {
+  AccessArea,
+  AccessCatalog,
+  AccessGrant,
+  AccessGroup,
+  AccessGroupKind,
+  AccessRole,
+  AccessUser,
+} from '@tornotron/echno-core/access/types';
+
 // ---------------------------------------------------------------------------
-// Actions
+// Actions and scopes
 // ---------------------------------------------------------------------------
 
-/**
- * What a permission allows on a module. Each is granted on its own; create,
- * edit, approve and delete all need view, which {@link normalizeActions} adds.
- */
-export type AccessAction = 'view' | 'create' | 'edit' | 'approve' | 'delete';
-
-/** Display order. */
-export const ACCESS_ACTIONS = [
-  'view',
-  'create',
-  'edit',
-  'approve',
-  'delete',
-] as const satisfies AccessAction[];
-
-export const ACCESS_ACTION_LABELS: Record<AccessAction, string> = {
+const ACTION_LABELS: Record<string, string> = {
   view: 'View',
   create: 'Create',
   edit: 'Edit',
@@ -41,7 +48,7 @@ export const ACCESS_ACTION_LABELS: Record<AccessAction, string> = {
   delete: 'Delete',
 };
 
-export const ACCESS_ACTION_DESCRIPTIONS: Record<AccessAction, string> = {
+const ACTION_DESCRIPTIONS: Record<string, string> = {
   view: 'See the module and read its records',
   create: 'Add new records',
   edit: 'Change existing records',
@@ -49,243 +56,322 @@ export const ACCESS_ACTION_DESCRIPTIONS: Record<AccessAction, string> = {
   delete: 'Remove records',
 };
 
-/**
- * Deduplicates, puts in display order, and adds `view` whenever any other
- * action is present: nobody can change what they cannot see.
- */
-export function normalizeActions(
-  actions: readonly AccessAction[]
-): AccessAction[] {
-  const set = new Set(actions);
-  if (set.size > 0) set.add('view');
-  return ACCESS_ACTIONS.filter((a) => set.has(a));
-}
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-// ---------------------------------------------------------------------------
-// Modules
-// ---------------------------------------------------------------------------
+/** "View", or a named action such as `certify` as "Certify". */
+export const actionLabel = (action: string) =>
+  ACTION_LABELS[action] ?? capitalize(action.replaceAll('-', ' '));
 
-export type AccessModuleId =
-  | 'dashboard'
-  | 'projects'
-  | 'wbs'
-  | 'progress'
-  | 'inspections'
-  | 'construction'
-  | 'material-consumption'
-  | 'assets'
-  | 'storage-locations'
-  | 'purchase-orders'
-  | 'goods-receipts'
-  | 'inventory'
-  | 'vendors'
-  | 'finance'
-  | 'compliance'
-  | 'documents'
-  | 'team'
-  | 'leave'
-  | 'leave-regularisation'
-  | 'reports'
-  | 'echno-bot';
+export const actionDescription = (action: string) =>
+  ACTION_DESCRIPTIONS[action] ?? `${actionLabel(action)} records`;
 
-export type AccessModuleSectionId =
-  | 'general'
-  | 'projects'
-  | 'resources'
-  | 'finance'
-  | 'people';
+const SCOPE_LABELS: Record<string, string> = {
+  ALL: 'All',
+  ASSIGNED_PROJECTS: 'Assigned projects',
+  RELATED: 'Related',
+  OWN: 'Own',
+};
 
-export interface AccessModuleSection {
-  id: AccessModuleSectionId;
-  label: string;
-}
+const SCOPE_DESCRIPTIONS: Record<string, string> = {
+  ALL: 'Every record in the organization',
+  ASSIGNED_PROJECTS: 'Records of the projects they are assigned to',
+  RELATED: 'Records linked to them',
+  OWN: 'Only their own records',
+};
 
-/** The headings the permission editor groups modules under, in display order. */
-export const ACCESS_MODULE_SECTIONS: readonly AccessModuleSection[] = [
-  { id: 'general', label: 'General' },
-  { id: 'projects', label: 'Projects & Site' },
-  { id: 'resources', label: 'Resources & Procurement' },
-  { id: 'finance', label: 'Finance & Compliance' },
-  { id: 'people', label: 'People' },
-];
+export const scopeLabel = (scope: string) =>
+  SCOPE_LABELS[scope] ?? capitalize(scope.toLowerCase().replaceAll('_', ' '));
 
-export interface AccessModule {
-  id: AccessModuleId;
-  label: string;
-  section: AccessModuleSectionId;
-}
+export const scopeDescription = (scope: string) =>
+  SCOPE_DESCRIPTIONS[scope] ?? scopeLabel(scope);
 
-/**
- * The modules and features a permission can be set on. The order is the
- * seed data's column order; the editor regroups them by section.
- */
-export const ACCESS_MODULES: readonly AccessModule[] = [
-  { id: 'dashboard', label: 'Dashboard', section: 'general' },
-  { id: 'projects', label: 'Projects & Project Settings', section: 'projects' },
-  { id: 'wbs', label: 'WBS & Schedule', section: 'projects' },
-  { id: 'progress', label: 'Progress Tracking', section: 'projects' },
-  { id: 'inspections', label: 'Inspections (QA/QC)', section: 'projects' },
-  { id: 'construction', label: 'Construction Management', section: 'projects' },
-  {
-    id: 'material-consumption',
-    label: 'Materials Consumption',
-    section: 'resources',
-  },
-  { id: 'assets', label: 'Assets (Equipment)', section: 'resources' },
-  { id: 'storage-locations', label: 'Storage Locations', section: 'resources' },
-  { id: 'purchase-orders', label: 'Purchase Orders', section: 'resources' },
-  { id: 'goods-receipts', label: 'Goods Receipt (GRN)', section: 'resources' },
-  { id: 'inventory', label: 'Inventory', section: 'resources' },
-  { id: 'vendors', label: 'Vendors', section: 'resources' },
-  { id: 'finance', label: 'Finance', section: 'finance' },
-  { id: 'compliance', label: 'Compliance & Approvals', section: 'finance' },
-  { id: 'documents', label: 'Documents', section: 'general' },
-  { id: 'team', label: 'Team / HR & Attendance', section: 'people' },
-  { id: 'leave', label: 'Leave Management', section: 'people' },
-  {
-    id: 'leave-regularisation',
-    label: 'Leave Regularisation',
-    section: 'people',
-  },
-  { id: 'reports', label: 'Reports & Analytics', section: 'general' },
-  { id: 'echno-bot', label: 'Echno Bot', section: 'general' },
-];
-
-/**
- * The actions granted per module. A module left out, or with an empty list,
- * grants nothing. Grants only add up: a group or a direct grant can give a
- * user more than their role does, never less.
- */
-export type PermissionMap = Partial<Record<AccessModuleId, AccessAction[]>>;
-
-// ---------------------------------------------------------------------------
-// Tiers
-// ---------------------------------------------------------------------------
-
-export interface AccessRole {
-  id: number;
-  name: string;
-  /** Short qualifier shown under the name in the matrix, e.g. "Site Execution". */
-  subtitle?: string;
-  description: string;
-  /** System roles mirror backend org roles and cannot be renamed or deleted. */
-  isSystem: boolean;
-  permissions: PermissionMap;
-  userIds: number[];
-}
-
-export type AccessGroupKind = 'department' | 'group';
+/** The scope a new grant gets: the widest. */
+export const DEFAULT_SCOPE = 'ALL';
 
 export const ACCESS_GROUP_KIND_LABELS: Record<AccessGroupKind, string> = {
-  department: 'Department',
-  group: 'Group',
+  DEPARTMENT: 'Department',
+  GROUP: 'Group',
 };
 
-export interface AccessGroup {
-  id: number;
-  name: string;
-  description: string;
-  kind: AccessGroupKind;
-  permissions: PermissionMap;
-  roleIds: number[];
-  userIds: number[];
+// ---------------------------------------------------------------------------
+// Cells
+// ---------------------------------------------------------------------------
+
+/** One cell of the matrix: each action held on an area, with its scope. */
+export type AreaGrants = Record<string, string>;
+
+/** Every cell of a role, group or person, keyed by area id. An area with nothing held is absent. */
+export type PermissionMap = Record<string, AreaGrants>;
+
+/** `assets:create` → `['assets', 'create']`. */
+export function splitPermission(permission: string): [string, string] {
+  const i = permission.indexOf(':');
+  return i === -1
+    ? [permission, '']
+    : [permission.slice(0, i), permission.slice(i + 1)];
 }
 
-export interface AccessUser {
-  id: number;
-  name: string;
-  email: string;
-  designation: string;
-  isActive: boolean;
-  /** Direct grants on top of what the user's roles and groups give. */
-  permissions: PermissionMap;
+/**
+ * Groups a grant list into cells. Should an action be held at two scopes,
+ * the wider one (earlier in `scopes`) is kept.
+ */
+export function toPermissionMap(
+  grants: readonly AccessGrant[],
+  scopes: readonly string[] = []
+): PermissionMap {
+  const rank = (s: string) => {
+    const i = scopes.indexOf(s);
+    return i === -1 ? scopes.length : i;
+  };
+  const map: PermissionMap = {};
+  for (const { permission, scope } of grants) {
+    const [area, action] = splitPermission(permission);
+    const cell = (map[area] ??= {});
+    const held = cell[action];
+    if (held === undefined || rank(scope) < rank(held)) cell[action] = scope;
+  }
+  return map;
+}
+
+/** The grant list a write sends for `map`. */
+export function toGrantRequests(map: PermissionMap): AccessGrantRequest[] {
+  return Object.entries(map).flatMap(([area, cell]) =>
+    Object.entries(cell).map(([action, scope]) => ({
+      permission: `${area}:${action}`,
+      scope,
+    }))
+  );
+}
+
+/** The actions of each area that cannot be taken away, such as everyone's own leave. */
+export function lockedActions(
+  grants: readonly AccessGrant[]
+): Record<string, string[]> {
+  const locked: Record<string, string[]> = {};
+  for (const g of grants) {
+    if (!g.locked) continue;
+    const [area, action] = splitPermission(g.permission);
+    (locked[area] ??= []).push(action);
+  }
+  return locked;
+}
+
+/** The cell's actions in the area's order. */
+export function cellActions(
+  area: Pick<AccessArea, 'actions'>,
+  cell: AreaGrants | undefined
+): string[] {
+  if (!cell) return [];
+  const known = area.actions.filter((a) => a in cell);
+  const unknown = Object.keys(cell).filter((a) => !area.actions.includes(a));
+  return [...known, ...unknown];
+}
+
+/** The cell's one scope, `'MIXED'` when its actions differ, or undefined when it holds nothing. */
+export function cellScope(cell: AreaGrants | undefined): string | undefined {
+  const scopes = new Set(Object.values(cell ?? {}));
+  if (scopes.size === 0) return undefined;
+  return scopes.size === 1 ? [...scopes][0] : 'MIXED';
+}
+
+/**
+ * Puts `actions` in the area's order and adds `view` when anything else is
+ * there: nobody can change what they cannot see. The server does the same.
+ */
+export function normalizeActions(
+  area: Pick<AccessArea, 'actions'>,
+  actions: readonly string[]
+): string[] {
+  const set = new Set(actions);
+  if (set.size > 0 && area.actions.includes('view')) set.add('view');
+  return area.actions.filter((a) => set.has(a));
+}
+
+/**
+ * The cell holding `actions`. An action already held keeps its scope; a new
+ * one takes the cell's scope, or `scope` when the cell is empty or mixed.
+ */
+export function withActions(
+  area: Pick<AccessArea, 'actions'>,
+  cell: AreaGrants | undefined,
+  actions: readonly string[],
+  scope: string = DEFAULT_SCOPE
+): AreaGrants {
+  const current = cellScope(cell);
+  const fallback = current && current !== 'MIXED' ? current : scope;
+  const next: AreaGrants = {};
+  for (const action of normalizeActions(area, actions)) {
+    next[action] = cell?.[action] ?? fallback;
+  }
+  return next;
+}
+
+/** The cell with every action at `scope`. */
+export function withScope(cell: AreaGrants, scope: string): AreaGrants {
+  return Object.fromEntries(Object.keys(cell).map((a) => [a, scope]));
+}
+
+/** `map` with `area` set to `cell`, dropping the area when the cell is empty. */
+export function setCell(
+  map: PermissionMap,
+  area: string,
+  cell: AreaGrants
+): PermissionMap {
+  const next = { ...map };
+  if (Object.keys(cell).length > 0) next[area] = cell;
+  else delete next[area];
+  return next;
+}
+
+/** Whether two maps hold the same actions at the same scopes. */
+export function samePermissions(a: PermissionMap, b: PermissionMap): boolean {
+  const key = (m: PermissionMap) =>
+    toGrantRequests(m)
+      .map((g) => `${g.permission}@${g.scope}`)
+      .toSorted()
+      .join(',');
+  return key(a) === key(b);
 }
 
 // ---------------------------------------------------------------------------
-// Write payloads
+// What a person holds
 // ---------------------------------------------------------------------------
 
-export type AccessRoleInput = Omit<AccessRole, 'id' | 'isSystem'> & {
-  /** The groups that list this role. Stored on the groups, written from here too. */
-  groupIds: number[];
-};
-export type AccessGroupInput = Omit<AccessGroup, 'id'>;
-
-export interface AccessUserAssignmentInput {
-  roleIds: number[];
-  groupIds: number[];
-  permissions: PermissionMap;
+/** The roles a person holds: the baseline, their own, and their groups'. */
+export function rolesOf(
+  user: Pick<AccessUser, 'roleIds' | 'groupIds'>,
+  roles: readonly AccessRole[],
+  groups: readonly AccessGroup[]
+): AccessRole[] {
+  const ids = new Set(user.roleIds);
+  for (const g of groups) {
+    if (!user.groupIds.includes(g.id)) continue;
+    for (const id of g.roleIds) ids.add(id);
+  }
+  return roles.filter((r) => r.baseline || ids.has(r.id));
 }
-
-// ---------------------------------------------------------------------------
-// Effective access
-// ---------------------------------------------------------------------------
 
 export type AccessSourceKind = 'direct' | 'role' | 'group';
 
-/** One contribution to a user's actions on a module. */
+/** One contribution to a person's actions on an area. */
 export interface AccessSource {
   kind: AccessSourceKind;
-  /** Role or group name; "Direct" for a direct grant. */
+  /** Role or group name; "Direct" for their own grants. */
   name: string;
-  actions: AccessAction[];
+  actions: string[];
 }
 
 export interface EffectiveAccess {
-  actions: AccessAction[];
+  actions: string[];
   sources: AccessSource[];
 }
 
 /**
- * Resolves a user's actions on every module: the union of their direct
- * grants, each of their roles, each group that lists them, and each group
- * that lists one of their roles.
+ * A person's actions on every area: the union of their own grants (when
+ * `user.grants` is given), each role they hold, and each group they are in.
  */
 export function resolveEffectiveAccess(
-  userId: number,
-  user: Pick<AccessUser, 'permissions'> | undefined,
+  user: Pick<AccessUser, 'roleIds' | 'groupIds'> & {
+    grants?: readonly AccessGrant[];
+  },
+  areas: readonly AccessArea[],
   roles: readonly AccessRole[],
   groups: readonly AccessGroup[]
-): Record<AccessModuleId, EffectiveAccess> {
-  const userRoles = roles.filter((r) => r.userIds.includes(userId));
-  const userRoleIds = new Set(userRoles.map((r) => r.id));
-  const userGroups = groups.filter(
-    (g) =>
-      g.userIds.includes(userId) || g.roleIds.some((id) => userRoleIds.has(id))
-  );
-
-  const result = {} as Record<AccessModuleId, EffectiveAccess>;
-  for (const { id } of ACCESS_MODULES) {
-    const candidates: {
-      kind: AccessSourceKind;
-      name: string;
-      actions?: AccessAction[];
-    }[] = [
-      { kind: 'direct', name: 'Direct', actions: user?.permissions[id] },
-      ...userRoles.map((r) => ({
-        kind: 'role' as const,
-        name: r.name,
-        actions: r.permissions[id],
-      })),
-      ...userGroups.map((g) => ({
+): Record<string, EffectiveAccess> {
+  const contributions: {
+    kind: AccessSourceKind;
+    name: string;
+    map: PermissionMap;
+  }[] = [
+    ...(user.grants
+      ? [
+          {
+            kind: 'direct' as const,
+            name: 'Direct',
+            map: toPermissionMap(user.grants),
+          },
+        ]
+      : []),
+    ...rolesOf(user, roles, groups).map((r) => ({
+      kind: 'role' as const,
+      name: r.name,
+      map: toPermissionMap(r.grants),
+    })),
+    ...groups
+      .filter((g) => user.groupIds.includes(g.id))
+      .map((g) => ({
         kind: 'group' as const,
         name: g.name,
-        actions: g.permissions[id],
+        map: toPermissionMap(g.grants),
       })),
-    ];
+  ];
+
+  const result: Record<string, EffectiveAccess> = {};
+  for (const area of areas) {
     const sources: AccessSource[] = [];
-    for (const c of candidates) {
-      if (c.actions && c.actions.length > 0)
-        sources.push({
-          kind: c.kind,
-          name: c.name,
-          actions: normalizeActions(c.actions),
-        });
+    for (const c of contributions) {
+      const actions = cellActions(area, c.map[area.id]);
+      if (actions.length > 0)
+        sources.push({ kind: c.kind, name: c.name, actions });
     }
-    result[id] = {
-      actions: normalizeActions(sources.flatMap((s) => s.actions)),
+    result[area.id] = {
+      actions: normalizeActions(
+        area,
+        sources.flatMap((s) => s.actions)
+      ),
       sources,
     };
   }
   return result;
+}
+
+/**
+ * The roles the caller may assign, and so change: those the baseline role
+ * and the caller's own roles list as assignable. Mirrors the server's
+ * `assignableBy`; the server still checks every write.
+ */
+export function assignableRoleIds(
+  caller: Pick<AccessUser, 'roleIds' | 'groupIds'> | undefined,
+  roles: readonly AccessRole[],
+  groups: readonly AccessGroup[]
+): Set<string> {
+  const held = caller
+    ? rolesOf(caller, roles, groups)
+    : roles.filter((r) => r.baseline);
+  return new Set(held.flatMap((r) => r.grantableRoleIds));
+}
+
+/** Whether the caller may change `role`: the baseline role, or one they may assign. */
+export const mayChangeRole = (role: AccessRole, assignable: Set<string>) =>
+  role.baseline || assignable.has(role.id);
+
+// ---------------------------------------------------------------------------
+// Editor drafts
+// ---------------------------------------------------------------------------
+
+/** What the role editor edits; saved through several endpoints. */
+export interface RoleDraft {
+  name: string;
+  subtitle: string;
+  description: string;
+  permissions: PermissionMap;
+  /** People assigned the role directly. Not used for the baseline role. */
+  memberIds: number[];
+  /** Departments and groups that give the role to their members. */
+  groupIds: string[];
+}
+
+export interface GroupDraft {
+  name: string;
+  description: string;
+  kind: AccessGroupKind;
+  permissions: PermissionMap;
+  roleIds: string[];
+  memberIds: number[];
+}
+
+export interface UserDraft {
+  roleIds: string[];
+  groupIds: string[];
+  permissions: PermissionMap;
 }

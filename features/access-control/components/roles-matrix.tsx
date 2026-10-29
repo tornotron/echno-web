@@ -28,13 +28,23 @@ import {
   EmptyTitle,
 } from '@/components/shadcn/empty';
 import { toast } from '@/lib/styles/toast-styles';
-import { useSetRolePermission } from '@/hooks/access-control';
-import { ACCESS_MODULES, type AccessRole } from '@/types/access-control';
-import { ACCESS_MODULE_ICONS } from '../lib/module-icons';
+import { useSetRoleCell } from '@/hooks/access-control';
+import { errorMessage } from '../lib/error-message';
+import {
+  lockedActions,
+  mayChangeRole,
+  toPermissionMap,
+  type AccessCatalog,
+  type AccessRole,
+} from '@/types/access-control';
+import { areaIcon } from '../lib/module-icons';
 import { ActionSelect } from './action-select';
 
 interface RolesMatrixProps {
+  catalog: AccessCatalog | undefined;
   roles: AccessRole[];
+  /** Roles the caller may change; other columns are read-only. */
+  assignable: Set<string>;
   isLoading: boolean;
   isError: boolean;
   onOpen: (role: AccessRole) => void;
@@ -43,12 +53,15 @@ interface RolesMatrixProps {
 }
 
 /**
- * The table layout: modules down the side, one column per role, a coloured
- * dropdown in every cell. A cell saves as soon as it changes; a
- * column header opens the role's full editor.
+ * The table layout: areas down the side under their section headings, one
+ * column per role, a coloured dropdown in every cell. A cell saves as soon
+ * as it changes; a column header opens the role's full editor. A column the
+ * caller may not change is read-only, and a locked grant cannot be cleared.
  */
 export function RolesMatrix({
+  catalog,
   roles,
+  assignable,
   isLoading,
   isError,
   onOpen,
@@ -56,19 +69,20 @@ export function RolesMatrix({
   onCreate,
 }: RolesMatrixProps) {
   const [query, setQuery] = useState('');
-  const setPermission = useSetRolePermission();
+  const setCell = useSetRoleCell();
+  const areas = useMemo(() => catalog?.areas ?? [], [catalog]);
 
-  // A query that names a role narrows the columns; one that names a module
+  // A query that names a role narrows the columns; one that names an area
   // narrows the rows. Both can match at once ("finance").
   const { columns, rows } = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return { columns: roles, rows: ACCESS_MODULES };
+    if (!q) return { columns: roles, rows: areas };
     const matchedRoles = roles.filter(
       (r) =>
         r.name.toLowerCase().includes(q) ||
         r.subtitle?.toLowerCase().includes(q)
     );
-    const matchedModules = ACCESS_MODULES.filter((m) =>
+    const matchedModules = areas.filter((m) =>
       m.label.toLowerCase().includes(q)
     );
     return {
@@ -76,9 +90,26 @@ export function RolesMatrix({
       rows:
         matchedModules.length > 0 || matchedRoles.length === 0
           ? matchedModules
-          : ACCESS_MODULES,
+          : areas,
     };
-  }, [roles, query]);
+  }, [roles, areas, query]);
+
+  const cells = useMemo(
+    () =>
+      new Map(
+        roles.map((r) => [
+          r.id,
+          {
+            map: toPermissionMap(r.grants, catalog?.scopes),
+            locked: lockedActions(r.grants),
+          },
+        ])
+      ),
+    [roles, catalog]
+  );
+  const sections = (catalog?.sections ?? []).filter((s) =>
+    rows.some((a) => a.section === s)
+  );
 
   return (
     <div className="flex min-w-0 flex-col">
@@ -118,7 +149,7 @@ export function RolesMatrix({
               </Empty>
             </div>
           );
-        if (roles.length === 0 || rows.length === 0)
+        if (!catalog || roles.length === 0 || rows.length === 0)
           return (
             <div className="py-12">
               <Empty variant="default">
@@ -150,7 +181,7 @@ export function RolesMatrix({
                     scope="col"
                     className="bg-card sticky left-0 z-10 min-w-56 px-4 py-3 text-left text-sm font-semibold text-zinc-900 dark:text-zinc-100"
                   >
-                    Module / Feature
+                    Area
                   </th>
                   {columns.map((role) => (
                     <th
@@ -167,57 +198,70 @@ export function RolesMatrix({
                   ))}
                 </tr>
               </thead>
-              <tbody>
-                {rows.map((module) => {
-                  const Icon = ACCESS_MODULE_ICONS[module.id];
-                  return (
-                    <tr
-                      key={module.id}
-                      className="border-b last:border-b-0 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+              {sections.map((section) => (
+                <tbody key={section}>
+                  <tr className="border-b bg-zinc-50/60 dark:bg-zinc-900/40">
+                    <th
+                      scope="colgroup"
+                      colSpan={columns.length + 1}
+                      className="sticky left-0 px-4 py-1.5 text-left text-xs font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-400"
                     >
-                      <th
-                        scope="row"
-                        className="bg-card sticky left-0 z-10 px-4 py-1.5 text-left font-normal"
-                      >
-                        <span className="flex items-center gap-2.5 text-zinc-700 dark:text-zinc-300">
-                          <Icon className="size-4 shrink-0 text-zinc-500" />
-                          <span className="whitespace-nowrap">
-                            {module.label}
-                          </span>
-                        </span>
-                      </th>
-                      {columns.map((role) => (
-                        <td key={role.id} className="border-l px-2 py-1.5">
-                          <div className="flex justify-center">
-                            <ActionSelect
-                              value={role.permissions[module.id] ?? []}
-                              disabled={role.isSystem}
-                              ariaLabel={`${role.name}: ${module.label}`}
-                              onChange={(actions) =>
-                                setPermission.mutate(
-                                  {
-                                    roleId: role.id,
-                                    moduleId: module.id,
-                                    actions,
-                                  },
-                                  {
-                                    onError: (error) =>
-                                      toast.error(
-                                        error instanceof Error
-                                          ? error.message
-                                          : 'Could not change the permission'
-                                      ),
+                      {section}
+                    </th>
+                  </tr>
+                  {rows
+                    .filter((a) => a.section === section)
+                    .map((module) => {
+                      const Icon = areaIcon(module.id);
+                      return (
+                        <tr
+                          key={module.id}
+                          className="border-b hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                        >
+                          <th
+                            scope="row"
+                            className="bg-card sticky left-0 z-10 px-4 py-1.5 text-left font-normal"
+                          >
+                            <span className="flex items-center gap-2.5 text-zinc-700 dark:text-zinc-300">
+                              <Icon className="size-4 shrink-0 text-zinc-500" />
+                              <span className="whitespace-nowrap">
+                                {module.label}
+                              </span>
+                            </span>
+                          </th>
+                          {columns.map((role) => (
+                            <td key={role.id} className="border-l px-2 py-1.5">
+                              <div className="flex justify-center">
+                                <ActionSelect
+                                  area={module}
+                                  value={cells.get(role.id)?.map[module.id]}
+                                  locked={cells.get(role.id)?.locked[module.id]}
+                                  scopes={catalog.scopes}
+                                  disabled={!mayChangeRole(role, assignable)}
+                                  ariaLabel={`${role.name}: ${module.label}`}
+                                  onChange={(cell) =>
+                                    setCell.mutate(
+                                      { role, area: module.id, cell },
+                                      {
+                                        onError: (error) =>
+                                          toast.error(
+                                            errorMessage(
+                                              error,
+                                              'Could not change the permission'
+                                            )
+                                          ),
+                                      }
+                                    )
                                   }
-                                )
-                              }
-                            />
-                          </div>
-                        </td>
-                      ))}
-                    </tr>
-                  );
-                })}
-              </tbody>
+                                />
+                              </div>
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              ))}
             </table>
           </div>
         );
@@ -243,8 +287,8 @@ function RoleColumnHeader({
         className="focus-visible:ring-ring flex min-w-0 flex-1 flex-col items-center rounded-md px-1 py-1 text-center hover:bg-zinc-100 focus-visible:ring-2 focus-visible:outline-none dark:hover:bg-zinc-800"
       >
         <span className="flex items-center gap-1 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-          {role.isSystem && (
-            <Lock className="size-3 text-zinc-400" aria-label="System role" />
+          {role.system && (
+            <Lock className="size-3 text-zinc-400" aria-label="Starting role" />
           )}
           {role.name}
         </span>
@@ -255,7 +299,7 @@ function RoleColumnHeader({
         )}
         <span className="mt-0.5 flex items-center gap-1 text-[11px] text-zinc-400 dark:text-zinc-500">
           <Users className="size-3" />
-          {role.userIds.length}
+          {role.baseline ? 'Everyone' : role.memberIds.length}
         </span>
       </button>
       <DropdownMenu>
