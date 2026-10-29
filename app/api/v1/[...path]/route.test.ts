@@ -207,9 +207,8 @@ describe('a request that is not carrying a session', () => {
 
 describe('a revoked session', () => {
   test('is refused with the same code, so the client can act on it', async () => {
-    const { revokeSession, clearAllRevocations } = await import(
-      '@/lib/auth/session-revocation'
-    );
+    const { revokeSession, clearAllRevocations } =
+      await import('@/lib/auth/session-revocation');
     clearAllRevocations();
     revokeSession('revoked-session');
 
@@ -242,5 +241,39 @@ describe('a live session', () => {
 
     expect(backendCalls).toHaveLength(1);
     expect(backendCalls[0].authorization).toBe('Bearer live-access-token');
+  });
+});
+
+/**
+ * Node's Response constructor throws on any body, even an empty string, for
+ * a 204, so the proxy answered every DELETE that returns 204 with a 502. Bun
+ * allows the body, so this suite pins the proxy never reading one: the
+ * backend response here throws if it is read, as building a body from it in
+ * Node would.
+ */
+const refuseBody = () => {
+  throw new TypeError('Invalid response status code 204');
+};
+
+describe('a response with no body', () => {
+  test('comes back with its status, not as a proxy error', async () => {
+    cookieHeader = await sessionCookie({
+      sessionId: 'live-session',
+      accessToken: 'live-access-token',
+      expiresAt: Date.now() + 5 * 60 * 1000,
+    });
+    globalThis.fetch = (async () => {
+      const noContent = new Response(null, { status: 204 });
+      Object.assign(noContent, {
+        text: refuseBody,
+        arrayBuffer: refuseBody,
+      });
+      return noContent;
+    }) as unknown as typeof fetch;
+
+    const response = await callProxy();
+
+    expect(response.status).toBe(204);
+    expect(response.body).toBeNull();
   });
 });
