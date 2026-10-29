@@ -237,6 +237,31 @@ describe('AccessControlView', () => {
     );
   });
 
+  test('a Custom pick keeps the menu open, and Scope appears once the cell holds an action', async () => {
+    const view = await openTable();
+    const menu = await openCell(view, 'Asset Clerk: Finance: No Access');
+    expect(menu.queryByText('Scope')).toBeNull();
+    fireEvent.click(menu.getByRole('menuitem', { name: 'View + Create' }));
+    const open = within(view.getByRole('menu'));
+    fireEvent.click(open.getByRole('menuitemradio', { name: 'Own' }));
+    closeMenu(view);
+    await saveMatrix(view);
+    expect(sent()).toContain('finance:view@OWN');
+    expect(sent()).toContain('finance:create@OWN');
+  });
+
+  test('No Access keeps the menu open and hides Scope', async () => {
+    const view = await openTable();
+    const menu = await openCell(
+      view,
+      'Asset Clerk: Assets: View + Create · All'
+    );
+    expect(menu.getByText('Scope')).toBeTruthy();
+    fireEvent.click(menu.getByRole('menuitem', { name: 'No Access' }));
+    const open = within(view.getByRole('menu'));
+    expect(open.queryByText('Scope')).toBeNull();
+  });
+
   test('a locked grant cannot be cleared and fixes its scope', async () => {
     const view = await openTable();
     const menu = await openCell(view, 'Member: Leave: View + Create · Own');

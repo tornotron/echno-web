@@ -27,7 +27,7 @@ import {
   type AreaGrants,
 } from '@/types/access-control';
 
-/** The common combinations, offered first; anything else is built from the checkboxes. */
+/** The common combinations, offered under Custom below the action checkboxes. */
 const PRESETS: { label: string; actions: string[] }[] = [
   { label: 'No Access', actions: [] },
   { label: 'View', actions: ['view'] },
@@ -102,8 +102,10 @@ interface ActionSelectProps {
 }
 
 /**
- * A coloured dropdown for one area: pick a preset, or tick the area's
- * actions one by one, and pick the scope they cover. As everywhere, any
+ * A coloured dropdown for one area: tick the area's actions one by one, or
+ * pick one of the Custom combinations below them, and pick the scope they
+ * cover. The Scope section appears once the cell holds an action, and the
+ * menu stays open after a choice so the scope can be set next. As everywhere, any
  * action brings View with it and clearing View clears the rest, except what
  * is locked.
  */
@@ -157,34 +159,6 @@ export function ActionSelect({
         {!disabled && <ChevronDown className="size-3 shrink-0 opacity-60" />}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="center" className="w-56">
-        {presets.map((p, i) => (
-          <DropdownMenuItem
-            key={p.label}
-            onSelect={() => set(p.actions)}
-            className={cn(
-              'text-xs',
-              sameActions(p.actions, held) && 'font-semibold'
-            )}
-          >
-            {/* For a person, the first preset clears only their extra grants. */}
-            {i === 0 && hasInherited ? 'Nothing extra' : p.label}
-          </DropdownMenuItem>
-        ))}
-        {area.actions.length > 5 && (
-          <DropdownMenuItem
-            onSelect={() => set(area.actions)}
-            className={cn(
-              'text-xs',
-              sameActions(area.actions, held) && 'font-semibold'
-            )}
-          >
-            Everything
-          </DropdownMenuItem>
-        )}
-        <DropdownMenuSeparator />
-        <DropdownMenuLabel className="text-xs font-normal text-zinc-500">
-          Custom
-        </DropdownMenuLabel>
         {area.actions.map((action) => {
           const isLocked = locked.includes(action);
           const isInherited = inherited.includes(action);
@@ -214,11 +188,47 @@ export function ActionSelect({
             </DropdownMenuCheckboxItem>
           );
         })}
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel className="text-xs font-normal text-zinc-500">
+          Custom
+        </DropdownMenuLabel>
+        {presets.map((p, i) => (
+          <DropdownMenuItem
+            key={p.label}
+            // Stay open: the Scope section appears after a pick and hides
+            // again after No Access.
+            onSelect={(e) => {
+              e.preventDefault();
+              set(p.actions);
+            }}
+            className={cn(
+              'text-xs',
+              sameActions(p.actions, held) && 'font-semibold'
+            )}
+          >
+            {/* For a person, the first preset clears only their extra grants. */}
+            {i === 0 && hasInherited ? 'Nothing extra' : p.label}
+          </DropdownMenuItem>
+        ))}
+        {area.actions.length > 5 && (
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault();
+              set(area.actions);
+            }}
+            className={cn(
+              'text-xs',
+              sameActions(area.actions, held) && 'font-semibold'
+            )}
+          >
+            Everything
+          </DropdownMenuItem>
+        )}
         {held.length > 0 && (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuLabel className="text-xs font-normal text-zinc-500">
-              Covers
+              Scope
             </DropdownMenuLabel>
             <DropdownMenuRadioGroup
               value={scope === 'MIXED' ? '' : (scope ?? '')}
