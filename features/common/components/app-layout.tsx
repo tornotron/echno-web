@@ -88,6 +88,7 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
               purchaseOrder={breadcrumbData.purchaseOrder}
               labour={breadcrumbData.labour}
               siteTransfer={breadcrumbData.siteTransfer}
+              asset={breadcrumbData.asset}
             />
             <div className="flex items-center gap-2 sm:gap-3">
               {/* Organizations — hidden on mobile to keep header clean */}

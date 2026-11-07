@@ -14,6 +14,7 @@ import { useStorageLocation } from '@tornotron/echno-core/storage-locations/hook
 import { useLabourById } from '@tornotron/echno-core/labour/hooks';
 import { usePurchaseOrder } from '@tornotron/echno-core/purchase-orders/hooks';
 import { useSiteTransfer } from '@tornotron/echno-core/site-transfers/hooks';
+import { useAsset } from '@/hooks/assets';
 import { Employee } from '@tornotron/echno-core/employee/types';
 import { Project } from '@tornotron/echno-core/project/types';
 import { OrganizationSummary } from '@tornotron/echno-core/organization/types';
@@ -28,6 +29,7 @@ import { StorageLocation } from '@tornotron/echno-core/storage-locations/types';
 import { Labour } from '@tornotron/echno-core/labour/types';
 import { PurchaseOrder } from '@tornotron/echno-core/purchase-orders/types';
 import { SiteTransfer } from '@tornotron/echno-core/site-transfers/types';
+import type { Asset } from '@/types/resource/asset';
 
 interface BreadcrumbData {
   employee?: Employee;
@@ -44,6 +46,7 @@ interface BreadcrumbData {
   purchaseOrder?: PurchaseOrder;
   labour?: Labour;
   siteTransfer?: SiteTransfer;
+  asset?: Asset;
 }
 
 /**
@@ -90,6 +93,7 @@ export function useBreadcrumbData(): BreadcrumbData {
     purchaseOrderId,
     labourId,
     siteTransferId,
+    assetId,
   } = useMemo(() => {
     const leaveRequestId = parseIdFromPath(
       pathname,
@@ -135,6 +139,7 @@ export function useBreadcrumbData(): BreadcrumbData {
     );
     const labourId = parseIdFromPath(pathname, /\/labour\/(\d+)/);
     const siteTransferId = parseIdFromPath(pathname, /\/transfers\/(\d+)/);
+    const assetId = parseIdFromPath(pathname, /\/assets\/(\d+)/);
 
     return {
       employeeId,
@@ -150,6 +155,7 @@ export function useBreadcrumbData(): BreadcrumbData {
       purchaseOrderId,
       labourId,
       siteTransferId,
+      assetId,
     };
   }, [pathname, searchParams]);
 
@@ -197,6 +203,7 @@ export function useBreadcrumbData(): BreadcrumbData {
 
   // Conditionally fetch site transfer details only when ID exists
   const { data: siteTransfer } = useSiteTransfer(siteTransferId ?? 0);
+  const { data: asset } = useAsset(assetId ?? 0);
 
   return {
     employee,
@@ -213,5 +220,6 @@ export function useBreadcrumbData(): BreadcrumbData {
     purchaseOrder,
     labour,
     siteTransfer,
+    asset,
   };
 }
