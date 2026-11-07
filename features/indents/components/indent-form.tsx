@@ -169,10 +169,6 @@ export function IndentForm({ onSubmit }: IndentFormProps) {
   }
 
   function removeItem(index: number) {
-    if (items.length === 1) {
-      toast.error('At least one item is required.');
-      return;
-    }
     setItems((prev) => prev.filter((_, i) => i !== index));
     setRowErrors((prev) => {
       const next: Record<number, Record<string, string>> = {};

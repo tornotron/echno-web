@@ -18,7 +18,7 @@ import { useClearFormDraft } from '@/hooks/use-form-draft';
 import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { useCreateSiteTransfer } from '@tornotron/echno-core/site-transfers/hooks';
 import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
-import { ApiError } from '@/lib/api/api-client';
+import { isInsufficientStock } from '@/features/site-transfers/lib/insufficient-stock';
 import {
   SiteTransferLineType,
   SiteTransferStatus,
@@ -167,11 +167,7 @@ export default function NewSiteTransferPage() {
         },
         onError: (err) => {
           const message = getErrorMessage(err);
-          const isInsufficientStock =
-            err instanceof ApiError &&
-            err.status === 400 &&
-            message.toLowerCase().includes('insufficient stock');
-          if (isInsufficientStock) {
+          if (isInsufficientStock(err, message)) {
             toast.error('Insufficient Stock', { description: message });
           } else {
             toast.error(getErrorTitle(err, 'Failed to Create Transfer'), {
