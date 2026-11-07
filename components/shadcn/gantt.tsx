@@ -404,9 +404,8 @@ export function WbsGanttChart(props: ProjectGanttChartProps) {
   } = props;
 
   const normalizedTasks = useMemo(() => detectCriticalPath(tasks), [tasks]);
-  const tasksWithDates = useMemo(
-    () => normalizedTasks.filter((task) => task.startDate && task.endDate),
-    [normalizedTasks]
+  const tasksWithDates = normalizedTasks.filter(
+    (task) => task.startDate && task.endDate
   );
   const tasksWithoutDatesCount = normalizedTasks.length - tasksWithDates.length;
 
