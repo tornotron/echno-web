@@ -33,10 +33,10 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Redirects are matched in order and the first hit wins, so the two
-  // leave entries have to precede the broad `/dashboard/:path*` rewrite of the
+  // Redirects are matched in order and the first hit wins, so the leave and
+  // billing entries have to precede the broad `/dashboard/:path*` rewrite of the
   // legacy prefix. A request to the old `/dashboard/...` form still lands
-  // correctly, in two hops: the prefix redirect first, then the leave redirect
+  // correctly, in two hops: the prefix redirect first, then the specific one
   // on the follow-up request.
   async redirects() {
     return [
@@ -51,6 +51,14 @@ const nextConfig: NextConfig = {
       {
         source: '/users/dashboard/workforce/leaves/manage/requests/new',
         destination: '/users/dashboard/attendance/my-leaves/apply',
+        permanent: true,
+      },
+      // Billing moved out of Finance and into Inspections. `:path*` also
+      // matches the bare path, so the home page and every bill and contract
+      // link carry over.
+      {
+        source: '/users/dashboard/finance/billing/:path*',
+        destination: '/users/dashboard/inspections/billing/:path*',
         permanent: true,
       },
       {

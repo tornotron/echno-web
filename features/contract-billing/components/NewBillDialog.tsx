@@ -127,7 +127,7 @@ export function NewBillDialog({
         onSuccess: (bill) => {
           toast.success(`Bill ${bill.billNumber} opened as a draft`);
           onOpenChange(false);
-          router.push(routes.finance.billing.bills.detail(bill.id).href);
+          router.push(routes.inspections.billing.bills.detail(bill.id).href);
         },
         onError: (err) =>
           toast.error(getErrorTitle(err, 'Could not open the bill'), {

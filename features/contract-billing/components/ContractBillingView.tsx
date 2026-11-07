@@ -133,7 +133,7 @@ export function ContractBillingView({
         actions={
           <>
             <Button asChild variant="outline">
-              <Link href={routes.finance.billing.href}>
+              <Link href={routes.inspections.billing.href}>
                 <ArrowLeft className="size-4" />
                 Billing
               </Link>
@@ -722,7 +722,7 @@ export function BillsTable({ bills }: { bills: BillSummary[] }) {
                 <TableCell>
                   <Link
                     className="font-medium hover:underline"
-                    href={routes.finance.billing.bills.detail(bill.id).href}
+                    href={routes.inspections.billing.bills.detail(bill.id).href}
                   >
                     {bill.billNumber}
                   </Link>

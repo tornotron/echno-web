@@ -323,8 +323,9 @@ function BillWorkspace({
             <Button asChild variant="outline">
               <Link
                 href={
-                  routes.finance.billing.contracts.detail(bill.subContractId)
-                    .href
+                  routes.inspections.billing.contracts.detail(
+                    bill.subContractId
+                  ).href
                 }
               >
                 <ArrowLeft className="size-4" />

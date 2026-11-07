@@ -272,7 +272,9 @@ function ContractRow({
       <TableCell>
         <Link
           className="font-medium hover:underline"
-          href={routes.finance.billing.contracts.detail(row.subContractId).href}
+          href={
+            routes.inspections.billing.contracts.detail(row.subContractId).href
+          }
         >
           {row.contractName}
         </Link>
@@ -301,7 +303,7 @@ function ContractRow({
       <TableCell>
         {row.openBill ? (
           <Link
-            href={routes.finance.billing.bills.detail(row.openBill.id).href}
+            href={routes.inspections.billing.bills.detail(row.openBill.id).href}
             className="inline-flex items-center gap-2 hover:underline"
           >
             {row.openBill.billNumber}
