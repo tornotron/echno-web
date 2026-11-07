@@ -3,6 +3,7 @@ import {
   ClipboardCheck,
   ClipboardList,
   Eye,
+  FileCheck2,
   HardHat,
   LayoutDashboard,
   ShieldAlert,
@@ -58,6 +59,35 @@ export const inspectionsMetadata = {
     breadcrumb: 'Reports',
     order: 7,
   },
+
+  // ── contract billing (Work Progress module) ──────────────────────────────
+  // Running account and milestone bills, moved here from Finance. Any member
+  // reads them; the steps are gated per action on the pages. Hidden for an
+  // organization without MODULE_WORK_PROGRESS.
+  'inspections-billing': {
+    label: 'Billing',
+    icon: FileCheck2,
+    breadcrumb: 'Billing',
+    description:
+      'Running account and milestone bills from contractors, by project, through measurement and certification to payment.',
+    order: 8,
+    moduleId: 'work-progress',
+  },
+  'inspections-billing-contracts': {
+    label: 'Contracts',
+    sidebarHidden: true,
+    nonInteractive: true,
+  },
+  'inspections-billing-contracts-[id]': {
+    label: 'Contract',
+    sidebarHidden: true,
+  },
+  'inspections-billing-bills': {
+    label: 'Bills',
+    sidebarHidden: true,
+    nonInteractive: true,
+  },
+  'inspections-billing-bills-[id]': { label: 'Bill', sidebarHidden: true },
 
   // ── inspection detail / create / edit ─────────────────────────────────────
   'inspections-new': { label: 'New Inspection', sidebarHidden: true },
