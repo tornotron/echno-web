@@ -40,7 +40,7 @@ import {
   getNameForId,
   truncateText,
   applyBreadcrumbOverrides,
-  type FallbackNameResolver,
+  recordFallbackResolver,
 } from '@/lib/utils/breadcrumb-utils';
 import { Vendor } from '@tornotron/echno-core/vendor/types';
 import { Material } from '@tornotron/echno-core/materials/types';
@@ -49,41 +49,8 @@ import { StorageLocation } from '@tornotron/echno-core/storage-locations/types';
 import { Labour } from '@tornotron/echno-core/labour/types';
 import { PurchaseOrder } from '@tornotron/echno-core/purchase-orders/types';
 import { SiteTransfer } from '@tornotron/echno-core/site-transfers/types';
-import {
-  mockAssets,
-  mockStockAdjustments,
-  mockGoodsReceipts,
-  mockReceipts,
-  mockExpenses,
-} from '@/components/shared/mock-data';
+import type { Asset } from '@/types/resource/asset';
 import { routes } from '@/nav';
-
-const mockFallbackResolver: FallbackNameResolver = (
-  parentSegment,
-  numericId
-) => {
-  switch (parentSegment) {
-    case 'assets': {
-      return mockAssets.find((a) => a.id === numericId)?.name;
-    }
-    case 'stock-adjustments': {
-      return mockStockAdjustments.find((s) => s.id === numericId)
-        ?.adjustmentNumber;
-    }
-    case 'goods-receipts': {
-      return mockGoodsReceipts.find((g) => g.id === numericId)?.receiptNumber;
-    }
-    case 'receipts': {
-      return mockReceipts.find((r) => r.id === numericId)?.receiptNumber;
-    }
-    case 'expenses': {
-      return mockExpenses.find((e) => e.id === numericId)?.expenseNumber;
-    }
-    default: {
-      return;
-    }
-  }
-};
 
 interface BreadcrumbsProps {
   employee?: Employee;
@@ -100,6 +67,7 @@ interface BreadcrumbsProps {
   purchaseOrder?: PurchaseOrder;
   labour?: Labour;
   siteTransfer?: SiteTransfer;
+  asset?: Asset;
 }
 
 function getChatRoomName(room: ChatRoom): string {
@@ -130,6 +98,7 @@ export function Breadcrumbs({
   purchaseOrder,
   labour,
   siteTransfer,
+  asset,
 }: BreadcrumbsProps) {
   const chatRoomName = chatRoom ? getChatRoomName(chatRoom) : undefined;
   const pathname = usePathname();
@@ -183,7 +152,7 @@ export function Breadcrumbs({
             task,
             issue,
             chatRoomName,
-            mockFallbackResolver,
+            recordFallbackResolver(asset),
             vendor,
             material,
             indent,

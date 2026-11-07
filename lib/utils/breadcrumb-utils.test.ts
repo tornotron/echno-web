@@ -5,6 +5,7 @@ import type { Vendor } from '@tornotron/echno-core/vendor/types';
 import {
   applyBreadcrumbOverrides,
   getNameForId,
+  recordFallbackResolver,
   truncateText,
   type BreadcrumbItemData,
 } from './breadcrumb-utils';
@@ -31,7 +32,17 @@ describe('truncateText', () => {
 describe('getNameForId', () => {
   test('chat rooms use the room name or a Room fallback', () => {
     expect(
-      getNameForId('5', ['chat'], undefined, undefined, undefined, undefined, undefined, undefined, 'General')
+      getNameForId(
+        '5',
+        ['chat'],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'General'
+      )
     ).toBe('General');
     expect(getNameForId('5', ['chat'])).toBe('Room 5');
   });
@@ -39,7 +50,19 @@ describe('getNameForId', () => {
   test('a vendor resolves by its object or a Vendor fallback', () => {
     const vendor = { name: 'BuildMart' } as unknown as Vendor;
     expect(
-      getNameForId('9', ['vendors'], undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, vendor)
+      getNameForId(
+        '9',
+        ['vendors'],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        vendor
+      )
     ).toBe('BuildMart');
     expect(getNameForId('9', ['vendors'])).toBe('Vendor 9');
   });
@@ -53,7 +76,14 @@ describe('getNameForId', () => {
       getNameForId('99', ['projects'], undefined, undefined, undefined, project)
     ).toBe('Project 99');
     expect(
-      getNameForId('2', ['projects'], undefined, undefined, undefined, undefined)
+      getNameForId(
+        '2',
+        ['projects'],
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      )
     ).toBe('Project 2');
   });
 
@@ -67,14 +97,56 @@ describe('getNameForId', () => {
     const resolver = (segment: string, numericId: number) =>
       segment === 'gadgets' ? `Gadget ${numericId}` : undefined;
     expect(
-      getNameForId('7', ['gadgets'], undefined, undefined, undefined, undefined, undefined, undefined, undefined, resolver)
+      getNameForId(
+        '7',
+        ['gadgets'],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        resolver
+      )
     ).toBe('Gadget 7');
+  });
+
+  test('an asset crumb shows that asset, never another record', () => {
+    const flowAsset = { id: 9, name: 'Flow Asset' };
+    expect(assetCrumb('9', flowAsset)).toBe('Flow Asset');
+    expect(assetCrumb('9')).toBe('Asset');
+    expect(assetCrumb('1', flowAsset)).toBe('Asset');
+  });
+
+  test('records with no lookup read as what they are', () => {
+    const resolver = recordFallbackResolver();
+    expect(resolver('stock-adjustments', 1)).toBe('Stock Adjustment');
+    expect(resolver('goods-receipts', 1)).toBe('Goods Receipt');
+    expect(resolver('receipts', 1)).toBe('Receipt');
+    expect(resolver('expenses', 1)).toBe('Expense');
+    expect(resolver('gadgets', 1)).toBeUndefined();
   });
 
   test('returns the raw id when nothing matches', () => {
     expect(getNameForId('7', ['unknown-segment'])).toBe('7');
   });
 });
+
+function assetCrumb(id: string, asset?: { id: number; name: string }) {
+  return getNameForId(
+    id,
+    ['assets'],
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    recordFallbackResolver(asset)
+  );
+}
 
 function crumb(over: Partial<BreadcrumbItemData>): BreadcrumbItemData {
   return {
@@ -118,7 +190,11 @@ describe('applyBreadcrumbOverrides', () => {
     const items = [
       crumb({ label: 'Project', href: '/dashboard/projects/1' }),
       crumb({ label: 'Issues', href: '/dashboard/projects/1/issues' }),
-      crumb({ label: 'New', href: '/dashboard/projects/1/issues/new', isLast: true }),
+      crumb({
+        label: 'New',
+        href: '/dashboard/projects/1/issues/new',
+        isLast: true,
+      }),
     ];
     applyBreadcrumbOverrides(
       items,

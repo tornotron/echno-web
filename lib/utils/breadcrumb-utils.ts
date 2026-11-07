@@ -62,7 +62,7 @@ export interface BreadcrumbItemData {
  * @param task              – Optional single task for lookup.
  * @param issue             – Optional single issue for lookup.
  * @param chatRoomName
- * @param fallbackResolver  – Optional callback for segments backed by mock/placeholder data.
+ * @param fallbackResolver  – Optional callback for segments with no resolver above.
  * @param vendor
  * @param material
  * @param indent
@@ -164,13 +164,50 @@ export function getNameForId(
       `Organization ${id}`
     );
   }
-  // Delegate to the fallback resolver for segments backed by mock/placeholder data
+  // Delegate to the fallback resolver for segments with no resolver above
   if (parentSegment && fallbackResolver) {
     const resolved = fallbackResolver(parentSegment, numericId);
     if (resolved !== undefined) return resolved;
   }
 
   return id;
+}
+
+// ---------------------------------------------------------------------------
+// recordFallbackResolver
+// ---------------------------------------------------------------------------
+
+/**
+ * Names the id segment of the record pages that have no resolver of their own.
+ * An asset has its name once loaded. The others read as what they are, with no
+ * lookup behind them, so a crumb can never show some other record's name.
+ */
+export function recordFallbackResolver(asset?: {
+  id: number;
+  name: string;
+}): FallbackNameResolver {
+  return (parentSegment, numericId) => {
+    switch (parentSegment) {
+      case 'assets': {
+        return asset?.id === numericId ? asset.name : 'Asset';
+      }
+      case 'stock-adjustments': {
+        return 'Stock Adjustment';
+      }
+      case 'goods-receipts': {
+        return 'Goods Receipt';
+      }
+      case 'receipts': {
+        return 'Receipt';
+      }
+      case 'expenses': {
+        return 'Expense';
+      }
+      default: {
+        return;
+      }
+    }
+  };
 }
 
 // ---------------------------------------------------------------------------
