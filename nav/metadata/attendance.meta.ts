@@ -7,7 +7,7 @@ import {
   MapPin,
 } from 'lucide-react';
 import type { MetadataRegistry } from '../types';
-import { ADMIN_ONLY } from '../access/roles';
+import { ATTENDANCE_CONFIG_ACCESS } from '../access/roles';
 
 export const attendanceMetadata = {
   // Named for the person using it rather than the record type. Everything a
@@ -79,7 +79,7 @@ export const attendanceMetadata = {
     icon: Settings,
     breadcrumb: 'Attendance Settings',
     order: 7,
-    access: ADMIN_ONLY,
+    access: ATTENDANCE_CONFIG_ACCESS,
   },
   'attendance-[id]': {
     label: 'Attendance Record',

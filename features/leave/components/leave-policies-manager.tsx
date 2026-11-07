@@ -9,6 +9,8 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
+import { useCan } from '@/hooks/use-can';
+import { LEAVE_POLICY_CREATE_ACCESS } from '@/nav/access/roles';
 import { Badge } from '@/components/shadcn/badge';
 import {
   Table,
@@ -98,6 +100,7 @@ export function LeavePoliciesManager({
 
   const { data: policies, isLoading } = useAllLeavePolicies();
   const createMutation = useCreateLeavePolicy();
+  const { allowed: canCreatePolicy } = useCan(LEAVE_POLICY_CREATE_ACCESS);
   const updateMutation = useUpdateLeavePolicy();
   const deleteMutation = useDeleteLeavePolicy();
   const activateMutation = useActivateLeavePolicy();
@@ -267,43 +270,45 @@ export function LeavePoliciesManager({
               Manage leave types and their rules for your organization
             </CardDescription>
           </div>
-          <Dialog
-            open={isCreateDialogOpen}
-            onOpenChange={setIsCreateDialogOpen}
-          >
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Policy
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Create Leave Policy</DialogTitle>
-                <DialogDescription>
-                  Define a new leave type with its rules and quotas.
-                </DialogDescription>
-              </DialogHeader>
-              <PolicyForm formData={formData} setFormData={setFormData} />
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsCreateDialogOpen(false)}
-                >
-                  Cancel
+          {canCreatePolicy && (
+            <Dialog
+              open={isCreateDialogOpen}
+              onOpenChange={setIsCreateDialogOpen}
+            >
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Policy
                 </Button>
-                <Button
-                  onClick={handleCreate}
-                  disabled={createMutation.isPending}
-                >
-                  {createMutation.isPending && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  Create Policy
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Create Leave Policy</DialogTitle>
+                  <DialogDescription>
+                    Define a new leave type with its rules and quotas.
+                  </DialogDescription>
+                </DialogHeader>
+                <PolicyForm formData={formData} setFormData={setFormData} />
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsCreateDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleCreate}
+                    disabled={createMutation.isPending}
+                  >
+                    {createMutation.isPending && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Create Policy
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </CardHeader>
       <CardContent>

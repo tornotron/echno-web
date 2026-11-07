@@ -19,9 +19,13 @@ import {
 } from '@/features/leave/components/leave-requests-tabs';
 import {
   usePendingApprovalsCount,
-  useOrganizationRequests,
   useEmployeeRequests,
 } from '@tornotron/echno-core/leave/hooks';
+import { useQuery } from '@tanstack/react-query';
+import { leaveKeys } from '@tornotron/echno-core/leave/hooks/keys';
+import { leaveService } from '@tornotron/echno-core/leave/services';
+import { useCan } from '@/hooks/use-can';
+import { LEAVE_ORG_ACCESS } from '@/nav/access/roles';
 import { useLeaveRole } from '@/hooks/leave/use-leave-role';
 import { shouldOfferApprovalQueue } from '@/features/leave/lib/approval-gate';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
@@ -34,7 +38,8 @@ import { routes } from '@/nav';
 export default function RequestsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { canApprove, canViewAllRequests } = useLeaveRole();
+  const { canApprove } = useLeaveRole();
+  const { allowed: canViewAllRequests } = useCan(LEAVE_ORG_ACCESS);
   const { data: employee, isLoading: employeeLoading } =
     useCurrentUserEmployee();
   const employeeId = employee?.id || 0;
@@ -49,7 +54,13 @@ export default function RequestsPage() {
     pendingApprovalsCount: pendingCount,
   });
 
-  const { data: orgRequests } = useOrganizationRequests();
+  // Through the service with core's key: core's hook cannot wait, and the
+  // endpoint refuses anyone without LEAVE_ORG_ACCESS.
+  const { data: orgRequests } = useQuery({
+    queryKey: leaveKeys.organizationRequests(),
+    queryFn: () => leaveService.getOrganizationRequests(),
+    enabled: canViewAllRequests,
+  });
   const { data: myRequests } = useEmployeeRequests(employeeId);
 
   // The `?? []` fallbacks build a new array on every render while either query

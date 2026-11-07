@@ -2,7 +2,8 @@
 
 import { Clock, Settings, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useAttendanceRole } from '@/hooks/attendance';
+import { useCan } from '@/hooks/use-can';
+import { ATTENDANCE_CONFIG_ACCESS } from '@/nav/access/roles';
 import { useAttendanceSettingsPage } from '@/hooks/attendance-settings';
 import { ShiftTimings } from '@/features/attendance/components/shift-timings';
 import { ShiftDialog } from '@/features/attendance/components/shift-dialog';
@@ -23,7 +24,9 @@ const tabs = [
 
 export default function AttendanceSettingsPage() {
   const router = useRouter();
-  const { canManageSettings, isLoading: roleLoading } = useAttendanceRole();
+  const { allowed: canManageSettings, isLoading: roleLoading } = useCan(
+    ATTENDANCE_CONFIG_ACCESS
+  );
 
   const {
     activeTab,

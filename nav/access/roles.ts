@@ -202,6 +202,29 @@ export const LABOUR_ACCESS: AccessConfig = {
 } as const;
 
 /**
+ * Leave across the whole organization: `GET /leave-calendar/web/organization`
+ * and `/department`, `GET /leave-requests/web/organization`, and the leave
+ * policies. `system-admin` or `hr-admin`; the admin and manager tiers both get
+ * this wrong, since HR admins sit in the manager tier and directors in admin.
+ */
+export const LEAVE_ORG_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN, OrgRole.HR_ADMIN],
+} as const;
+
+/** Creating a leave policy is `system-admin` alone; editing is {@link LEAVE_ORG_ACCESS}. */
+export const LEAVE_POLICY_CREATE_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN],
+} as const;
+
+/**
+ * Changing attendance settings and shift timings: the backend's
+ * `canConfigureAttendance`, `system-admin` or `hr-admin` by default.
+ */
+export const ATTENDANCE_CONFIG_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN, OrgRole.HR_ADMIN],
+} as const;
+
+/**
  * Shaping a project's schedule: adding, editing and deleting WBS activities
  * and linking them. `system-admin` or `project-manager` on every write of
  * `WbsElementControllerWeb`; any member reads the schedule.
