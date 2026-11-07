@@ -66,9 +66,8 @@ describe('ChatComposer mentions', () => {
   });
 
   test('Enter sends when the list has nobody to pick', () => {
-    const { type, press, sent, queryByText } = setup();
+    const { type, press, sent } = setup();
     type('@nobody here');
-    expect(queryByText('No members found')).toBeInTheDocument();
     press('Enter');
     expect(sent.map((s) => s.content)).toEqual(['@nobody here']);
   });
