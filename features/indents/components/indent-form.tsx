@@ -1,5 +1,6 @@
 'use client';
 
+import { MaterialSkuMoq } from '@/components/shared/material-sku-moq';
 import { useState, useMemo, useCallback } from 'react';
 import {
   Card,
@@ -402,6 +403,11 @@ export function IndentForm({ onSubmit }: IndentFormProps) {
                             ))}
                           </SelectContent>
                         </Select>
+                        <MaterialSkuMoq
+                          material={materials.find(
+                            (m) => m.id === item.materialId
+                          )}
+                        />
                       </TableCell>
 
                       <TableCell>

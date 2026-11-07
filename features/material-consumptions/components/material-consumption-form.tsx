@@ -1,5 +1,6 @@
 'use client';
 
+import { MaterialSkuMoq } from '@/components/shared/material-sku-moq';
 import { useMemo, useState } from 'react';
 import {
   Card,
@@ -325,6 +326,9 @@ export function MaterialConsumptionForm({
                   ))}
                 </SelectContent>
               </Select>
+              <MaterialSkuMoq
+                material={materials.find((m) => m.id === form.materialId)}
+              />
               {errors.materialId && (
                 <p className="text-sm text-red-500">{errors.materialId}</p>
               )}
