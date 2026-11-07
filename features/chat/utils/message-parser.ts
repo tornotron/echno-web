@@ -83,6 +83,14 @@ export function stripMentions(content: string): string {
 }
 
 /**
+ * Blank out completed mention and entity tokens, keeping every other character
+ * where it was, so an offset into the result is an offset into the content.
+ */
+export function maskMentionTokens(content: string): string {
+  return content.replaceAll(TOKEN_REGEX, (token) => ' '.repeat(token.length));
+}
+
+/**
  * Build a mention token string from a name and employee ID.
  */
 export function buildMentionToken(name: string, employeeId: number): string {
