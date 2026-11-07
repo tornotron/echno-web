@@ -589,7 +589,9 @@ export function TaskForm(props: TaskFormProps) {
                 {/* Category and Status */}
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="category">Work Category</Label>
+                    <Label htmlFor="category">
+                      Work Category <span className="text-red-500">*</span>
+                    </Label>
                     <Select
                       value={form.categoryId}
                       onValueChange={(value) => {
@@ -799,7 +801,9 @@ export function TaskForm(props: TaskFormProps) {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-sm">
                   <Users className="h-4 w-4" />
-                  Assign Team Members
+                  <span>
+                    Assign Team Members <span className="text-red-500">*</span>
+                  </span>
                 </CardTitle>
                 <CardDescription className="text-xs">
                   {isEdit
