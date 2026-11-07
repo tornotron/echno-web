@@ -73,6 +73,15 @@ export const inspectionsMetadata = {
     order: 8,
     moduleId: 'work-progress',
   },
+  'inspections-billing-projects': {
+    label: 'Projects',
+    sidebarHidden: true,
+    nonInteractive: true,
+  },
+  'inspections-billing-projects-[id]': {
+    label: 'Project',
+    sidebarHidden: true,
+  },
   'inspections-billing-contracts': {
     label: 'Contracts',
     sidebarHidden: true,

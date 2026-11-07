@@ -2,6 +2,7 @@ import type {
   BillLineStatus,
   BillStatus,
   BillingModel,
+  ProjectBillingState,
   RequirementStatus,
 } from '@tornotron/echno-core/contract-billing/types';
 import { cn } from '@/lib/utils/index';
@@ -14,6 +15,7 @@ import {
   STATUS_CLASSES,
   STATUS_LABELS,
 } from '../lib/labels';
+import { PROJECT_STATE_CLASSES, PROJECT_STATE_LABELS } from '../lib/projects';
 
 const CHIP =
   'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap';
@@ -22,6 +24,14 @@ export function BillStatusChip({ status }: { status: BillStatus }) {
   return (
     <span className={cn(CHIP, STATUS_CLASSES[status])}>
       {STATUS_LABELS[status]}
+    </span>
+  );
+}
+
+export function ProjectStateChip({ state }: { state: ProjectBillingState }) {
+  return (
+    <span className={cn(CHIP, PROJECT_STATE_CLASSES[state])}>
+      {PROJECT_STATE_LABELS[state]}
     </span>
   );
 }

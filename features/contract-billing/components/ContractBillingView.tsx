@@ -133,9 +133,17 @@ export function ContractBillingView({
         actions={
           <>
             <Button asChild variant="outline">
-              <Link href={routes.inspections.billing.href}>
+              <Link
+                href={
+                  summary.projectId
+                    ? routes.inspections.billing.projects.detail(
+                        summary.projectId
+                      ).href
+                    : routes.inspections.billing.href
+                }
+              >
                 <ArrowLeft className="size-4" />
-                Billing
+                {summary.projectId ? 'Project' : 'Billing'}
               </Link>
             </Button>
             {canPrepare && (

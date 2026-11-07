@@ -8,7 +8,7 @@ export default function BillingPage() {
     <div className="space-y-4 sm:space-y-6">
       <PageHeader
         title="Billing"
-        description="Running account and milestone bills raised by contractors, from the claim through joint measurement and certification to final approval. Choose RA or milestone billing for each contract when you start billing it."
+        description="Running account and milestone bills raised by contractors, by project, from the claim through joint measurement and certification to approval and payment."
       />
       <BillingHome />
     </div>

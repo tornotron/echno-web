@@ -131,6 +131,13 @@ export const EVENT_LABELS: Record<BillEventType, string> = {
   [BillEventType.DOCUMENT_ADDED]: 'Documents added',
   [BillEventType.DOCUMENT_REMOVED]: 'Document removed',
   [BillEventType.NOTE]: 'Note',
+  [BillEventType.PAYMENT_REQUESTED]: 'Payment raised',
+  [BillEventType.PAYMENT_AUTHORIZED]: 'Payment authorized',
+  [BillEventType.PAYMENT_REJECTED]: 'Payment rejected',
+  [BillEventType.PAYMENT_SENT]: 'Payment sent',
+  [BillEventType.PAYMENT_SETTLED]: 'Payment made',
+  [BillEventType.PAYMENT_FAILED]: 'Payment failed',
+  [BillEventType.PAYMENT_REVERSED]: 'Payment returned',
 };
 
 /** The bill's title as the mockups write it. */
