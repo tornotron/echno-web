@@ -6,7 +6,7 @@
 //   @Task <query>   → task entity mention (filters project tasks)
 //   @Issue <query>  → issue entity mention (filters project issues)
 
-import { useState, useCallback, useMemo, RefObject } from 'react';
+import { useState, useCallback, useMemo, useRef, RefObject } from 'react';
 import { ChatEntityType, ChatParticipant } from '@/types/chat';
 import {
   MentionMode,
@@ -22,6 +22,7 @@ import { Issue } from '@tornotron/echno-core/issue/types';
 import {
   buildMentionToken,
   buildEntityToken,
+  maskMentionTokens,
 } from '@/features/chat/utils/message-parser';
 
 export type {
@@ -37,8 +38,9 @@ export type {
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function findTrigger(value: string, cursorPos: number) {
-  // Walk backwards from cursor to find an unescaped '@'
-  const textBeforeCursor = value.slice(0, cursorPos);
+  // Walk backwards from cursor to find an unescaped '@'. A picked mention is
+  // already finished, so the '@' inside its token cannot start a new one.
+  const textBeforeCursor = maskMentionTokens(value.slice(0, cursorPos));
   const atIndex = textBeforeCursor.lastIndexOf('@');
   if (atIndex === -1) return null;
 
@@ -127,6 +129,8 @@ export function useMention(
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const [triggerStart, setTriggerStart] = useState(0);
+  // The '@' the list was closed on with Escape: it stays closed for that one.
+  const dismissedTrigger = useRef<number | null>(null);
 
   const items = useMemo<MentionItem[]>(() => {
     if (!open) return [];
@@ -148,7 +152,10 @@ export function useMention(
 
   const onValueChange = useCallback((newValue: string, cursorPos: number) => {
     const trigger = findTrigger(newValue, cursorPos);
-    if (trigger) {
+    if (trigger?.triggerStart !== dismissedTrigger.current) {
+      dismissedTrigger.current = null;
+    }
+    if (trigger && dismissedTrigger.current === null) {
       setOpen(true);
       setMode(trigger.mode);
       setQuery(trigger.query);
@@ -160,8 +167,9 @@ export function useMention(
   }, []);
 
   const dismiss = useCallback(() => {
+    dismissedTrigger.current = triggerStart;
     setOpen(false);
-  }, []);
+  }, [triggerStart]);
 
   const selectItem = useCallback(
     (index?: number) => {

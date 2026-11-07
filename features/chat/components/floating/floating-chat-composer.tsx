@@ -100,7 +100,8 @@ export function FloatingChatComposer({
         mention.moveDown();
         return;
       }
-      if (e.key === 'Enter') {
+      // With nothing to pick, Enter keeps its usual meaning.
+      if (e.key === 'Enter' && mention.items.length > 0) {
         e.preventDefault();
         mention.selectItem();
         return;
