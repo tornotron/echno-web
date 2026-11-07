@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { Users, CheckSquare, AlertCircle } from 'lucide-react';
+import { Fragment, useEffect, useRef } from 'react';
+import { AtSign, Folder, CheckSquare, AlertCircle } from 'lucide-react';
 import {
   Avatar,
   AvatarFallback,
@@ -23,7 +23,8 @@ const MODE_CONFIG: Record<
   MentionMode,
   { icon: React.ElementType; label: string; color: string }
 > = {
-  member: { icon: Users, label: 'Members', color: 'text-blue-500' },
+  all: { icon: AtSign, label: 'Mention', color: 'text-blue-500' },
+  project: { icon: Folder, label: 'Projects', color: 'text-purple-500' },
   task: { icon: CheckSquare, label: 'Tasks', color: 'text-emerald-500' },
   issue: { icon: AlertCircle, label: 'Issues', color: 'text-red-500' },
 };
@@ -48,6 +49,30 @@ function MemberRow({
         {item.avatar && <AvatarImage src={item.avatar} alt={item.name} />}
         <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
       </Avatar>
+      <span className={`truncate text-sm ${isActive ? 'font-medium' : ''}`}>
+        {item.name}
+      </span>
+    </div>
+  );
+}
+
+const GROUP_LABEL: Record<MentionItem['kind'], string> = {
+  member: 'Members',
+  project: 'Projects',
+  task: 'Tasks',
+  issue: 'Issues',
+};
+
+function ProjectRow({
+  item,
+  isActive,
+}: {
+  item: MentionItem & { kind: 'project' };
+  isActive: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <Folder className="h-4 w-4 shrink-0 text-purple-500" />
       <span className={`truncate text-sm ${isActive ? 'font-medium' : ''}`}>
         {item.name}
       </span>
@@ -136,40 +161,53 @@ export function ChatMentionPopup({
       <div ref={listRef} className="max-h-48 overflow-y-auto py-1">
         {items.length === 0 ? (
           <div className="text-muted-foreground px-3 py-4 text-center text-xs">
-            No {config.label.toLowerCase()} found
+            {mode === 'all'
+              ? 'No matches found'
+              : `No ${config.label.toLowerCase()} found`}
           </div>
         ) : (
           items.map((item, idx) => (
-            <div
+            <Fragment
               key={
                 item.kind === 'member'
                   ? `m-${item.employeeId}`
                   : `${item.kind}-${item.id}`
               }
-              data-active={idx === activeIndex}
-              className={`cursor-pointer px-3 py-1.5 transition-colors ${
-                idx === activeIndex
-                  ? 'bg-accent text-accent-foreground'
-                  : 'hover:bg-muted/50'
-              }`}
-              onMouseDown={(e) => {
-                e.preventDefault(); // keep textarea focus
-                onSelect(idx);
-              }}
-              onMouseEnter={() => {
-                // handled via parent state — optional hover highlight
-              }}
             >
-              {item.kind === 'member' && (
-                <MemberRow item={item} isActive={idx === activeIndex} />
+              {mode === 'all' && items[idx - 1]?.kind !== item.kind && (
+                <div className="text-muted-foreground px-3 pt-2 pb-1 text-[10px] font-medium uppercase">
+                  {GROUP_LABEL[item.kind]}
+                </div>
               )}
-              {item.kind === 'task' && (
-                <TaskRow item={item} isActive={idx === activeIndex} />
-              )}
-              {item.kind === 'issue' && (
-                <IssueRow item={item} isActive={idx === activeIndex} />
-              )}
-            </div>
+              <div
+                data-active={idx === activeIndex}
+                className={`cursor-pointer px-3 py-1.5 transition-colors ${
+                  idx === activeIndex
+                    ? 'bg-accent text-accent-foreground'
+                    : 'hover:bg-muted/50'
+                }`}
+                onMouseDown={(e) => {
+                  e.preventDefault(); // keep textarea focus
+                  onSelect(idx);
+                }}
+                onMouseEnter={() => {
+                  // handled via parent state — optional hover highlight
+                }}
+              >
+                {item.kind === 'member' && (
+                  <MemberRow item={item} isActive={idx === activeIndex} />
+                )}
+                {item.kind === 'project' && (
+                  <ProjectRow item={item} isActive={idx === activeIndex} />
+                )}
+                {item.kind === 'task' && (
+                  <TaskRow item={item} isActive={idx === activeIndex} />
+                )}
+                {item.kind === 'issue' && (
+                  <IssueRow item={item} isActive={idx === activeIndex} />
+                )}
+              </div>
+            </Fragment>
           ))
         )}
       </div>

@@ -19,8 +19,7 @@ import {
 } from '@/hooks/chat/use-chat-mutations';
 import { useUser } from '@tornotron/echno-core/user/hooks';
 import { useUserEmployees } from '@tornotron/echno-core/user/hooks';
-import { useTasksByProject } from '@tornotron/echno-core/task/hooks';
-import { useIssuesByProject } from '@tornotron/echno-core/issue/hooks';
+import { useMentionEntities } from '@/hooks/chat/use-mention-entities';
 import { ChatMessage, ChatRoomType } from '@/types/chat';
 import { FloatingChatMessageList } from './floating-chat-message-list';
 import { FloatingChatComposer } from './floating-chat-composer';
@@ -45,8 +44,9 @@ export function FloatingChatRoomView({
   const { data: user } = useUser();
   const { data: userEmployees = [] } = useUserEmployees();
 
-  const { data: projectTasks = [] } = useTasksByProject(room?.projectId);
-  const { data: projectIssues = [] } = useIssuesByProject(room?.projectId);
+  // What the @ list offers; the larger lists load once it first opens.
+  const [mentionOpened, setMentionOpened] = useState(false);
+  const mentionEntities = useMentionEntities(room?.projectId, mentionOpened);
 
   const sendMessage = useSendMessage();
   const editMessage = useEditMessage();
@@ -210,8 +210,10 @@ export function FloatingChatRoomView({
             onCancelEdit={() => setEditingMessage(null)}
             disabled={sendMessage.isPending || editMessage.isPending}
             participants={room.participants}
-            tasks={projectTasks}
-            issues={projectIssues}
+            projects={mentionEntities.projects}
+            tasks={mentionEntities.tasks}
+            issues={mentionEntities.issues}
+            onMentionOpen={() => setMentionOpened(true)}
           />
         </>
       )}

@@ -5,6 +5,7 @@ import { Send, X } from 'lucide-react';
 import { Button } from '@/components/shadcn/button';
 import { Textarea } from '@/components/shadcn/textarea';
 import { ChatMessage, ChatParticipant } from '@/types/chat';
+import { Project } from '@tornotron/echno-core/project/types';
 import { Task } from '@tornotron/echno-core/task/types';
 import { Issue } from '@tornotron/echno-core/issue/types';
 import {
@@ -22,8 +23,11 @@ interface FloatingChatComposerProps {
   editContent?: string;
   onCancelEdit?: () => void;
   participants?: ChatParticipant[];
+  projects?: Project[];
   tasks?: Task[];
   issues?: Issue[];
+  /** Called when the mention list opens, so its lists can load on first use */
+  onMentionOpen?: () => void;
 }
 
 export function FloatingChatComposer({
@@ -34,8 +38,10 @@ export function FloatingChatComposer({
   editContent,
   onCancelEdit,
   participants = [],
+  projects = [],
   tasks = [],
   issues = [],
+  onMentionOpen,
 }: FloatingChatComposerProps) {
   const [value, setValue] = useState(editContent ?? '');
   const [prevEditContent, setPrevEditContent] = useState(editContent);
@@ -44,11 +50,15 @@ export function FloatingChatComposer({
   const replyToPreview = replyTo ? stripMentions(replyTo.content) : '';
 
   const mention = useMention(
-    { participants, tasks, issues },
+    { participants, projects, tasks, issues },
     textareaRef,
     value,
     setValue
   );
+
+  useEffect(() => {
+    if (mention.open) onMentionOpen?.();
+  }, [mention.open, onMentionOpen]);
 
   // Sync when the user starts editing a different message
   if (editContent !== prevEditContent) {
