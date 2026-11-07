@@ -1,5 +1,7 @@
 import type {
   BillLineStatus,
+  BillPaymentState,
+  BillPaymentStatus,
   BillStatus,
   BillingModel,
   ProjectBillingState,
@@ -15,6 +17,12 @@ import {
   STATUS_CLASSES,
   STATUS_LABELS,
 } from '../lib/labels';
+import {
+  PAYMENT_STATE_CLASSES,
+  PAYMENT_STATE_LABELS,
+  PAYMENT_STATUS_CLASSES,
+  PAYMENT_STATUS_LABELS,
+} from '../lib/payments';
 import { PROJECT_STATE_CLASSES, PROJECT_STATE_LABELS } from '../lib/projects';
 
 const CHIP =
@@ -32,6 +40,22 @@ export function ProjectStateChip({ state }: { state: ProjectBillingState }) {
   return (
     <span className={cn(CHIP, PROJECT_STATE_CLASSES[state])}>
       {PROJECT_STATE_LABELS[state]}
+    </span>
+  );
+}
+
+export function PaymentStateChip({ state }: { state: BillPaymentState }) {
+  return (
+    <span className={cn(CHIP, PAYMENT_STATE_CLASSES[state])}>
+      {PAYMENT_STATE_LABELS[state]}
+    </span>
+  );
+}
+
+export function PaymentStatusChip({ status }: { status: BillPaymentStatus }) {
+  return (
+    <span className={cn(CHIP, PAYMENT_STATUS_CLASSES[status])}>
+      {PAYMENT_STATUS_LABELS[status]}
     </span>
   );
 }

@@ -72,6 +72,7 @@ export function NewBillDialog({
   const [periodTo, setPeriodTo] = useState(lastOfMonth());
   const [milestoneId, setMilestoneId] = useState('');
   const [claimedPercent, setClaimedPercent] = useState('');
+  const [fromInspections, setFromInspections] = useState(true);
   const [contractorReference, setContractorReference] = useState('');
   const [location, setLocation] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -120,6 +121,10 @@ export function NewBillDialog({
             ? Number(milestoneId)
             : undefined,
         claimedPercent: percent,
+        draftFromInspections:
+          billingModel === BillingModel.RUNNING_ACCOUNT && fromInspections
+            ? true
+            : undefined,
         contractorReference: contractorReference.trim() || undefined,
         location: location.trim() || undefined,
       },
@@ -212,6 +217,22 @@ export function NewBillDialog({
                   />
                 </div>
               </div>
+              <label className="flex items-start gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={fromInspections}
+                  onChange={(e) => setFromInspections(e.target.checked)}
+                />
+                <span>
+                  Draft from inspections
+                  <span className="text-muted-foreground block">
+                    Start each claimed quantity from the inspected progress of
+                    the activity its BOQ item is linked to. The joint
+                    measurement still decides what is accepted.
+                  </span>
+                </span>
+              </label>
             </>
           ) : (
             <>

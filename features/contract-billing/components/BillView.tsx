@@ -82,6 +82,7 @@ import { BillAdjustments } from './BillAdjustments';
 import { BillDocuments } from './BillDocuments';
 import { BillMilestone } from './BillMilestone';
 import { BillOverview } from './BillOverview';
+import { BillPaymentsPanel } from './BillPaymentsPanel';
 import { BillQuantities } from './BillQuantities';
 import { BillTimeline } from './BillTimeline';
 import { BillStatusChip } from './chips';
@@ -444,7 +445,8 @@ function BillWorkspace({
             {bill.payableId ? (
               <>
                 A payable of {formatInr(bill.netPayable)} was raised for{' '}
-                {bill.contractorName}.{' '}
+                {bill.contractorName}, with {formatInr(bill.amountDue)} due. Pay
+                it from the Payments tab.{' '}
                 <Link className="underline" href={routes.finance.payables}>
                   Open payables
                 </Link>
@@ -477,6 +479,9 @@ function BillWorkspace({
           )}
           <TabsTrigger value="adjustments">Adjustments</TabsTrigger>
           <TabsTrigger value="documents">Supporting documents</TabsTrigger>
+          {bill.status === BillStatus.APPROVED && (
+            <TabsTrigger value="payments">Payments</TabsTrigger>
+          )}
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
         </TabsList>
         <TabsContent value="overview">
@@ -521,6 +526,11 @@ function BillWorkspace({
         <TabsContent value="documents">
           <BillDocuments bill={bill} editable={can('documents')} />
         </TabsContent>
+        {bill.status === BillStatus.APPROVED && (
+          <TabsContent value="payments">
+            <BillPaymentsPanel bill={bill} />
+          </TabsContent>
+        )}
         <TabsContent value="timeline">
           <BillTimeline bill={bill} canNote={prepare} />
         </TabsContent>
@@ -596,7 +606,13 @@ function BillWorkspace({
 function Stepper({ bill }: { bill: Bill }) {
   const steps = stepperSteps(bill);
   return (
-    <ol className="grid grid-cols-5 gap-2" aria-label="Bill progress">
+    <ol
+      className="grid gap-2"
+      style={{
+        gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))`,
+      }}
+      aria-label="Bill progress"
+    >
       {steps.map((s) => (
         <li
           key={s.label}
