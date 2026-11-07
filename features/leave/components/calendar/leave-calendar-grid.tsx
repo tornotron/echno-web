@@ -42,12 +42,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/shadcn/dialog';
-import {
-  LeaveCalendarEntry,
-  LeaveStatus,
-} from '@tornotron/echno-core/leave/types';
+import { LeaveCalendarEntry } from '@tornotron/echno-core/leave/types';
 import { Tabs, TabsList, TabsTrigger } from '@/components/shadcn/tabs';
-import { LeaveStatusBadge } from '@/features/leave/components/leave-status-badge';
 
 export type CalendarView = 'month' | 'week' | 'day';
 
@@ -236,7 +232,6 @@ export function LeaveCalendarGrid({
                             )}
                         </div>
                       </div>
-                      <LeaveStatusBadge status={entry.status as LeaveStatus} />
                     </div>
                   </CardContent>
                 </Card>
@@ -458,7 +453,6 @@ function DayView({
                   )}
                 </div>
               </div>
-              <LeaveStatusBadge status={entry.status as LeaveStatus} />
             </div>
           </CardContent>
         </Card>
