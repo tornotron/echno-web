@@ -19,7 +19,7 @@ export function ScheduleTab({ project }: ScheduleTabProps) {
   const tasks = project.tasks ?? [];
   const tasksWithDates = tasks.filter((t) => t.startDate && t.endDate);
 
-  const criticalCount = (() => {
+  const finishCount = (() => {
     const dated = tasks.filter((t) => t.endDate);
     if (dated.length === 0) return 0;
     const projectEnd = new Date(
@@ -41,10 +41,11 @@ export function ScheduleTab({ project }: ScheduleTabProps) {
             reschedule
           </p>
         </div>
-        {criticalCount > 0 && (
+        {finishCount > 0 && (
           <div className="flex items-center gap-1.5 rounded-md bg-red-50 px-3 py-1.5 text-sm text-red-700 dark:bg-red-950 dark:text-red-400">
             <AlertCircle className="h-4 w-4" />
-            {criticalCount} task{criticalCount > 1 ? 's' : ''} on critical path
+            {finishCount === 1 ? '1 task sets' : `${finishCount} tasks set`} the
+            finish date
           </div>
         )}
       </div>
@@ -77,7 +78,7 @@ export function ScheduleTab({ project }: ScheduleTabProps) {
               value: tasks.filter((t) => t.status === TaskStatus.completed)
                 .length,
             },
-            { label: 'Critical Path', value: criticalCount },
+            { label: 'Set the Finish Date', value: finishCount },
           ].map((s) => (
             <Card key={s.label}>
               <CardHeader className="pt-3 pb-1">
