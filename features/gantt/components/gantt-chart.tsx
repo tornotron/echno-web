@@ -25,13 +25,22 @@ interface GanttChartProps {
   tasks: Task[];
   projectStart?: Date;
   projectEnd?: Date;
+  /** Leave out to show the bars without letting anyone drag them. */
+  onTaskMove?: (id: string, startAt: Date, endAt: Date | null) => void;
+  barResetKey?: number;
 }
 
-export function GanttChart({ tasks }: GanttChartProps) {
+export function GanttChart({
+  tasks,
+  onTaskMove,
+  barResetKey,
+}: GanttChartProps) {
   return (
     <WbsGanttChart
       tasks={tasks}
       markers={buildProjectGanttMarkers(tasks)}
+      onTaskMove={onTaskMove}
+      barResetKey={barResetKey}
       zoom={100}
       range="monthly"
     />

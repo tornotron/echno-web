@@ -805,14 +805,16 @@ export const GanttFeatureDragHelper: FC<GanttFeatureDragHelperProps> = ({
 
 export type GanttFeatureItemCardProps = Pick<GanttFeature, 'id'> & {
   children?: ReactNode;
+  disabled?: boolean;
 };
 
 export const GanttFeatureItemCard: FC<GanttFeatureItemCardProps> = ({
   id,
   children,
+  disabled,
 }) => {
   const [, setDragging] = useGanttDragging();
-  const { attributes, listeners, setNodeRef } = useDraggable({ id });
+  const { attributes, listeners, setNodeRef } = useDraggable({ id, disabled });
   const isPressed = Boolean(attributes['aria-pressed']);
 
   useEffect(() => setDragging(isPressed), [isPressed, setDragging]);
@@ -955,7 +957,7 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
           onDragStart={handleItemDragStart}
           sensors={[mouseSensor]}
         >
-          <GanttFeatureItemCard id={feature.id}>
+          <GanttFeatureItemCard disabled={!onMove} id={feature.id}>
             {children ?? (
               <p className="flex-1 truncate text-xs">{feature.name}</p>
             )}
