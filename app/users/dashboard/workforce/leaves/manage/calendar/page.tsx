@@ -8,6 +8,8 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
+import { useCan } from '@/hooks/use-can';
+import { LEAVE_ORG_ACCESS } from '@/nav/access/roles';
 import {
   Select,
   SelectContent,
@@ -43,8 +45,13 @@ import {
 export default function LeaveCalendarPage() {
   const { data: employee, isLoading: employeeLoading } =
     useCurrentUserEmployee();
+  const { allowed: canViewOrganization, isLoading: accessLoading } =
+    useCan(LEAVE_ORG_ACCESS);
   const employeeId = employee?.id || 0;
-  const organizationId = employee?.organizationId || 0;
+  // No organization id, no request: only LEAVE_ORG_ACCESS may read these two.
+  const organizationId = canViewOrganization
+    ? employee?.organizationId || 0
+    : 0;
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
@@ -74,7 +81,7 @@ export default function LeaveCalendarPage() {
 
   return (
     <OrgGuard
-      isLoading={employeeLoading}
+      isLoading={employeeLoading || accessLoading}
       error={null}
       organizationId={employee?.organizationId}
     >
@@ -94,22 +101,24 @@ export default function LeaveCalendarPage() {
         {/* Stats */}
         <Card className="gap-0 p-6">
           <div className="divide-border grid grid-cols-1 divide-y sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-            <div className="flex flex-col gap-1 py-6 sm:py-0 sm:pr-6">
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                Organisation
-              </p>
-              <div className="flex items-center justify-between">
-                <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                  {orgCalendar?.length || 0}
+            {canViewOrganization && (
+              <div className="flex flex-col gap-1 py-6 sm:py-0 sm:pr-6">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Organisation
                 </p>
-                <div className="flex size-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/30">
-                  <Users className="size-4 text-blue-600 dark:text-blue-400" />
+                <div className="flex items-center justify-between">
+                  <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                    {orgCalendar?.length || 0}
+                  </p>
+                  <div className="flex size-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/30">
+                    <Users className="size-4 text-blue-600 dark:text-blue-400" />
+                  </div>
                 </div>
+                <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                  leave entries this month
+                </p>
               </div>
-              <p className="text-xs text-zinc-400 dark:text-zinc-500">
-                leave entries this month
-              </p>
-            </div>
+            )}
             <div className="flex flex-col gap-1 py-6 sm:px-6 sm:py-0">
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
                 My Team
@@ -132,7 +141,11 @@ export default function LeaveCalendarPage() {
               </p>
               <div className="flex items-center justify-between">
                 <p className="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
-                  {new Set(orgCalendar?.map((e) => e.employeeId)).size || 0}
+                  {new Set(
+                    (canViewOrganization ? orgCalendar : teamCalendar)?.map(
+                      (e) => e.employeeId
+                    )
+                  ).size || 0}
                 </p>
                 <div className="flex size-8 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
                   <Calendar className="size-4 text-green-600 dark:text-green-400" />
@@ -146,11 +159,18 @@ export default function LeaveCalendarPage() {
         </Card>
 
         {/* Calendar Tabs */}
-        <Tabs defaultValue="organization" className="space-y-4">
+        <Tabs
+          defaultValue={canViewOrganization ? 'organization' : 'team'}
+          className="space-y-4"
+        >
           <TabsList>
-            <TabsTrigger value="organization">Organization</TabsTrigger>
+            {canViewOrganization && (
+              <TabsTrigger value="organization">Organization</TabsTrigger>
+            )}
             <TabsTrigger value="team">My Team</TabsTrigger>
-            <TabsTrigger value="department">By Department</TabsTrigger>
+            {canViewOrganization && (
+              <TabsTrigger value="department">By Department</TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="organization" className="space-y-4">

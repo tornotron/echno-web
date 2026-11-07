@@ -29,7 +29,8 @@ import {
 } from 'lucide-react';
 import { LeavePoliciesManager } from '@/features/leave/components/leave-policies-manager';
 import { TableSkeleton } from '@/features/leave/components/skeletons';
-import { useLeaveRole } from '@/hooks/leave/use-leave-role';
+import { useCan } from '@/hooks/use-can';
+import { LEAVE_ORG_ACCESS } from '@/nav/access/roles';
 import { useAllLeavePolicies } from '@tornotron/echno-core/leave/hooks';
 import { useUser } from '@tornotron/echno-core/user/hooks';
 import { PageHeader } from '@/components/common';
@@ -37,7 +38,8 @@ import { routes } from '@/nav';
 
 export default function LeavePoliciesPage() {
   const router = useRouter();
-  const { isAdmin, isLoading: roleLoading } = useLeaveRole();
+  const { allowed: canManagePolicies, isLoading: roleLoading } =
+    useCan(LEAVE_ORG_ACCESS);
   const { data: user } = useUser();
   const { data: policies } = useAllLeavePolicies();
 
@@ -55,7 +57,7 @@ export default function LeavePoliciesPage() {
     );
   }
 
-  if (!isAdmin) {
+  if (!canManagePolicies) {
     return (
       <div className="container mx-auto p-6">
         <Alert variant="destructive">
@@ -63,7 +65,7 @@ export default function LeavePoliciesPage() {
           <AlertTitle>Access Denied</AlertTitle>
           <AlertDescription>
             You don&apos;t have permission to access policy management. This
-            feature is restricted to system administrators.
+            feature is restricted to system and HR administrators.
           </AlertDescription>
         </Alert>
         <Button

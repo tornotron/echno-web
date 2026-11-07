@@ -8,7 +8,11 @@ import {
   Settings,
 } from 'lucide-react';
 import type { MetadataRegistry } from '../types';
-import { EMPLOYEE_LIST_ACCESS, MANAGER_AND_ABOVE } from '../access/roles';
+import {
+  EMPLOYEE_LIST_ACCESS,
+  LEAVE_ORG_ACCESS,
+  MANAGER_AND_ABOVE,
+} from '../access/roles';
 
 export const workforceMetadata = {
   workforce: {
@@ -92,6 +96,7 @@ export const workforceMetadata = {
     label: 'Policies',
     icon: Settings,
     order: 4,
+    access: LEAVE_ORG_ACCESS,
   },
   'workforce-leaves-manage-holidays': {
     label: 'Holidays',
