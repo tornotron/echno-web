@@ -36,8 +36,8 @@ import {
 
 type ProjectGanttTask = Task & {
   ganttId: string;
-  isCritical?: boolean;
-  isNearCritical?: boolean;
+  setsFinish?: boolean;
+  endsNearFinish?: boolean;
 };
 
 type LegendItem = {
@@ -47,8 +47,8 @@ type LegendItem = {
 };
 
 const LEGEND_ITEMS: LegendItem[] = [
-  { label: 'Critical path', color: '#EF4444' },
-  { label: 'Near-critical', color: '#F59E0B' },
+  { label: 'Sets the finish date', color: '#EF4444' },
+  { label: 'Within 7 days of the finish', color: '#F59E0B' },
   { label: 'In progress', color: '#3B82F6' },
   { label: 'Completed', color: '#22C55E' },
   { label: 'Upcoming', color: '#94A3B8' },
@@ -62,7 +62,12 @@ const STATUS_COLORS: Record<TaskStatus, string> = {
   [TaskStatus.completed]: '#22C55E',
 };
 
-function detectCriticalPath(tasks: Task[]): ProjectGanttTask[] {
+/**
+ * Marks the tasks ending on the latest date, and those ending within 7 days of
+ * it. Tasks have no links between them, so this cannot say which delays would
+ * move the finish date, and the labels do not claim to.
+ */
+function markFinishingTasks(tasks: Task[]): ProjectGanttTask[] {
   const withDates = tasks.filter((task) => task.startDate && task.endDate);
 
   if (withDates.length === 0) {
@@ -85,20 +90,20 @@ function detectCriticalPath(tasks: Task[]): ProjectGanttTask[] {
   }
 
   const projectEnd = new Date(latestEndMs);
-  const nearCriticalThreshold = addDays(projectEnd, -7);
+  const nearFinishThreshold = addDays(projectEnd, -7);
 
   const result: ProjectGanttTask[] = [];
   for (const task of tasks) {
-    const isCritical = Boolean(task.endDate && task.endDate >= projectEnd);
-    const isNearCritical = Boolean(
-      task.endDate && !isCritical && task.endDate >= nearCriticalThreshold
+    const setsFinish = Boolean(task.endDate && task.endDate >= projectEnd);
+    const endsNearFinish = Boolean(
+      task.endDate && !setsFinish && task.endDate >= nearFinishThreshold
     );
 
     result.push({
       ...task,
       ganttId: String(task.id ?? `${task.projectId}-${task.title}`),
-      isCritical,
-      isNearCritical,
+      setsFinish,
+      endsNearFinish,
     });
   }
 
@@ -106,8 +111,8 @@ function detectCriticalPath(tasks: Task[]): ProjectGanttTask[] {
 }
 
 function getTaskDisplayColor(task: ProjectGanttTask): string {
-  if (task.isCritical) return '#EF4444';
-  if (task.isNearCritical) return '#F59E0B';
+  if (task.setsFinish) return '#EF4444';
+  if (task.endsNearFinish) return '#F59E0B';
   return STATUS_COLORS[task.status] ?? '#94A3B8';
 }
 
@@ -118,10 +123,10 @@ function toGanttFeature(task: ProjectGanttTask): GanttFeature | null {
 
   const color = getTaskDisplayColor(task);
   let statusLabel = getTaskStatusLabel(task.status);
-  if (task.isCritical) {
-    statusLabel = 'Critical path';
-  } else if (task.isNearCritical) {
-    statusLabel = 'Near-critical';
+  if (task.setsFinish) {
+    statusLabel = 'Sets the finish date';
+  } else if (task.endsNearFinish) {
+    statusLabel = 'Within 7 days of the finish';
   }
 
   const status: GanttStatus = {
@@ -256,7 +261,7 @@ export function ProjectGanttChart({
   zoom = 100,
   range = 'monthly',
 }: ProjectGanttChartProps) {
-  const normalizedTasks = useMemo(() => detectCriticalPath(tasks), [tasks]);
+  const normalizedTasks = useMemo(() => markFinishingTasks(tasks), [tasks]);
   const tasksWithDates = normalizedTasks.filter(
     (task) => task.startDate && task.endDate
   );
@@ -406,7 +411,7 @@ export function WbsGanttChart(props: ProjectGanttChartProps) {
     barResetKey = 0,
   } = props;
 
-  const normalizedTasks = useMemo(() => detectCriticalPath(tasks), [tasks]);
+  const normalizedTasks = useMemo(() => markFinishingTasks(tasks), [tasks]);
   const tasksWithDates = normalizedTasks.filter(
     (task) => task.startDate && task.endDate
   );
