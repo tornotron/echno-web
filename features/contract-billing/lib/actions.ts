@@ -1,4 +1,5 @@
 import {
+  BillPaymentState,
   BillStatus,
   BillingModel,
   type ContractBillingSummary,
@@ -114,7 +115,8 @@ const FLOW: BillStatus[] = [
 /**
  * The status stepper. A returned bill shows the steps it had passed as done
  * and Draft as current again, since it is back with the preparer; a
- * cancelled bill shows nothing current.
+ * cancelled bill shows nothing current. After approval the last step is paying
+ * it, which an approved bill with nothing payable does not have.
  */
 export function stepperSteps(bill: {
   status: BillStatus;
@@ -123,6 +125,7 @@ export function stepperSteps(bill: {
   verifiedAt?: string;
   certifiedAt?: string;
   approvedAt?: string;
+  paymentState?: BillPaymentState;
 }): StepperStep[] {
   const at: Record<string, string | undefined> = {
     [BillStatus.DRAFT]: bill.createdAt,
@@ -139,7 +142,7 @@ export function stepperSteps(bill: {
   }
   const current =
     bill.status === BillStatus.RETURNED ? 0 : FLOW.indexOf(bill.status);
-  return FLOW.map((status, index) => ({
+  const steps: StepperStep[] = FLOW.map((status, index) => ({
     label: STATUS_LABELS[status],
     state:
       bill.status === BillStatus.APPROVED || index < current
@@ -152,6 +155,19 @@ export function stepperSteps(bill: {
         ? at[status]
         : undefined,
   }));
+  if (bill.paymentState === BillPaymentState.NOTHING_PAYABLE) return steps;
+  return [
+    ...steps,
+    {
+      label: 'Paid',
+      state:
+        bill.paymentState === BillPaymentState.PAID
+          ? 'done'
+          : bill.paymentState
+            ? 'current'
+            : 'upcoming',
+    },
+  ];
 }
 
 /** The button that opens the next bill of a contract's model. */

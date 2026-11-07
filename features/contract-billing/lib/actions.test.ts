@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import {
+  BillPaymentState,
   BillStatus,
   BillingModel,
   type ContractBillingSummary,
@@ -116,6 +117,21 @@ describe('contractAction', () => {
 });
 
 describe('stepperSteps', () => {
+  test('after approval the last step is paying the bill, until it is paid', () => {
+    const last = (paymentState: BillPaymentState) => {
+      const steps = stepperSteps({ status: BillStatus.APPROVED, paymentState });
+      return [steps.at(-1)?.label, steps.at(-1)?.state, steps.length];
+    };
+    expect(last(BillPaymentState.UNPAID)).toEqual(['Paid', 'current', 6]);
+    expect(last(BillPaymentState.PART_PAID)).toEqual(['Paid', 'current', 6]);
+    expect(last(BillPaymentState.PAID)).toEqual(['Paid', 'done', 6]);
+    expect(last(BillPaymentState.NOTHING_PAYABLE)).toEqual([
+      'Approved',
+      'done',
+      5,
+    ]);
+  });
+
   test('marks the steps passed, the current one and the rest', () => {
     const steps = stepperSteps({
       status: BillStatus.VERIFIED,
@@ -129,6 +145,7 @@ describe('stepperSteps', () => {
       'current',
       'upcoming',
       'upcoming',
+      'upcoming',
     ]);
     expect(steps[1].at).toBe('2026-09-02');
   });
@@ -138,9 +155,10 @@ describe('stepperSteps', () => {
       stepperSteps({ status: BillStatus.RETURNED }).map((s) => s.state)[0]
     ).toBe('current');
     expect(
-      stepperSteps({ status: BillStatus.APPROVED }).every(
-        (s) => s.state === 'done'
-      )
+      stepperSteps({
+        status: BillStatus.APPROVED,
+        paymentState: BillPaymentState.PAID,
+      }).every((s) => s.state === 'done')
     ).toBe(true);
     expect(
       stepperSteps({ status: BillStatus.CANCELLED }).every(

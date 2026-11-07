@@ -57,7 +57,12 @@ import { routes } from '@/nav';
 import { contractAction, newBillLabel } from '../lib/actions';
 import { formatDate, formatInr, formatPercent, formatQty } from '../lib/format';
 import { KIND_LABELS, REQUIREMENT_TYPE_LABELS } from '../lib/labels';
-import { BillStatusChip, ModelChip, RequirementStatusChip } from './chips';
+import {
+  BillStatusChip,
+  ModelChip,
+  PaymentStateChip,
+  RequirementStatusChip,
+} from './chips';
 import { NewBillDialog } from './NewBillDialog';
 import {
   BoqItemDialog,
@@ -722,6 +727,7 @@ export function BillsTable({ bills }: { bills: BillSummary[] }) {
               <TableHead className="text-right">Certified</TableHead>
               <TableHead className="text-right">Net payable</TableHead>
               <TableHead>Approved</TableHead>
+              <TableHead>Payment</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -753,6 +759,13 @@ export function BillsTable({ bills }: { bills: BillSummary[] }) {
                   {formatInr(bill.netPayable)}
                 </TableCell>
                 <TableCell>{formatDate(bill.approvedAt)}</TableCell>
+                <TableCell>
+                  {bill.paymentState ? (
+                    <PaymentStateChip state={bill.paymentState} />
+                  ) : (
+                    '-'
+                  )}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
