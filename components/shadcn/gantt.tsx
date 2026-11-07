@@ -404,8 +404,9 @@ export function WbsGanttChart(props: ProjectGanttChartProps) {
   } = props;
 
   const normalizedTasks = useMemo(() => detectCriticalPath(tasks), [tasks]);
-  const tasksWithDates = normalizedTasks.filter(
-    (task) => task.startDate && task.endDate
+  const tasksWithDates = useMemo(
+    () => normalizedTasks.filter((task) => task.startDate && task.endDate),
+    [normalizedTasks]
   );
   const tasksWithoutDatesCount = normalizedTasks.length - tasksWithDates.length;
 
@@ -431,28 +432,18 @@ export function WbsGanttChart(props: ProjectGanttChartProps) {
     () => buildWbsGroups(features, taskByGanttId),
     [features, taskByGanttId]
   );
-  const [prevGroups, setPrevGroups] = useState(groups);
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
-    () => new Set(groups.map((group) => group.name))
+  // Groups are open unless closed by hand, so a group that appears later needs
+  // no state update during render.
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
+    () => new Set()
   );
-
-  if (groups !== prevGroups) {
-    setPrevGroups(groups);
-    setExpandedGroups((prev) => {
-      const next = new Set(prev);
-      for (const group of groups) {
-        if (!next.has(group.name)) next.add(group.name);
-      }
-      return next;
-    });
-  }
 
   const handleMoveFeature = (id: string, startAt: Date, endAt: Date | null) => {
     onTaskMove?.(id, startAt, endAt);
   };
 
   const toggleGroup = (groupName: string) => {
-    setExpandedGroups((prev) => {
+    setCollapsedGroups((prev) => {
       const next = new Set(prev);
       if (next.has(groupName)) next.delete(groupName);
       else next.add(groupName);
@@ -489,7 +480,7 @@ export function WbsGanttChart(props: ProjectGanttChartProps) {
       >
         <GanttSidebar>
           {groups.map((group) => {
-            const expanded = expandedGroups.has(group.name);
+            const expanded = !collapsedGroups.has(group.name);
             return (
               <div className="border-border/40 border-b" key={group.name}>
                 <button
@@ -532,7 +523,7 @@ export function WbsGanttChart(props: ProjectGanttChartProps) {
           <GanttHeader />
           <GanttFeatureList>
             {groups.map((group) => {
-              const expanded = expandedGroups.has(group.name);
+              const expanded = !collapsedGroups.has(group.name);
               return (
                 <GanttFeatureListGroup key={group.name}>
                   {expanded &&
