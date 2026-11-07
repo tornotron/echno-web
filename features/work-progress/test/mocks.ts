@@ -4,11 +4,29 @@
  * role gate, the module list, the sub-contract list and the toast are the
  * app's own and are set per test through `gates`.
  */
-import { mock } from 'bun:test';
+import { afterAll, mock } from 'bun:test';
 import * as realEmployeeHooks from '@tornotron/echno-core/employee/hooks';
 import * as realWbsServices from '@tornotron/echno-core/wbs/services';
 import * as realWorkProgressServices from '@tornotron/echno-core/work-progress/services';
+import * as realSubContracts from '@/hooks/sub-contracts';
+import * as realUseCan from '@/hooks/use-can';
+import * as realUseEnabledModuleIds from '@/hooks/use-enabled-module-ids';
+import * as realToastStyles from '@/lib/styles/toast-styles';
 import type { AccessConfig } from '@/nav/access/roles';
+
+// Copied now, before `installMocks` runs: a namespace object is live, so once a
+// module is mocked its namespace reads as the mock.
+const originals: Record<string, Record<string, unknown>> = {
+  '@tornotron/echno-core/employee/hooks': { ...realEmployeeHooks },
+  '@tornotron/echno-core/wbs/services': { ...realWbsServices },
+  '@tornotron/echno-core/work-progress/services': {
+    ...realWorkProgressServices,
+  },
+  '@/hooks/sub-contracts': { ...realSubContracts },
+  '@/hooks/use-can': { ...realUseCan },
+  '@/hooks/use-enabled-module-ids': { ...realUseEnabledModuleIds },
+  '@/lib/styles/toast-styles': { ...realToastStyles },
+};
 
 export const gates: { orgRoles: string[]; modules: string[] } = {
   orgRoles: [],
@@ -47,6 +65,7 @@ export const toast = {
 };
 
 export function installMocks() {
+  afterAll(restoreMocks);
   mock.module('@tornotron/echno-core/wbs/services', () => ({
     ...realWbsServices,
     wbsService: { ...realWbsServices.wbsService, ...wbs },
@@ -82,6 +101,19 @@ export function installMocks() {
     }),
   }));
   mock.module('@/lib/styles/toast-styles', () => ({ toast }));
+}
+
+/**
+ * Puts back every module `installMocks` replaced. `mock.module` is process-wide
+ * and outlives the test file, so a mock left in place keeps answering in
+ * whichever file runs next: the role gate then decides by the roles the last
+ * test here happened to leave in `gates`, and every page behind it passes or
+ * refuses according to file order.
+ */
+function restoreMocks() {
+  for (const [path, original] of Object.entries(originals)) {
+    mock.module(path, () => original);
+  }
 }
 
 export function resetMocks() {
