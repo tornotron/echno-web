@@ -18,7 +18,7 @@
  * Assertions are on counts, strings and booleans, never on a rendered Radix
  * node: an assertion that fails while printing one hangs the reporter.
  */
-import { afterEach, describe, expect, mock, test } from 'bun:test';
+import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test';
 import { createElement } from 'react';
 import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import { ApiError } from '@/lib/api/api-client';
@@ -39,6 +39,12 @@ mock.module('next/navigation', () => ({
 const invalidated: unknown[] = [];
 
 import * as realQuery from '@tanstack/react-query';
+
+// Module mocks outlive this file; put the real query client back for the rest.
+const savedQuery = { ...realQuery };
+afterAll(() => {
+  mock.module('@tanstack/react-query', () => savedQuery);
+});
 
 mock.module('@tanstack/react-query', () => ({
   ...realQuery,
@@ -92,7 +98,9 @@ import * as realPurchaseOrderHooks from '@tornotron/echno-core/purchase-orders/h
 mock.module('@tornotron/echno-core/purchase-orders/hooks', () => ({
   ...realPurchaseOrderHooks,
   usePurchaseOrders: () => ({ data: [ORDER] }),
-  usePurchaseOrder: (id: number) => ({ data: id === ORDER.id ? ORDER : undefined }),
+  usePurchaseOrder: (id: number) => ({
+    data: id === ORDER.id ? ORDER : undefined,
+  }),
 }));
 
 import * as realMaterialHooks from '@tornotron/echno-core/materials/hooks';
@@ -319,7 +327,10 @@ describe('every other failure is left where it was', () => {
 
     refuse(
       0,
-      new ApiError('Project with ID null was not found in this organization.', 400)
+      new ApiError(
+        'Project with ID null was not found in this organization.',
+        400
+      )
     );
 
     expect(errorToast).toHaveBeenCalledTimes(1);
@@ -330,7 +341,10 @@ describe('every other failure is left where it was', () => {
 
     refuse(
       0,
-      new ApiError('Project with ID null was not found in this organization.', 400)
+      new ApiError(
+        'Project with ID null was not found in this organization.',
+        400
+      )
     );
 
     expect(button('Record the excess') === undefined).toBe(true);

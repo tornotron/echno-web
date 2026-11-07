@@ -24,7 +24,7 @@
  * Assertions are on counts, strings and booleans, never on a rendered Radix
  * node: an assertion that fails while printing one hangs the reporter.
  */
-import { afterEach, describe, expect, mock, test } from 'bun:test';
+import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test';
 import { createElement, Suspense } from 'react';
 import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import { ApiError } from '@/lib/api/api-client';
@@ -44,6 +44,12 @@ mock.module('next/navigation', () => ({
 const invalidated: unknown[] = [];
 
 import * as realQuery from '@tanstack/react-query';
+
+// Module mocks outlive this file; put the real query client back for the rest.
+const savedQuery = { ...realQuery };
+afterAll(() => {
+  mock.module('@tanstack/react-query', () => savedQuery);
+});
 
 mock.module('@tanstack/react-query', () => ({
   ...realQuery,
