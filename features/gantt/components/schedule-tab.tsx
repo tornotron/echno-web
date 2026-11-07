@@ -8,6 +8,9 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { GanttChart } from './gantt-chart';
+import { useRescheduleTask } from '../hooks/use-reschedule-task';
+import { useCan } from '@/hooks/use-can';
+import { PROJECT_WRITE_ACCESS } from '@/nav/access/roles';
 import type { Project } from '@tornotron/echno-core/project/types';
 import { TaskStatus } from '@tornotron/echno-core/task/types';
 
@@ -18,6 +21,14 @@ interface ScheduleTabProps {
 export function ScheduleTab({ project }: ScheduleTabProps) {
   const tasks = project.tasks ?? [];
   const tasksWithDates = tasks.filter((t) => t.startDate && t.endDate);
+  // PATCH /task/web/{id} admits system-admin and project-manager only.
+  const { allowed: canReschedule } = useCan(PROJECT_WRITE_ACCESS);
+  const { rescheduleTask, barResetKey } = useRescheduleTask();
+
+  const handleTaskMove = (id: string, startAt: Date, endAt: Date | null) => {
+    const task = tasks.find((t) => String(t.id) === id);
+    if (task) rescheduleTask(task, startAt, endAt);
+  };
 
   const criticalCount = (() => {
     const dated = tasks.filter((t) => t.endDate);
@@ -37,8 +48,8 @@ export function ScheduleTab({ project }: ScheduleTabProps) {
             Project Schedule
           </h3>
           <p className="text-sm text-zinc-500">
-            {tasks.length} tasks · {tasksWithDates.length} with dates · drag to
-            reschedule
+            {tasks.length} tasks · {tasksWithDates.length} with dates
+            {canReschedule && ' · drag to reschedule'}
           </p>
         </div>
         {criticalCount > 0 && (
@@ -64,6 +75,8 @@ export function ScheduleTab({ project }: ScheduleTabProps) {
           tasks={tasks}
           projectStart={project.startDate}
           projectEnd={project.endDate}
+          onTaskMove={canReschedule ? handleTaskMove : undefined}
+          barResetKey={barResetKey}
         />
       )}
 

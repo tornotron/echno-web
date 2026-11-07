@@ -196,6 +196,8 @@ export interface ProjectGanttChartProps {
   markers?: GanttMarkerProps[];
   zoom?: number;
   range?: Range;
+  /** Changing this puts every bar back on its task's dates. */
+  barResetKey?: number;
 }
 
 type WbsGroup = {
@@ -401,6 +403,7 @@ export function WbsGanttChart(props: ProjectGanttChartProps) {
     markers = [],
     zoom = 100,
     range = 'monthly',
+    barResetKey = 0,
   } = props;
 
   const normalizedTasks = useMemo(() => detectCriticalPath(tasks), [tasks]);
@@ -533,7 +536,8 @@ export function WbsGanttChart(props: ProjectGanttChartProps) {
                         <div className="flex" key={feature.id}>
                           <GanttFeatureItem
                             {...feature}
-                            onMove={handleMoveFeature}
+                            key={`${feature.startAt.getTime()}-${feature.endAt?.getTime()}-${barResetKey}`}
+                            onMove={onTaskMove ? handleMoveFeature : undefined}
                           >
                             <FeatureCard
                               onSelectTask={onTaskSelect}
