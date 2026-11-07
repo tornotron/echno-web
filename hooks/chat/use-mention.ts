@@ -1,22 +1,25 @@
 // hooks/chat/use-mention.ts
 //
 // Manages @mention state for the chat composer.
-// Detects three trigger patterns after '@':
-//   @<query>        → member mention (filters room participants)
-//   @Task <query>   → task entity mention (filters project tasks)
-//   @Issue <query>  → issue entity mention (filters project issues)
+// Detects four trigger patterns after '@':
+//   @<query>         → people, projects, tasks and issues, grouped
+//   @Project <query> → projects only
+//   @Task <query>    → tasks only
+//   @Issue <query>   → issues only
 
 import { useState, useCallback, useMemo, RefObject } from 'react';
 import { ChatEntityType, ChatParticipant } from '@/types/chat';
 import {
   MentionMode,
   MentionMember,
+  MentionProject,
   MentionTask,
   MentionIssue,
   MentionItem,
   UseMentionOptions,
   UseMentionReturn,
 } from '@/types/chat';
+import { Project } from '@tornotron/echno-core/project/types';
 import { Task } from '@tornotron/echno-core/task/types';
 import { Issue } from '@tornotron/echno-core/issue/types';
 import {
@@ -27,12 +30,16 @@ import {
 export type {
   MentionMode,
   MentionMember,
+  MentionProject,
   MentionTask,
   MentionIssue,
   MentionItem,
   UseMentionOptions,
   UseMentionReturn,
 } from '@/types/chat';
+
+const GROUPED_LIMIT = 5;
+const SINGLE_KIND_LIMIT = 8;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -48,6 +55,15 @@ function findTrigger(value: string, cursorPos: number) {
   const after = textBeforeCursor.slice(atIndex + 1); // text between @ and cursor
 
   // Determine mode from prefix
+  const projectMatch = after.match(/^Project\s*(.*)/i);
+  if (projectMatch) {
+    return {
+      mode: 'project' as MentionMode,
+      query: projectMatch[1],
+      triggerStart: atIndex,
+    };
+  }
+
   const taskMatch = after.match(/^Task\s*(.*)/i);
   if (taskMatch) {
     return {
@@ -66,12 +82,13 @@ function findTrigger(value: string, cursorPos: number) {
     };
   }
 
-  return { mode: 'member' as MentionMode, query: after, triggerStart: atIndex };
+  return { mode: 'all' as MentionMode, query: after, triggerStart: atIndex };
 }
 
 function filterMembers(
   participants: ChatParticipant[],
-  query: string
+  query: string,
+  limit: number
 ): MentionMember[] {
   const q = query.toLowerCase();
   return participants
@@ -79,7 +96,7 @@ function filterMembers(
       const name = p.employee?.name ?? '';
       return name.toLowerCase().includes(q);
     })
-    .slice(0, 8)
+    .slice(0, limit)
     .map((p) => ({
       kind: 'member' as const,
       employeeId: p.employeeId,
@@ -88,11 +105,31 @@ function filterMembers(
     }));
 }
 
-function filterTasks(tasks: Task[], query: string): MentionTask[] {
+function filterProjects(
+  projects: Project[],
+  query: string,
+  limit: number
+): MentionProject[] {
+  const q = query.toLowerCase();
+  return projects
+    .filter((p) => p.projectName.toLowerCase().includes(q))
+    .slice(0, limit)
+    .map((p) => ({
+      kind: 'project' as const,
+      id: p.id,
+      name: p.projectName,
+    }));
+}
+
+function filterTasks(
+  tasks: Task[],
+  query: string,
+  limit: number
+): MentionTask[] {
   const q = query.toLowerCase();
   return tasks
     .filter((t) => t.title.toLowerCase().includes(q))
-    .slice(0, 8)
+    .slice(0, limit)
     .map((t) => ({
       kind: 'task' as const,
       id: t.id,
@@ -100,11 +137,15 @@ function filterTasks(tasks: Task[], query: string): MentionTask[] {
     }));
 }
 
-function filterIssues(issues: Issue[], query: string): MentionIssue[] {
+function filterIssues(
+  issues: Issue[],
+  query: string,
+  limit: number
+): MentionIssue[] {
   const q = query.toLowerCase();
   return issues
     .filter((i) => i.title.toLowerCase().includes(q))
-    .slice(0, 8)
+    .slice(0, limit)
     .map((i) => ({
       kind: 'issue' as const,
       id: i.id!,
@@ -120,10 +161,10 @@ export function useMention(
   value: string,
   setValue: (v: string) => void
 ) {
-  const { participants, tasks, issues } = options;
+  const { participants, projects, tasks, issues } = options;
 
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState<MentionMode>('member');
+  const [mode, setMode] = useState<MentionMode>('all');
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const [triggerStart, setTriggerStart] = useState(0);
@@ -131,20 +172,28 @@ export function useMention(
   const items = useMemo<MentionItem[]>(() => {
     if (!open) return [];
     switch (mode) {
-      case 'member': {
-        return filterMembers(participants, query);
+      case 'all': {
+        return [
+          ...filterMembers(participants, query, GROUPED_LIMIT),
+          ...filterProjects(projects, query, GROUPED_LIMIT),
+          ...filterTasks(tasks, query, GROUPED_LIMIT),
+          ...filterIssues(issues, query, GROUPED_LIMIT),
+        ];
+      }
+      case 'project': {
+        return filterProjects(projects, query, SINGLE_KIND_LIMIT);
       }
       case 'task': {
-        return filterTasks(tasks, query);
+        return filterTasks(tasks, query, SINGLE_KIND_LIMIT);
       }
       case 'issue': {
-        return filterIssues(issues, query);
+        return filterIssues(issues, query, SINGLE_KIND_LIMIT);
       }
       default: {
         return [];
       }
     }
-  }, [open, mode, query, participants, tasks, issues]);
+  }, [open, mode, query, participants, projects, tasks, issues]);
 
   const onValueChange = useCallback((newValue: string, cursorPos: number) => {
     const trigger = findTrigger(newValue, cursorPos);
@@ -171,12 +220,23 @@ export function useMention(
 
       // Build the token to insert
       let token: string;
-      if (item.kind === 'member') {
-        token = buildMentionToken(item.name, item.employeeId);
-      } else if (item.kind === 'task') {
-        token = buildEntityToken(item.title, ChatEntityType.task, item.id);
-      } else {
-        token = buildEntityToken(item.title, ChatEntityType.issue, item.id);
+      switch (item.kind) {
+        case 'member': {
+          token = buildMentionToken(item.name, item.employeeId);
+          break;
+        }
+        case 'project': {
+          token = buildEntityToken(item.name, ChatEntityType.project, item.id);
+          break;
+        }
+        case 'task': {
+          token = buildEntityToken(item.title, ChatEntityType.task, item.id);
+          break;
+        }
+        case 'issue': {
+          token = buildEntityToken(item.title, ChatEntityType.issue, item.id);
+          break;
+        }
       }
 
       // Replace the trigger text with the token

@@ -13,8 +13,7 @@ import {
 } from '@/hooks/chat/use-chat-mutations';
 import { useUser } from '@tornotron/echno-core/user/hooks';
 import { useUserEmployees } from '@tornotron/echno-core/user/hooks';
-import { useTasksByProject } from '@tornotron/echno-core/task/hooks';
-import { useIssuesByProject } from '@tornotron/echno-core/issue/hooks';
+import { useMentionEntities } from '@/hooks/chat/use-mention-entities';
 import { ChatMessage, ChatRoomType } from '@/types/chat';
 import { ChatRoomHeader } from './chat-room-header';
 import { ChatMessageList } from './chat-message-list';
@@ -36,9 +35,9 @@ export function ChatRoomView({ roomId }: ChatRoomViewProps) {
   const { data: user } = useUser();
   const { data: userEmployees = [] } = useUserEmployees();
 
-  // Fetch tasks and issues from the room's project (for @Task / @Issue mentions)
-  const { data: projectTasks = [] } = useTasksByProject(room?.projectId);
-  const { data: projectIssues = [] } = useIssuesByProject(room?.projectId);
+  // What the @ list offers; the larger lists load once it first opens.
+  const [mentionOpened, setMentionOpened] = useState(false);
+  const mentionEntities = useMentionEntities(room?.projectId, mentionOpened);
 
   const sendMessage = useSendMessage();
   const editMessage = useEditMessage();
@@ -140,8 +139,10 @@ export function ChatRoomView({ roomId }: ChatRoomViewProps) {
             onCancelEdit={() => setEditingMessage(null)}
             disabled={sendMessage.isPending || editMessage.isPending}
             participants={room.participants}
-            tasks={projectTasks}
-            issues={projectIssues}
+            projects={mentionEntities.projects}
+            tasks={mentionEntities.tasks}
+            issues={mentionEntities.issues}
+            onMentionOpen={() => setMentionOpened(true)}
           />
         </>
       )}
