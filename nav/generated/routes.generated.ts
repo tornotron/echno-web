@@ -365,6 +365,24 @@ export const ROUTE_TREE: RouteNode = {
                     },
                   ],
             },
+            {
+              id: 'inspections-billing-projects',
+              segment: 'projects',
+              path: '/users/dashboard/inspections/billing/projects',
+              isDynamic: false,
+              isCatchAll: false,
+              children: [
+                    {
+                      id: 'inspections-billing-projects-[id]',
+                      segment: '[id]',
+                      path: '/users/dashboard/inspections/billing/projects/[id]',
+                      isDynamic: true,
+                      isCatchAll: false,
+                      paramName: 'id',
+                      children: [],
+                    },
+                  ],
+            },
           ],
       },
       {

@@ -88,6 +88,10 @@ export const routes = {
         href: b('/inspections/billing/contracts'),
         detail: (id: string | number) => ({ href: b(`/inspections/billing/contracts/${id}`) }),
       },
+      projects: {
+        href: b('/inspections/billing/projects'),
+        detail: (id: string | number) => ({ href: b(`/inspections/billing/projects/${id}`) }),
+      },
     },
     checklists: {
       href: b('/inspections/checklists'),
