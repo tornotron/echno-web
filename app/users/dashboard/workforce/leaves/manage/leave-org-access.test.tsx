@@ -3,20 +3,12 @@
  * backend. Anyone else used to open an empty calendar, or fire a request that
  * could only be refused, and HR admins were kept from what they may read.
  */
-import {
-  afterAll,
-  afterEach,
-  describe,
-  expect,
-  mock,
-  spyOn,
-  test,
-} from 'bun:test';
+import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test';
 import { cleanup, render, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { OrgRole } from '@tornotron/echno-core/employee/types';
-import { leaveService } from '@tornotron/echno-core/leave/services';
+import * as realLeaveServices from '@tornotron/echno-core/leave/services';
 import * as realEmployeeHooks from '@tornotron/echno-core/employee/hooks';
 import * as realLeaveHooks from '@tornotron/echno-core/leave/hooks';
 import * as realUserHooks from '@tornotron/echno-core/user/hooks';
@@ -53,7 +45,18 @@ mock.module('@tornotron/echno-core/employee/hooks', () => ({
 // Module mocks outlive this file, and other suites need these two as they were.
 const savedUseCan = { ...useCanModule };
 const savedUseLeaveRole = { ...useLeaveRoleModule };
+const savedLeaveServices = { ...realLeaveServices };
+const savedModules = {
+  'next/navigation': { ...realNavigation },
+  '@tornotron/echno-core/employee/hooks': { ...realEmployeeHooks },
+  '@tornotron/echno-core/leave/hooks': { ...realLeaveHooks },
+  '@tornotron/echno-core/user/hooks': { ...realUserHooks },
+};
 afterAll(() => {
+  for (const [name, saved] of Object.entries(savedModules)) {
+    mock.module(name, () => saved);
+  }
+  mock.module('@tornotron/echno-core/leave/services', () => savedLeaveServices);
   mock.module('@/hooks/use-can', () => savedUseCan);
   mock.module('@/hooks/leave/use-leave-role', () => savedUseLeaveRole);
 });
@@ -66,6 +69,13 @@ mock.module('@/hooks/use-can', () => ({
 }));
 mock.module('@/hooks/leave/use-leave-role', () => ({
   useLeaveRole: () => ({ canApprove: false, isLoading: false }),
+}));
+// Declared here, not spied on the real service: other suites replace that
+// module, and a spy on whatever they left behind fails depending on file order.
+const getOrganizationRequests = mock(async (): Promise<unknown[]> => []);
+mock.module('@tornotron/echno-core/leave/services', () => ({
+  ...realLeaveServices,
+  leaveService: { getOrganizationRequests },
 }));
 mock.module('@tornotron/echno-core/user/hooks', () => ({
   ...realUserHooks,
@@ -116,6 +126,7 @@ function wrapper({ children }: { children: ReactNode }) {
 afterEach(() => {
   cleanup();
   orgRoles = [];
+  getOrganizationRequests.mockClear();
   orgCalendarIds.length = 0;
   deptCalendarIds.length = 0;
 });
@@ -163,26 +174,16 @@ describe('leave policies', () => {
 
 describe('leave requests', () => {
   test('nobody outside the gate calls the organization endpoint', async () => {
-    const getOrg = spyOn(
-      leaveService,
-      'getOrganizationRequests'
-    ).mockResolvedValue([]);
     orgRoles = [OrgRole.PROJECT_MANAGER];
     const { queryByText } = render(<RequestsPage />, { wrapper });
     expect(queryByText('All Requests')).toBeNull();
-    expect(getOrg).not.toHaveBeenCalled();
-    getOrg.mockRestore();
+    expect(getOrganizationRequests).not.toHaveBeenCalled();
   });
 
   test('an HR admin gets All Requests and the organization figures', async () => {
-    const getOrg = spyOn(
-      leaveService,
-      'getOrganizationRequests'
-    ).mockResolvedValue([]);
     orgRoles = [OrgRole.HR_ADMIN];
     const { getByText } = render(<RequestsPage />, { wrapper });
     expect(getByText('All Requests')).toBeInTheDocument();
-    await waitFor(() => expect(getOrg).toHaveBeenCalled());
-    getOrg.mockRestore();
+    await waitFor(() => expect(getOrganizationRequests).toHaveBeenCalled());
   });
 });
