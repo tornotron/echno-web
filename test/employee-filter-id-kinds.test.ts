@@ -122,7 +122,7 @@ describe('session stamps link as user ids', () => {
 describe('payload and picker ids link as employee ids', () => {
   test('an invitation links its reporting manager as an employee', () => {
     expect(flat(INVITATION_DETAIL)).toContain(
-      "employeeFilterHref( routes.workforce.employees.invitations.href, invitation.employeeDetails.managerId, 'manager' )"
+      "employeeFilterHref( routes.workforce.employees.invitations.href, invitation.employee.managerId, 'manager' )"
     );
   });
 
@@ -250,9 +250,7 @@ describe('the reading lists carry an accessor for every role a link can set', ()
     const text = flat(
       'app/users/dashboard/workforce/employees/invitations/page.tsx'
     );
-    expect(text).toContain(
-      'roles: { manager: (i) => i.employeeDetails.managerId },'
-    );
+    expect(text).toContain('roles: { manager: (i) => i.employee.managerId },');
   });
 
   test('the team attendance history narrows before its fetch cap', () => {

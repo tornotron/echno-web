@@ -3,39 +3,49 @@
 import { useMemo } from 'react';
 import { Card } from '@/components/shadcn/card';
 import { Badge } from '@/components/shadcn/badge';
-import {
-  Invitation,
-  InvitationStatus,
-  getInvitationStatus,
-} from '@tornotron/echno-core/invitation/types';
+import type {
+  MemberInvitation,
+  MemberInvitationStage,
+} from '@tornotron/echno-core/member-invitations/types';
 import { cn } from '@/lib/utils/index';
+import {
+  countByStage,
+  INVITATION_STAGES,
+  STAGE_LABEL,
+} from '../lib/invitation-stage';
 
 interface InvitationOverviewProps {
-  invitations: Invitation[];
+  invitations: MemberInvitation[];
 }
 
-const STATUS_COLORS: Record<InvitationStatus, string> = {
-  [InvitationStatus.pending]: '#f59e0b',
-  [InvitationStatus.accepted]: '#10b981',
-  [InvitationStatus.rejected]: '#ef4444',
-  [InvitationStatus.expired]: '#71717a',
+const STAGE_COLORS: Record<MemberInvitationStage, string> = {
+  PENDING: '#f59e0b',
+  ACCEPTED: '#10b981',
+  ACCEPTED_BY_ANOTHER_ADDRESS: '#ef4444',
+  EXPIRED: '#71717a',
+  REVOKED: '#a1a1aa',
+  UNKNOWN: '#d4d4d8',
 };
 
-const STATUS_DOT: Record<InvitationStatus, string> = {
-  [InvitationStatus.pending]: 'bg-amber-500',
-  [InvitationStatus.accepted]: 'bg-emerald-500',
-  [InvitationStatus.rejected]: 'bg-red-500',
-  [InvitationStatus.expired]: 'bg-zinc-400',
+const STAGE_DOT: Record<MemberInvitationStage, string> = {
+  PENDING: 'bg-amber-500',
+  ACCEPTED: 'bg-emerald-500',
+  ACCEPTED_BY_ANOTHER_ADDRESS: 'bg-red-500',
+  EXPIRED: 'bg-zinc-500',
+  REVOKED: 'bg-zinc-400',
+  UNKNOWN: 'bg-zinc-300',
 };
 
-const STATUS_BADGE_VARIANT: Record<
-  InvitationStatus,
+const STAGE_BADGE_VARIANT: Record<
+  MemberInvitationStage,
   'default' | 'secondary' | 'destructive' | 'outline'
 > = {
-  [InvitationStatus.pending]: 'secondary',
-  [InvitationStatus.accepted]: 'default',
-  [InvitationStatus.rejected]: 'destructive',
-  [InvitationStatus.expired]: 'outline',
+  PENDING: 'secondary',
+  ACCEPTED: 'default',
+  ACCEPTED_BY_ANOTHER_ADDRESS: 'destructive',
+  EXPIRED: 'outline',
+  REVOKED: 'outline',
+  UNKNOWN: 'outline',
 };
 
 const DEPT_DOT = [
@@ -50,7 +60,7 @@ const DEPT_DOT = [
 ];
 
 function formatDate(date: Date | null | undefined) {
-  if (!date) return '—';
+  if (!date) return '';
   return new Date(date).toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'short',
@@ -96,28 +106,17 @@ function buildDonutSegments(
 export function InvitationOverview({ invitations }: InvitationOverviewProps) {
   const total = invitations.length;
 
-  const statusCounts = useMemo(() => {
-    const counts: Record<InvitationStatus, number> = {
-      [InvitationStatus.pending]: 0,
-      [InvitationStatus.accepted]: 0,
-      [InvitationStatus.rejected]: 0,
-      [InvitationStatus.expired]: 0,
-    };
-    for (const inv of invitations) counts[getInvitationStatus(inv)]++;
-    return counts;
-  }, [invitations]);
+  const statusCounts = useMemo(() => countByStage(invitations), [invitations]);
 
   const acceptedPct =
-    total > 0
-      ? Math.round((statusCounts[InvitationStatus.accepted] / total) * 100)
-      : 0;
+    total > 0 ? Math.round((statusCounts.ACCEPTED / total) * 100) : 0;
 
   const donutSegments = useMemo(
     () =>
       buildDonutSegments(
-        Object.entries(statusCounts).map(([status, value]) => ({
-          value,
-          color: STATUS_COLORS[status as InvitationStatus],
+        INVITATION_STAGES.map((stage) => ({
+          value: statusCounts[stage],
+          color: STAGE_COLORS[stage],
         }))
       ),
     [statusCounts]
@@ -125,17 +124,9 @@ export function InvitationOverview({ invitations }: InvitationOverviewProps) {
 
   const recentInvitations = useMemo(
     () =>
-      [...invitations]
-        .filter((inv) => inv.employeeDetails.joiningDate ?? inv.expiryDate)
-        .toSorted((a, b) => {
-          const da = new Date(
-            a.employeeDetails.joiningDate ?? a.expiryDate!
-          ).getTime();
-          const db = new Date(
-            b.employeeDetails.joiningDate ?? b.expiryDate!
-          ).getTime();
-          return db - da;
-        })
+      invitations
+        .filter((inv) => inv.createdAt)
+        .toSorted((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime())
         .slice(0, 4),
     [invitations]
   );
@@ -197,26 +188,26 @@ export function InvitationOverview({ invitations }: InvitationOverviewProps) {
             </text>
           </svg>
 
-          {/* Legend — right of donut */}
+          {/* Legend, right of the donut */}
           <div className="space-y-1.5">
-            {(Object.entries(statusCounts) as [InvitationStatus, number][]).map(
-              ([status, count]) => (
-                <div key={status} className="flex items-center gap-2">
-                  <span
-                    className={cn(
-                      'size-2 shrink-0 rounded-full',
-                      STATUS_DOT[status]
-                    )}
-                  />
-                  <span className="flex-1 truncate text-xs text-zinc-600 capitalize dark:text-zinc-400">
-                    {status}
-                  </span>
-                  <span className="text-xs font-semibold text-zinc-900 tabular-nums dark:text-zinc-100">
-                    {count}
-                  </span>
-                </div>
-              )
-            )}
+            {INVITATION_STAGES.filter(
+              (stage) => stage !== 'UNKNOWN' || statusCounts.UNKNOWN > 0
+            ).map((stage) => (
+              <div key={stage} className="flex items-center gap-2">
+                <span
+                  className={cn(
+                    'size-2 shrink-0 rounded-full',
+                    STAGE_DOT[stage]
+                  )}
+                />
+                <span className="flex-1 truncate text-xs text-zinc-600 dark:text-zinc-400">
+                  {STAGE_LABEL[stage]}
+                </span>
+                <span className="text-xs font-semibold text-zinc-900 tabular-nums dark:text-zinc-100">
+                  {statusCounts[stage]}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -232,12 +223,7 @@ export function InvitationOverview({ invitations }: InvitationOverviewProps) {
           ) : (
             <div className="space-y-3">
               {recentInvitations.map((inv, i) => {
-                const status = getInvitationStatus(inv);
-                const name =
-                  inv.employeeDetails.employeeName ??
-                  inv.employeeDetails.email ??
-                  inv.inviteCode;
-                const date = inv.employeeDetails.joiningDate ?? inv.expiryDate;
+                const name = inv.employee.employeeName ?? inv.email;
                 return (
                   <div key={inv.id} className="flex items-center gap-2.5">
                     <div
@@ -253,18 +239,18 @@ export function InvitationOverview({ invitations }: InvitationOverviewProps) {
                         {name}
                       </span>
                       <span className="truncate text-[10px] text-zinc-500 dark:text-zinc-400">
-                        {inv.employeeDetails.designation}
+                        {inv.employee.designation ?? inv.email}
                       </span>
                     </div>
                     <div className="flex flex-col items-end gap-0.5">
                       <Badge
-                        variant={STATUS_BADGE_VARIANT[status]}
+                        variant={STAGE_BADGE_VARIANT[inv.status]}
                         className="px-1.5 py-0 text-[9px]"
                       >
-                        {status}
+                        {STAGE_LABEL[inv.status]}
                       </Badge>
                       <span className="text-[10px] text-zinc-400">
-                        {formatDate(date)}
+                        {formatDate(inv.createdAt)}
                       </span>
                     </div>
                   </div>

@@ -136,7 +136,7 @@ const FEATURES = [
       'Fine-grained permission system',
       'Custom role definitions',
       'Organization-level access policies',
-      'Keycloak SSO integration',
+      'Single sign-on',
     ],
     mockType: 'permissions',
   },

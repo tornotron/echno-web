@@ -1,85 +1,78 @@
 /**
- * First-run onboarding for a signed-in user with no organization.
+ * Where a signed-in person with no organization lands.
  *
- * The dashboard layout sends every org-less user here, so this page is the
- * only place an invited user can redeem their code. Before the join path was
- * added it offered only "Create Organization", and an invited user had no way
- * in. Pinned: both paths are offered; redeeming a code makes the joined
- * organization the default and enters the dashboard.
+ * A person joins only by accepting an invitation sent to their address, so
+ * there is nothing to fill in here. Pinned: the page tells them to ask their
+ * administrator and offers no way to create or join an organization; a
+ * person who already belongs to one is sent into the dashboard. Every module
+ * replaced here is put back when the file ends.
  *
- * Assertions are on counts, strings and booleans, never on a rendered Radix
- * node: an assertion that fails while printing one hangs the reporter.
+ * Assertions are on counts, strings and booleans, never on a rendered node.
  */
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  test,
+} from 'bun:test';
 import { createElement } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, cleanup, fireEvent, render } from '@testing-library/react';
-import type { ValidateInviteCodeResponse } from '@tornotron/echno-core/invitation/types';
+import { cleanup, fireEvent, render } from '@testing-library/react';
+import * as realNavigation from 'next/navigation';
+import * as realAuthClient from '@/lib/auth/client';
+import * as realUserHooks from '@tornotron/echno-core/user/hooks';
+import * as realOrgHooks from '@tornotron/echno-core/organization/hooks';
+
+const originals = {
+  navigation: { ...realNavigation },
+  authClient: { ...realAuthClient },
+  user: { ...realUserHooks },
+  org: { ...realOrgHooks },
+};
 
 const replaceCalls: string[] = [];
-
-import * as realNavigation from 'next/navigation';
+const signOutCalls: unknown[] = [];
+let organizations: Array<{ id: number }> = [];
 
 mock.module('next/navigation', () => ({
-  ...realNavigation,
+  ...originals.navigation,
   usePathname: () => '/users/onboarding',
   useRouter: () => ({
     push: () => {},
     replace: (href: string) => replaceCalls.push(href),
   }),
 }));
-
-import * as realNextAuth from 'next-auth/react';
-
-mock.module('next-auth/react', () => ({
-  ...realNextAuth,
-  signOut: () => Promise.resolve(),
-  useSession: () => ({ data: null, status: 'authenticated' }),
+mock.module('@/lib/auth/client', () => ({
+  ...originals.authClient,
+  signOut: (options: unknown) => {
+    signOutCalls.push(options);
+    return Promise.resolve();
+  },
 }));
-
-const setDefaultCalls: Array<{ id: number; organizationId: number }> = [];
-
-import * as realUserHooks from '@tornotron/echno-core/user/hooks';
-
 mock.module('@tornotron/echno-core/user/hooks', () => ({
-  ...realUserHooks,
-  useUser: () => ({ data: { id: 42 }, isLoading: false }),
-  useUpdateUserOrganization: () => ({
-    mutate: (args: { id: number; organizationId: number }) =>
-      setDefaultCalls.push(args),
+  ...originals.user,
+  useUser: () => ({
+    data: { id: 42, email: 'new.person@company.test' },
+    isLoading: false,
   }),
 }));
-
-import * as realOrgHooks from '@tornotron/echno-core/organization/hooks';
-
 mock.module('@tornotron/echno-core/organization/hooks', () => ({
-  ...realOrgHooks,
-  useOrganizationSummaries: () => ({ data: [], isLoading: false }),
-  useCreateOrganization: () => ({ mutate: () => {}, isPending: false }),
-}));
-
-let response: ValidateInviteCodeResponse = { valid: true };
-
-import * as realInvitationHooks from '@tornotron/echno-core/invitation/hooks';
-
-mock.module('@tornotron/echno-core/invitation/hooks', () => ({
-  ...realInvitationHooks,
-  useValidateInviteCodeMutation: () => ({
-    isPending: false,
-    isError: false,
-    mutate: (
-      _args: unknown,
-      options?: { onSuccess?: (result: ValidateInviteCodeResponse) => unknown }
-    ) => options?.onSuccess?.(response),
-  }),
-}));
-
-mock.module('@/lib/styles/toast-styles', () => ({
-  toast: { success: () => {}, error: () => {} },
+  ...originals.org,
+  useOrganizationSummaries: () => ({ data: organizations, isLoading: false }),
 }));
 
 const { default: OnboardingPage } = await import('./page');
 const { routes } = await import('@/nav');
+
+afterAll(() => {
+  mock.module('next/navigation', () => originals.navigation);
+  mock.module('@/lib/auth/client', () => originals.authClient);
+  mock.module('@tornotron/echno-core/user/hooks', () => originals.user);
+  mock.module('@tornotron/echno-core/organization/hooks', () => originals.org);
+});
 
 function renderPage() {
   const client = new QueryClient();
@@ -92,51 +85,43 @@ function renderPage() {
   );
 }
 
-const tab = (label: string) =>
-  [...document.querySelectorAll('[role="tab"]')].find((t) =>
-    t.textContent?.includes(label)
-  ) as HTMLElement | undefined;
+const buttons = () =>
+  [...document.querySelectorAll('button')].map((b) => b.textContent?.trim());
 
 beforeEach(() => {
   replaceCalls.length = 0;
-  setDefaultCalls.length = 0;
-  response = {
-    valid: true,
-    invitation: {
-      inviteCode: 'AB123',
-      organizationId: 7,
-      organizationName: 'Acme Builders',
-      usedCount: 0,
-      isActive: true,
-    } as ValidateInviteCodeResponse['invitation'],
-  };
+  signOutCalls.length = 0;
+  organizations = [];
 });
 
 afterEach(() => cleanup());
 
 describe('OnboardingPage', () => {
-  test('offers both creating an organization and joining one', () => {
+  test('tells a person with no organization to ask their administrator', () => {
     renderPage();
-    expect(tab('Create Organization')).toBeDefined();
-    expect(tab('Join with Invitation Code')).toBeDefined();
+    const text = document.body.textContent ?? '';
+    expect(text).toContain('You are not part of an organization yet');
+    expect(text).toContain('Ask your administrator to invite you');
+    expect(text).toContain('new.person@company.test');
   });
 
-  test('redeeming a code sets the joined organization as default and enters the dashboard', async () => {
+  test('offers no way to create or join an organization', () => {
     renderPage();
-    await act(async () => {
-      fireEvent.mouseDown(tab('Join with Invitation Code')!, { button: 0 });
-    });
+    expect(document.querySelectorAll('[role="tab"]').length).toBe(0);
+    expect(document.querySelectorAll('input').length).toBe(0);
+    expect(buttons()).toEqual(['Sign out']);
+  });
 
-    const input = document.querySelector('#inviteCode') as HTMLInputElement;
-    expect(input).not.toBeNull();
-    fireEvent.change(input, { target: { value: 'AB123' } });
-    await act(async () => {
-      fireEvent.click(
-        document.querySelector('button[type="submit"]') as HTMLButtonElement
-      );
-    });
+  test('signing out returns to the landing page', () => {
+    renderPage();
+    fireEvent.click([...document.querySelectorAll('button')][0]);
+    expect(signOutCalls).toEqual([{ callbackUrl: '/' }]);
+  });
 
-    expect(setDefaultCalls).toEqual([{ id: 42, organizationId: 7 }]);
+  test('a person who belongs to an organization is sent into the dashboard', () => {
+    organizations = [{ id: 7 }];
+    renderPage();
     expect(replaceCalls).toEqual([routes.href]);
+    expect(document.body.textContent).not.toContain('Ask your administrator');
   });
 });

@@ -1,7 +1,3 @@
-export {
-  InvitationQRCode,
-  InvitationQRCodeDialog,
-} from './components/invitation-qr-code';
 export { InvitationStatusBadge } from './components/invitation-status-badge';
 export { InvitationAvatar } from './components/invitation-avatar';
 export { InvitationTable } from './components/invitation-table';
@@ -11,4 +7,5 @@ export { InvitationOverview } from './components/invitation-overview';
 export { InvitationEmptyState } from './components/invitation-empty-state';
 export { InvitationFetchError } from './components/invitation-fetch-error';
 export { InvitationForm } from './components/invitation-form';
-export { JoinOrganizationForm } from './components/join-organization-form';
+export { InvitationActions } from './components/invitation-actions';
+export { InvitationErrorState } from './components/invitation-error-state';

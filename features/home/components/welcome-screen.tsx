@@ -1,7 +1,6 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { startSignIn } from '@/lib/auth/client';
 import { StarsBackground } from '@/components/shadcn/star';
 import { AuthErrorNotice } from './auth-error-notice';
@@ -41,12 +40,6 @@ export function WelcomeScreen({ errorCode, hasSession }: WelcomeScreenProps) {
           >
             Login
           </button>
-          <Link
-            href="/register"
-            className="rounded-lg border border-zinc-700 bg-transparent px-6 py-2.5 text-sm font-semibold text-white transition hover:border-zinc-500 hover:bg-zinc-800"
-          >
-            Register
-          </Link>
         </div>
       </div>
     </StarsBackground>

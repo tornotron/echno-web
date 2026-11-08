@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { OrganizationCard } from '@/features/organization';
 import { SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
-import { Plus, Search, Building2, UserPlus } from 'lucide-react';
+import { Plus, Search, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { useOrganizationSummaries } from '@tornotron/echno-core/organization/hooks';
@@ -73,12 +73,6 @@ export default function OrganizationsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Link href={routes.organizations.join}>
-            <Button variant="outline" className="sm:w-auto">
-              <UserPlus className="mr-2 h-4 w-4" />
-              Join Organization
-            </Button>
-          </Link>
           <Link href={routes.organizations.new}>
             <Button className="sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
@@ -158,16 +152,10 @@ export default function OrganizationsPage() {
           <p className="text-muted-foreground mb-6">
             {searchQuery || statusFilter !== 'all'
               ? "Try adjusting your filters to find what you're looking for."
-              : 'Get started by creating a new organization or joining an existing one.'}
+              : 'Get started by creating a new organization. To join an existing one, ask its administrator for an invitation.'}
           </p>
           {!searchQuery && statusFilter === 'all' && (
             <div className="flex justify-center gap-3">
-              <Button variant="outline" asChild>
-                <Link href={routes.organizations.join}>
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Join Organization
-                </Link>
-              </Button>
               <Button asChild>
                 <Link href={routes.organizations.new}>
                   <Plus className="mr-2 h-4 w-4" />

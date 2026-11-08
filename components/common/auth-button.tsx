@@ -2,15 +2,13 @@
 
 import { useState } from 'react';
 import { useAuthSession, startSignIn } from '@/lib/auth/client';
-import { useRouter } from 'next/navigation';
 import { logger } from '@/lib/logger';
 import { handleSignOut } from '@/lib/auth/auth-utils';
-import { LogIn, LogOut, UserPlus, Loader2 } from 'lucide-react';
+import { LogIn, LogOut, Loader2 } from 'lucide-react';
 
 export function AuthButton() {
   const { data: session, status } = useAuthSession();
   const [isSigningOut, setIsSigningOut] = useState(false);
-  const router = useRouter();
 
   /* ── Loading ────────────────────────────────────────────────────── */
   if (status === 'loading') {
@@ -59,13 +57,6 @@ export function AuthButton() {
   /* ── Unauthenticated ───────────────────────────────────────────── */
   return (
     <div className="flex items-center gap-2">
-      <button
-        onClick={() => router.push('/register')}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 transition-all duration-200 hover:border-stone-300 hover:bg-stone-50 hover:text-zinc-900 dark:border-white/8 dark:bg-white/4 dark:text-zinc-300 dark:hover:bg-white/8 dark:hover:text-white"
-      >
-        <UserPlus className="h-3.5 w-3.5" />
-        Register
-      </button>
       <button
         onClick={() => void startSignIn(globalThis.location.search)}
         className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 transition-all duration-200 hover:border-stone-300 hover:bg-stone-50 hover:text-zinc-900 dark:border-white/8 dark:bg-white/4 dark:text-zinc-300 dark:hover:bg-white/8 dark:hover:text-white"
