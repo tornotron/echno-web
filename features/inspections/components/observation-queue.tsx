@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LayoutGrid, List } from 'lucide-react';
 import {
   ObservationReviewStatus,
   ObservationSource,
@@ -11,7 +11,11 @@ import {
   observationSourceLabels,
 } from '@tornotron/echno-core/inspection/types';
 import type { Observation } from '@tornotron/echno-core/inspection/types';
-import { useObservationPageEvidence, useObservations } from '@/hooks/inspection';
+import { useVisionModels } from '@tornotron/echno-core/vision/hooks';
+import {
+  useObservationPageEvidence,
+  useObservations,
+} from '@/hooks/inspection';
 import { ApiError } from '@/lib/api/api-client';
 import { moduleDeniedPath } from '@/lib/billing/paths';
 import { Button } from '@/components/shadcn/button';
@@ -39,12 +43,22 @@ import {
   ObservationSourceBadge,
   ObservationStatusBadge,
 } from './observation-badges';
+import { useVisionEnabled } from '@/hooks/use-vision-enabled';
+import {
+  DetectionFilters,
+  EMPTY_DETECTION_FILTERS,
+  detectionListParams,
+} from './detection-filters';
+import type { DetectionFilterValue } from './detection-filters';
 import { ObservationEvidenceStrip } from './observation-evidence';
+import { ObservationGrid } from './observation-grid';
 import { ObservationReviewSheet } from './observation-review-sheet';
 
 /** Sentinel for "no filter": Radix Select cannot hold an empty string value. */
 const ALL = 'ALL';
 const PAGE_SIZE = 20;
+/** The grid shows more at once; still under the bulk review's 100-id limit. */
+const GRID_PAGE_SIZE = 48;
 
 interface ObservationQueueProps {
   /** Project whose observations to list. Nothing renders until one is chosen. */
@@ -70,16 +84,30 @@ export function ObservationQueue({
   const [source, setSource] = useState<string>(ALL);
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<Observation | null>(null);
+  const [view, setView] = useState<'table' | 'grid'>('table');
+  const [detection, setDetection] = useState<DetectionFilterValue>(
+    EMPTY_DETECTION_FILTERS
+  );
 
-  const { data, isLoading, isError, error } = useObservations({
+  // The model findings tools (grid, model filters) need the vision module;
+  // its endpoints answer 404 without it, so nothing is fetched or shown
+  // until the enabled-module set says it is on.
+  const visionEnabled = useVisionEnabled();
+  const showDetection = visionEnabled && source === ObservationSource.AI;
+  const effectiveView = showDetection ? view : 'table';
+  const { data: models } = useVisionModels({ enabled: showDetection });
+
+  const listParams = {
     projectId,
     inspectionId,
     reviewStatus:
       status === ALL ? undefined : (status as ObservationReviewStatus),
     source: source === ALL ? undefined : (source as ObservationSource),
+    ...(showDetection ? detectionListParams(detection) : {}),
     page,
-    size: PAGE_SIZE,
-  });
+    size: effectiveView === 'grid' ? GRID_PAGE_SIZE : PAGE_SIZE,
+  };
+  const { data, isLoading, isError, error } = useObservations(listParams);
 
   const rows = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
@@ -140,6 +168,38 @@ export function ObservationQueue({
             </SelectContent>
           </Select>
         </div>
+        {showDetection && (
+          <div
+            className="flex items-center gap-1"
+            role="group"
+            aria-label="View"
+          >
+            <Button
+              size="sm"
+              variant={effectiveView === 'table' ? 'default' : 'outline'}
+              aria-pressed={effectiveView === 'table'}
+              onClick={() => {
+                setView('table');
+                setPage(0);
+              }}
+            >
+              <List className="h-4 w-4" />
+              Table
+            </Button>
+            <Button
+              size="sm"
+              variant={effectiveView === 'grid' ? 'default' : 'outline'}
+              aria-pressed={effectiveView === 'grid'}
+              onClick={() => {
+                setView('grid');
+                setPage(0);
+              }}
+            >
+              <LayoutGrid className="h-4 w-4" />
+              Grid
+            </Button>
+          </div>
+        )}
         {data && (
           <span className="text-muted-foreground ml-auto text-sm">
             {data.totalElements} observation
@@ -147,6 +207,17 @@ export function ObservationQueue({
           </span>
         )}
       </div>
+
+      {showDetection && (
+        <DetectionFilters
+          value={detection}
+          models={models}
+          onChange={(next) => {
+            setDetection(next);
+            setPage(0);
+          }}
+        />
+      )}
 
       {projectId === undefined && !inspectionId ? (
         <p className="text-muted-foreground text-sm">
@@ -178,6 +249,15 @@ export function ObservationQueue({
           Nothing here. Machine findings land as pending; a person records one
           as accepted.
         </p>
+      ) : effectiveView === 'grid' ? (
+        <ObservationGrid
+          // A new page or filter starts a fresh selection: only tiles the
+          // reviewer has in front of them are ever sent.
+          key={JSON.stringify(listParams)}
+          rows={rows}
+          pageEvidence={pageEvidence}
+          onOpen={setSelected}
+        />
       ) : (
         <div className="overflow-x-auto rounded-md border">
           <Table>
