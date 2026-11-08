@@ -8,8 +8,7 @@
  *
  * The assertions are on the serialized body rather than on the request object,
  * because that is where a dropped field actually shows: the request interface
- * carries fields the serializer deliberately leaves out, and `projectId` is one
- * of them.
+ * carries fields the serializer deliberately leaves out.
  */
 import { describe, expect, test } from 'bun:test';
 import {
@@ -29,7 +28,9 @@ import {
 function filledForm(overrides: Partial<IssueFormState> = {}): IssueFormState {
   return {
     initialized: true,
+    relatedToTask: true,
     taskId: '11',
+    categoryId: '',
     title: 'Honeycombing on the raft',
     description: 'Voids along the north face of the raft pour.',
     issueType: IssueType.technical,
@@ -81,6 +82,25 @@ describe('the create payload', () => {
 
     expect(request.projectId).toBe(3);
     expect(createIssueToJson(request).projectId).toBe(3);
+  });
+
+  test('leaves the task out when the issue is not about one', () => {
+    const body = createIssueToJson(
+      buildCreateIssuePayload(filledForm({ relatedToTask: false }), '3')
+    );
+
+    expect('taskId' in body).toBe(false);
+    expect(body.projectId).toBe(3);
+  });
+
+  test('carries the domain the form collected, and none when blank', () => {
+    const picked = createIssueToJson(
+      buildCreateIssuePayload(filledForm({ categoryId: '9' }), '3')
+    );
+    const blank = createIssueToJson(buildCreateIssuePayload(filledForm(), '3'));
+
+    expect(picked.categoryId).toBe(9);
+    expect('categoryId' in blank).toBe(false);
   });
 });
 
