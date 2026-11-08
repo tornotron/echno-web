@@ -12,6 +12,7 @@ import {
 } from '@/components/shadcn/card';
 import { formatDate } from '@/lib/utils/date-utils';
 import { formatRupees } from '../lib/money';
+import { FREE_PLAN_CODE } from '../lib/trial-ended';
 
 /** The copy each subscription state shows. Past due carries the grace message (spec section 7). */
 export function describeSubscription(subscription: Subscription | null): {
@@ -23,7 +24,8 @@ export function describeSubscription(subscription: Subscription | null): {
     return {
       label: 'No plan',
       tone: 'outline',
-      message: 'Your organization has no subscription yet. Pick a plan below to get started.',
+      message:
+        'Your organization has no subscription yet. Pick a plan below to get started.',
     };
   }
   const periodEnd = subscription.currentPeriodEnd
@@ -40,6 +42,18 @@ export function describeSubscription(subscription: Subscription | null): {
       };
     }
     case 'ACTIVE': {
+      if (
+        subscription.plan?.code === FREE_PLAN_CODE &&
+        subscription.provider === 'NONE'
+      ) {
+        // The Free plan bills nothing and has no renewal date to show.
+        return {
+          label: 'Free plan',
+          tone: 'secondary',
+          message:
+            'Your organization is on the Free plan. Premium features, and the data saved in them, stay locked until you choose a plan below. Nothing is deleted.',
+        };
+      }
       return {
         label: 'Active',
         tone: 'default',
@@ -62,11 +76,16 @@ export function describeSubscription(subscription: Subscription | null): {
       return {
         label: 'Suspended',
         tone: 'destructive',
-        message: 'Payment retries were exhausted and access is suspended. Start a new checkout to restore it.',
+        message:
+          'Payment retries were exhausted and access is suspended. Start a new checkout to restore it.',
       };
     }
     case 'PAUSED': {
-      return { label: 'Paused', tone: 'secondary', message: 'The subscription is paused.' };
+      return {
+        label: 'Paused',
+        tone: 'secondary',
+        message: 'The subscription is paused.',
+      };
     }
     case 'CANCELED': {
       return {
@@ -89,11 +108,16 @@ export function describeSubscription(subscription: Subscription | null): {
       return {
         label: 'Authorization expired',
         tone: 'outline',
-        message: 'The payment authorization was not completed in time. Start the checkout again.',
+        message:
+          'The payment authorization was not completed in time. Start the checkout again.',
       };
     }
     default: {
-      return { label: 'Expired', tone: 'outline', message: 'The subscription has expired.' };
+      return {
+        label: 'Expired',
+        tone: 'outline',
+        message: 'The subscription has expired.',
+      };
     }
   }
 }
@@ -133,8 +157,10 @@ export function SubscriptionStatusCard({
         <CardDescription>
           {plan ? (
             <span>
-              <span className="font-medium text-foreground">{plan.name}</span>
-              {plan.monthlyPrice > 0 && <span>, {formatRupees(plan.monthlyPrice)} per month</span>}
+              <span className="text-foreground font-medium">{plan.name}</span>
+              {plan.monthlyPrice > 0 && (
+                <span>, {formatRupees(plan.monthlyPrice)} per month</span>
+              )}
             </span>
           ) : (
             'No plan selected'
@@ -142,12 +168,21 @@ export function SubscriptionStatusCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        <p className="text-sm text-muted-foreground">{isLoading ? 'Checking your subscription' : message}</p>
+        <p className="text-muted-foreground text-sm">
+          {isLoading ? 'Checking your subscription' : message}
+        </p>
         {subscription?.provider === 'RAZORPAY' && subscription.nextChargeAt && (
-          <p className="text-sm">Next charge: {formatDate(subscription.nextChargeAt)}</p>
+          <p className="text-sm">
+            Next charge: {formatDate(subscription.nextChargeAt)}
+          </p>
         )}
         {canCancel && (
-          <Button variant="outline" size="sm" onClick={onCancel} disabled={cancelling}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onCancel}
+            disabled={cancelling}
+          >
             {cancelling ? 'Cancelling' : 'Cancel at period end'}
           </Button>
         )}
