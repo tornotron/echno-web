@@ -72,14 +72,15 @@ describe('the create payload', () => {
     expect(body.assignedToId).toBe(5);
   });
 
-  test('routes on the project without sending it', () => {
-    // The backend walks the parent task to the project. The request object
-    // carries the id so the mutation can file the new issue under the right
-    // cached list, and the serializer drops it.
+  test('routes on the project and sends it', () => {
+    // From echno-core 11.11.0 an issue belongs to a project or a domain, so
+    // the serializer sends the project (core #172, backend #1014). The
+    // request object also uses it to file the new issue under the right
+    // cached list.
     const request = buildCreateIssuePayload(filledForm(), '3');
 
     expect(request.projectId).toBe(3);
-    expect('projectId' in createIssueToJson(request)).toBe(false);
+    expect(createIssueToJson(request).projectId).toBe(3);
   });
 });
 
