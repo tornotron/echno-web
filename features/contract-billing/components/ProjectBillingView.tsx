@@ -21,6 +21,7 @@ import { projectLocation } from '../lib/projects';
 import { BillingActivityCard } from './BillingActivityCard';
 import { ProjectStateChip } from './chips';
 import { ContractsTable } from './ContractsTable';
+import { PaymentAuthorizerCard } from './PaymentAuthorizerCard';
 
 /** One project's billing: its figures, its contracts and what happened lately. */
 export function ProjectBillingView({ projectId }: { projectId: number }) {
@@ -97,7 +98,10 @@ export function ProjectBillingView({ projectId }: { projectId: number }) {
       </div>
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <ContractsTable projectId={projectId} />
-        <BillingActivityCard projectId={projectId} />
+        <div className="space-y-4">
+          <PaymentAuthorizerCard projectId={projectId} />
+          <BillingActivityCard projectId={projectId} />
+        </div>
       </div>
     </div>
   );
