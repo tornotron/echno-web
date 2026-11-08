@@ -1,22 +1,27 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useReducer, useState } from 'react';
 import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { ApiError } from '@/lib/api/api-client';
+import { AttachmentType } from '@tornotron/echno-core/attachment/types';
 import {
   CheckItemStatus,
   DefectSeverity,
   ObservationDecision,
   ObservationOutcomeKind,
   ObservationReviewStatus,
+  RegionOrigin,
+  RejectReason,
   defectSeverityLabels,
   hasObservationChanges,
   isObservationPending,
+  isRegionActive,
   observationOutcomeKindLabels,
+  rejectReasonLabels,
 } from '@tornotron/echno-core/inspection/types';
 import type {
   Observation,
@@ -29,6 +34,7 @@ import { userFacingErrorMessage } from '@/lib/utils/api-utils';
 import {
   observationKeys,
   useInspectionById,
+  useObservationEvidence,
   useReviewObservation,
 } from '@/hooks/inspection';
 import { Button } from '@/components/shadcn/button';
@@ -59,7 +65,20 @@ import {
   ObservationSourceBadge,
   ObservationStatusBadge,
 } from './observation-badges';
-import { ObservationEvidenceStrip } from './observation-evidence';
+import {
+  ObservationEvidenceStrip,
+  ObservationEvidenceViewer,
+  regionImages,
+  regionsOf,
+} from './observation-evidence';
+import { RegionEditor } from './region-editor';
+import type { EditableImage } from './region-editor';
+import {
+  buildRegionOps,
+  draftsFromRegions,
+  draftsReducer,
+  leavesNoRegion,
+} from '../lib/region-edits';
 
 /** What the backend says when a second decision lands on the same row. */
 export const ALREADY_DECIDED_MESSAGE =
@@ -106,6 +125,18 @@ export function outcomeHref(observation: Observation): string | undefined {
       return undefined;
     }
   }
+}
+
+/**
+ * One side of a recorded change. The `regions` entry holds region ids, which
+ * mean nothing to a reader, so it shows as a count.
+ */
+export function formatChangeValue(field: string, value: unknown): string {
+  if (value == null) return '(empty)';
+  if (field === 'regions' && Array.isArray(value)) {
+    return `${value.length} region${value.length === 1 ? '' : 's'}`;
+  }
+  return String(value);
 }
 
 /** Before → after for each field the reviewer touched, ready to show. */
@@ -177,6 +208,14 @@ function ReviewSheetBody({
   const [defectAction, setDefectAction] = useState('');
   const [decided, setDecided] = useState<Observation | null>(null);
   const [conflict, setConflict] = useState(false);
+  const [rejectReason, setRejectReason] = useState<RejectReason | undefined>();
+  const regions = useMemo(() => regionsOf(observation), [observation]);
+  const [drafts, dispatchDraft] = useReducer(
+    draftsReducer,
+    regions,
+    draftsFromRegions
+  );
+  const { data: evidence } = useObservationEvidence(observation.id);
 
   // The inspection an outcome can land on: the observation's own, or for a
   // compliance suggestion the inspection it proposed.
@@ -197,6 +236,32 @@ function ReviewSheetBody({
   const isReject = decision === ObservationDecision.REJECT;
   const isModify = decision === ObservationDecision.MODIFY;
   const noteMissing = isReject && note.trim() === '';
+  const hasProducerRegions = regions.some(
+    (region) =>
+      isRegionActive(region) && region.origin === RegionOrigin.PRODUCER
+  );
+  const reasonMissing = isReject && hasProducerRegions && !rejectReason;
+  const regionOps = useMemo(
+    () => buildRegionOps(regions, drafts),
+    [regions, drafts]
+  );
+  const regionRefusal = isModify && leavesNoRegion(regions, drafts);
+  // The images the editor can draw on: those a region already points at
+  // first, then any other evidence image, where a missed object can be added.
+  const editorImages = useMemo<EditableImage[]>(() => {
+    const all = evidence ?? [];
+    const first = regionImages(regions, all);
+    const rest = all.filter(
+      (item) =>
+        item.fileType === AttachmentType.image &&
+        !first.some((image) => image.id === item.id)
+    );
+    return [...first, ...rest].map((item) => ({
+      id: item.id,
+      url: item.file,
+      name: item.fileName,
+    }));
+  }, [evidence, regions]);
   // Only fields that still differ from the proposal count as changes: an
   // edit restored to its original value is not one.
   const changes = useMemo<ObservationReviewChanges>(() => {
@@ -228,8 +293,9 @@ function ReviewSheetBody({
         }
       }
     }
+    if (regionOps.length > 0) out.regions = regionOps;
     return out;
-  }, [diff, edits]);
+  }, [diff, edits, regionOps]);
   const changesMissing = isModify && !hasObservationChanges(changes);
   const outcomeIncomplete =
     !isReject &&
@@ -239,6 +305,8 @@ function ReviewSheetBody({
   const canSubmit =
     pending &&
     !noteMissing &&
+    !reasonMissing &&
+    !regionRefusal &&
     !changesMissing &&
     !outcomeIncomplete &&
     !review.isPending;
@@ -283,6 +351,7 @@ function ReviewSheetBody({
     const req: ReviewObservationRequest = { decision };
     if (note.trim()) req.note = note.trim();
     if (isModify) req.changes = changes;
+    if (isReject && rejectReason) req.rejectReason = rejectReason;
     if (!isReject) req.outcome = buildOutcome();
     try {
       const result = await review.mutateAsync({ id: shown.id, req });
@@ -380,6 +449,9 @@ function ReviewSheetBody({
               </>
             )}
           </dl>
+          {!(pending && isModify) && (
+            <ObservationEvidenceViewer observation={shown} />
+          )}
           <ObservationEvidenceStrip observation={shown} />
         </section>
 
@@ -420,6 +492,14 @@ function ReviewSheetBody({
 
             {isModify && (
               <div className="space-y-3 rounded-md border p-3">
+                {editorImages.length > 0 && (
+                  <RegionEditor
+                    original={regions}
+                    drafts={drafts}
+                    dispatch={dispatchDraft}
+                    images={editorImages}
+                  />
+                )}
                 <div className="space-y-1">
                   <Label htmlFor="edit-title">Title</Label>
                   <Input
@@ -492,7 +572,7 @@ function ReviewSheetBody({
                     setEdits({ ...edits, spatialNodeId: nodeId });
                   }}
                 />
-                {diff.length > 0 ? (
+                {diff.length > 0 || regionOps.length > 0 ? (
                   <ul className="space-y-1 text-xs" data-testid="review-diff">
                     {diff.map((row) => (
                       <li
@@ -510,7 +590,7 @@ function ReviewSheetBody({
                   </ul>
                 ) : (
                   <p className="text-muted-foreground text-xs">
-                    Change at least one field to modify.
+                    Change at least one field or region to modify.
                   </p>
                 )}
               </div>
@@ -623,6 +703,37 @@ function ReviewSheetBody({
               </div>
             )}
 
+            {isReject && (
+              <div className="space-y-1">
+                <Label htmlFor="reject-reason">
+                  Reason{hasProducerRegions ? ' (required)' : ''}
+                </Label>
+                <Select
+                  value={rejectReason ?? ''}
+                  onValueChange={(value) =>
+                    setRejectReason(value as RejectReason)
+                  }
+                >
+                  <SelectTrigger id="reject-reason">
+                    <SelectValue placeholder="Why the finding is wrong" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(RejectReason).map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {rejectReasonLabels[value]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {reasonMissing && (
+                  <p className="text-destructive text-xs">
+                    A model&apos;s finding needs a reason when it is rejected.
+                    Only a false positive is used to retrain the model.
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="space-y-1">
               <Label htmlFor="review-note">
                 Note{isReject ? ' (required)' : ''}
@@ -684,14 +795,10 @@ function ReviewSheetBody({
                   >
                     <span className="font-medium">{change.field}</span>
                     <span className="text-muted-foreground line-through">
-                      {change.before == null
-                        ? '(empty)'
-                        : String(change.before)}
+                      {formatChangeValue(change.field, change.before)}
                     </span>
                     <ArrowRight className="h-3 w-3" />
-                    <span>
-                      {change.after == null ? '(empty)' : String(change.after)}
-                    </span>
+                    <span>{formatChangeValue(change.field, change.after)}</span>
                   </li>
                 ))}
               </ul>
