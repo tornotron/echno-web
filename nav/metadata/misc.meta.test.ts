@@ -19,9 +19,55 @@ describe('settings-billing access', () => {
 
   test('a system admin passes; a director, a member and an unknown reader do not', () => {
     const base = { isAuthenticated: true } as const;
-    expect(canAccess(BILLING_ACCESS, { ...base, role: 'admin', orgRoles: [OrgRole.SYSTEM_ADMIN] })).toBe(true);
-    expect(canAccess(BILLING_ACCESS, { ...base, role: 'admin', orgRoles: [OrgRole.DIRECTOR] })).toBe(false);
-    expect(canAccess(BILLING_ACCESS, { ...base, role: 'employee', orgRoles: [OrgRole.SITE_ENGINEER] })).toBe(false);
+    expect(
+      canAccess(BILLING_ACCESS, {
+        ...base,
+        role: 'admin',
+        orgRoles: [OrgRole.SYSTEM_ADMIN],
+      })
+    ).toBe(true);
+    expect(
+      canAccess(BILLING_ACCESS, {
+        ...base,
+        role: 'admin',
+        orgRoles: [OrgRole.DIRECTOR],
+      })
+    ).toBe(false);
+    expect(
+      canAccess(BILLING_ACCESS, {
+        ...base,
+        role: 'employee',
+        orgRoles: [OrgRole.SITE_ENGINEER],
+      })
+    ).toBe(false);
     expect(canAccess(BILLING_ACCESS, { ...base, role: 'admin' })).toBe(false);
+  });
+});
+
+/**
+ * The computer vision settings page (Phase 4 WP5): dropped from the nav for
+ * an org without the `vision` module, and offered to its system admin only.
+ */
+describe('settings-vision', () => {
+  test('is module-gated on vision and limited to system-admin', () => {
+    const entry = miscMetadata['settings-vision'];
+    expect(entry.moduleId).toBe('vision');
+    expect(entry.hideWhenLocked).toBe(true);
+    expect(entry.access.allowOrgRoles).toEqual([OrgRole.SYSTEM_ADMIN]);
+    const base = { isAuthenticated: true } as const;
+    expect(
+      canAccess(entry.access, {
+        ...base,
+        role: 'admin',
+        orgRoles: [OrgRole.SYSTEM_ADMIN],
+      })
+    ).toBe(true);
+    expect(
+      canAccess(entry.access, {
+        ...base,
+        role: 'admin',
+        orgRoles: [OrgRole.DIRECTOR],
+      })
+    ).toBe(false);
   });
 });

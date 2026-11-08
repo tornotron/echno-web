@@ -5,7 +5,7 @@
  * Run `bun routes:generate` to regenerate from the filesystem.
  *
  * Source: app/users/dashboard (scanned recursively)
- * Generated: 2026-11-07
+ * Generated: 2026-11-08
  */
 
 const BASE = '/users/dashboard';
@@ -231,6 +231,7 @@ export const routes = {
   settings: {
     href: b('/settings'),
     billing: b('/settings/billing'),
+    vision: b('/settings/vision'),
   },
 
   site: b('/site'),
