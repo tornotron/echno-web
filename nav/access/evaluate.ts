@@ -6,6 +6,10 @@
  */
 
 import type { ModuleId } from '@tornotron/echno-core/module/types';
+import {
+  holdsPermission,
+  type CurrentUserAccess,
+} from '@tornotron/echno-core/access/types';
 import type { AccessConfig, Role, Permission } from './roles';
 import type { ComposedNavItem } from '../types';
 
@@ -27,6 +31,13 @@ export interface AccessContext {
    * leave it out with no effect on tier or permission checks.
    */
   orgRoles?: readonly string[];
+  /**
+   * The user's access on the backend's access matrix, from
+   * `GET /access/web/current-user-access`, for configs that gate on
+   * `matrixPermission`. Like `orgRoles`, `undefined` denies such a config
+   * rather than passing it.
+   */
+  access?: CurrentUserAccess;
   /** Whether the user is authenticated at all. */
   isAuthenticated: boolean;
   /**
@@ -72,7 +83,8 @@ export function isModuleVisible(
  *  2. denyRoles check (deny wins over allow)
  *  3. allowRoles check (empty = all roles pass)
  *  4. allowOrgRoles check (any one held passes; missing ctx.orgRoles fails)
- *  5. permissions check (all must pass)
+ *  5. matrixPermission check (held at any scope; missing ctx.access fails)
+ *  6. permissions check (all must pass)
  */
 export function canAccess(config: AccessConfig, ctx: AccessContext): boolean {
   if (config.requireAuth && !ctx.isAuthenticated) return false;
@@ -97,6 +109,11 @@ export function canAccess(config: AccessConfig, ctx: AccessContext): boolean {
       return false;
   }
 
+  if (config.matrixPermission) {
+    const [area, action] = splitMatrixPermission(config.matrixPermission);
+    if (!holdsPermission(ctx.access, area, action)) return false;
+  }
+
   if (config.permissions?.length) {
     const userPerms = ctx.permissions ?? [];
     const hasAll = config.permissions.every((p) => userPerms.includes(p));
@@ -106,14 +123,21 @@ export function canAccess(config: AccessConfig, ctx: AccessContext): boolean {
   return true;
 }
 
+/** Splits `<area>:<action>` at its first colon; named actions carry none. */
+function splitMatrixPermission(permission: string): [string, string] {
+  const colon = permission.indexOf(':');
+  return [permission.slice(0, colon), permission.slice(colon + 1)];
+}
+
 // ---------------------------------------------------------------------------
 // Org-role gate for pages and affordances
 // ---------------------------------------------------------------------------
 
 /**
- * Whether a signed-in member holding `orgRoles` passes an org-role gate such
- * as {@link STORES_ACCESS} or `PROJECT_WRITE_ACCESS`. This is `canAccess`
- * for the case a page or a button has: the caller is authenticated, the
+ * Whether a signed-in member holding `orgRoles` (and, for a
+ * `matrixPermission` gate, `access`) passes a gate such as
+ * {@link STORES_ACCESS}, `PROJECT_WRITE_ACCESS` or `ASSET_CREATE_ACCESS`.
+ * This is `canAccess` for the case a page or a button has: the caller is authenticated, the
  * config names org roles, and the coarse tier is not in play.
  *
  * Fail-closed like `canAccess`: `undefined` roles (the employee record not
@@ -126,9 +150,10 @@ export function canAccess(config: AccessConfig, ctx: AccessContext): boolean {
  */
 export function can(
   config: AccessConfig,
-  orgRoles: readonly string[] | undefined
+  orgRoles: readonly string[] | undefined,
+  access?: CurrentUserAccess
 ): boolean {
-  return canAccess(config, { isAuthenticated: true, orgRoles });
+  return canAccess(config, { isAuthenticated: true, orgRoles, access });
 }
 
 // ---------------------------------------------------------------------------

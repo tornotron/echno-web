@@ -4,7 +4,6 @@ import { financeMetadata } from './finance.meta';
 import { projectsMetadata } from './projects.meta';
 import { thirdPartyMetadata } from './third-party.meta';
 import {
-  ASSET_WRITE_ACCESS,
   CONSTRUCTION_INVOICES_ACCESS,
   LABOUR_ACCESS,
   PROJECT_WRITE_ACCESS,
@@ -37,7 +36,6 @@ describe('roles-matrix gates name the backend guard exactly', () => {
         STORAGE_LOCATION_WRITE_ACCESS,
         [OrgRole.SYSTEM_ADMIN],
       ],
-      ['ASSET_WRITE_ACCESS', ASSET_WRITE_ACCESS, pair],
       ['STOCK_ADJUSTMENT_DECIDE_ACCESS', STOCK_ADJUSTMENT_DECIDE_ACCESS, pair],
       [
         'VENDOR_READ_ACCESS',

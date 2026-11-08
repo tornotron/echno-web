@@ -9,6 +9,7 @@ import { afterEach, describe, expect, mock, test } from 'bun:test';
 import { cleanup, render } from '@testing-library/react';
 import { OrgRole } from '@tornotron/echno-core/employee/types';
 import * as realEmployeeHooks from '@tornotron/echno-core/employee/hooks';
+import * as realAccessHooks from '@tornotron/echno-core/access/hooks';
 import * as realProjectHooks from '@tornotron/echno-core/project/hooks';
 import * as realTaskHooks from '@tornotron/echno-core/task/hooks';
 import * as realIssueHooks from '@tornotron/echno-core/issue/hooks';
@@ -43,6 +44,18 @@ mock.module('@tornotron/echno-core/employee/hooks', () => ({
     employee: undefined,
   }),
 }));
+// The dashboard's gates are on org roles, so it needs no access of its own;
+// mocked so useCan does not reach for a QueryClient.
+mock.module('@tornotron/echno-core/access/hooks', () => ({
+  ...realAccessHooks,
+  useCurrentUserAccess: () => ({
+    access: undefined,
+    can: () => false,
+    isLoading: false,
+    error: null,
+  }),
+}));
+
 mock.module('@tornotron/echno-core/project/hooks', () => ({
   ...realProjectHooks,
   useProjects: () => projectsResult,
