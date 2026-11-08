@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { revokeSession } from '@/lib/auth/session-revocation';
 import { logger } from '@/lib/logger';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/security/rate-limit';
+import { getAuthProvider } from '@/lib/auth/provider';
 
 /**
  * Keycloak Frontchannel Logout Endpoint
@@ -18,9 +19,16 @@ import { checkRateLimit, RATE_LIMITS } from '@/lib/security/rate-limit';
  * - iss: Issuer identifier (Keycloak realm URL)
  * - sid: Session ID to terminate
  *
+ * Keycloak only. Under WorkOS nothing calls it, and it answers 404 so a stray request cannot
+ * revoke anything.
+ *
  * @see https://openid.net/specs/openid-connect-frontchannel-1_0.html
  */
 export async function GET(req: NextRequest) {
+  if (getAuthProvider() !== 'keycloak') {
+    return new NextResponse('Not Found', { status: 404 });
+  }
+
   try {
     // Rate limiting - prevent abuse
     const clientIp =

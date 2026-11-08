@@ -32,6 +32,14 @@ describe('sign-in boundary', () => {
     expect(errors).toHaveLength(1);
   });
 
+  it('no longer exempts a root auth.ts, now the Auth.js configuration lives in lib/auth', async () => {
+    const errors = await boundaryErrors(
+      "import NextAuth from 'next-auth';\nexport const x = NextAuth;\n",
+      'auth.ts'
+    );
+    expect(errors).toHaveLength(1);
+  });
+
   it('allows the library inside lib/auth', async () => {
     const errors = await boundaryErrors(
       "import { useSession } from 'next-auth/react';\nexport const x = useSession;\n",

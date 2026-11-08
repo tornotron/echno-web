@@ -1,4 +1,6 @@
 import { logger } from '@/lib/logger';
+import { getAuthProvider } from '@/lib/auth/provider';
+import { workosApiOrigin } from '@/lib/auth/workos/settings';
 import { storageOrigins } from '@/lib/storage-origins';
 
 const isDev = process.env.NODE_ENV !== 'production';
@@ -84,6 +86,20 @@ export const RAZORPAY_CONNECT_ORIGINS = [
   'https://lumberjack.razorpay.com',
 ] as const;
 
+/**
+ * Where a form on this app may send the browser. `'self'` everywhere; under
+ * WorkOS also the WorkOS API host, because signing out posts a form to
+ * `/sign-out`, which answers with a redirect to WorkOS's hosted logout, and
+ * `form-action` governs every hop of a form's redirects, not only the first.
+ * Without it the browser stops at our own 303 and the session stays open at
+ * WorkOS. Under Keycloak the directive is unchanged.
+ */
+function formActionSources(): string[] {
+  const sources = ["'self'"];
+  if (getAuthProvider() === 'workos') sources.push(workosApiOrigin());
+  return sources;
+}
+
 export function buildCsp() {
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
@@ -119,7 +135,7 @@ export function buildCsp() {
     `connect-src ${connectSrc}`,
     "frame-ancestors 'none'",
     "base-uri 'self'",
-    "form-action 'self'",
+    `form-action ${formActionSources().join(' ')}`,
     'report-uri /api/csp-report',
   ].join('; ');
   return { nonce, policy };

@@ -1,5 +1,5 @@
 import { authProxy } from '@/lib/auth/server';
-import { NextResponse } from 'next/server';
+import type { NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { buildCsp } from '@/lib/csp';
 
@@ -30,11 +30,16 @@ const MARKETING_PATHS = new Set([
  *
  * The matcher (below) excludes API routes, so the BFF proxy path is never made to
  * decrypt the session cookie here; it resolves auth itself.
+ *
+ * The session is read by the provider `AUTH_PROVIDER` names, in `authProxy`, and
+ * every response is built through `respond` so the provider can attach its own
+ * headers (under WorkOS, a refreshed session cookie). Under Keycloak those are
+ * plain `NextResponse.next` and `NextResponse.redirect`, as before.
  */
-export default authProxy((req) => {
+export default authProxy((req, session, respond) => {
   const { pathname } = req.nextUrl;
-  const isLoggedIn = !!req.auth;
-  const sessionError = req.auth?.error;
+  const isLoggedIn = session.signedIn;
+  const sessionError = session.error;
   const hasErrorParam = req.nextUrl.searchParams.has('error');
 
   const { nonce, policy } = buildCsp();
@@ -43,12 +48,10 @@ export default authProxy((req) => {
     return res;
   };
   // Pass the request through, forwarding the nonce so Next.js stamps its scripts.
-  const passThrough = () => {
-    const requestHeaders = new Headers(req.headers);
-    requestHeaders.set('x-nonce', nonce);
-    requestHeaders.set('content-security-policy', policy);
-    return withCsp(NextResponse.next({ request: { headers: requestHeaders } }));
-  };
+  const passThrough = () =>
+    withCsp(
+      respond.next({ 'x-nonce': nonce, 'content-security-policy': policy })
+    );
 
   // 1. Session errors (expired refresh, revoked session, idle past the
   //    deadline) → home with error. Home itself is allowed through so it can
@@ -75,7 +78,7 @@ export default authProxy((req) => {
         error: sessionError,
       });
     }
-    return withCsp(NextResponse.redirect(url));
+    return withCsp(respond.redirect(url));
   }
 
   // 2. Anonymous user trying to reach a protected area → login (home) with callback.
@@ -84,7 +87,7 @@ export default authProxy((req) => {
   if (!isLoggedIn && isProtected) {
     const url = new URL('/', req.url);
     url.searchParams.set('callbackUrl', pathname);
-    return withCsp(NextResponse.redirect(url));
+    return withCsp(respond.redirect(url));
   }
 
   // 3. Authenticated user on a marketing page → straight to dashboard.
@@ -96,7 +99,7 @@ export default authProxy((req) => {
     MARKETING_PATHS.has(pathname) &&
     !(pathname === '/' && hasErrorParam)
   ) {
-    return withCsp(NextResponse.redirect(new URL('/users/dashboard', req.url)));
+    return withCsp(respond.redirect(new URL('/users/dashboard', req.url)));
   }
 
   // 4. Pass through.

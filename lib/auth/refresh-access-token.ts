@@ -57,7 +57,7 @@ export interface RefreshDependencies {
   /**
    * Only ever called, never read for its properties. Asking for the whole
    * `typeof globalThis.fetch` also demanded `preconnect`, which the global
-   * carries under Bun's types and the late-binding wrapper in `auth.ts`
+   * carries under Bun's types and the late-binding wrapper in `lib/auth/keycloak/auth.ts`
    * cannot have.
    */
   fetch: (...args: Parameters<typeof globalThis.fetch>) => Promise<Response>;

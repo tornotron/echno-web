@@ -9,6 +9,12 @@ import { isAccessTokenExpired } from '@/lib/auth/token-refresh-schedule';
 import { isIdlePastProxyGrace } from '@/lib/auth/session-idle';
 import { logger } from '@/lib/logger';
 import { proxyTimeoutMs } from '@/lib/api/proxy-timeouts';
+import { getAuthProvider } from '@/lib/auth/provider';
+import {
+  type BffCaller,
+  type BffForward,
+  applyAuthResponseHeaders,
+} from '@/lib/auth/bff-caller';
 
 // Server-side only env var (not exposed to client)
 const BACKEND_URL = process.env.BACKEND_API_URL;
@@ -83,6 +89,106 @@ function redactSensitiveFields(obj: unknown): unknown {
 }
 
 /**
+ * The caller as the Auth.js cookie describes it, under Keycloak. These checks are the BFF's
+ * Keycloak behaviour unchanged; they moved here only so the WorkOS reading can sit beside them.
+ */
+async function resolveKeycloakCaller(): Promise<BffCaller> {
+  // Pull access token from the encrypted JWT cookie server-side. The token is
+  // never exposed to the browser — `getSessionTokens` decrypts the cookie that
+  // rode in with this request and gives us the access token to forward upstream.
+  const tokens = await getSessionTokens();
+
+  // The idle deadline, as far as this path can see it. Nothing else here would
+  // stop a cookie being replayed indefinitely: the proxy never runs `jwt()`, so
+  // no client-side inactivity rule reaches it, and Keycloak's own idle timer
+  // resets on every refresh rather than on every use.
+  //
+  // The deadline it reads was written by the last session update, so it is
+  // always somewhat behind a user who is working right now, and the allowance
+  // for that is generous on purpose. See `isIdlePastProxyGrace` for the size of
+  // the gap and why paying for it costs nothing real.
+  if (isIdlePastProxyGrace(tokens?.lastActivityAt, Date.now())) {
+    logger.warn('BFF: rejecting request for a session idle past its deadline', {
+      sessionId: tokens?.sessionId
+        ? tokens.sessionId.slice(0, 10) + '...'
+        : undefined,
+    });
+    return {
+      refusal: NextResponse.json(
+        { error: SESSION_TOKEN_EXPIRED_ERROR },
+        { status: 401 }
+      ),
+    };
+  }
+
+  // getSessionTokens skips the NextAuth `jwt()` callback (which is where
+  // revocation is normally checked) — so we must check explicitly here.
+  // Revoked sessions can still hold a valid-looking cookie until it expires;
+  // this enforces logout-effective-immediately on the BFF surface.
+  //
+  // It answers with the same code as every other ended session below. A
+  // revocation is a distinct thing and the log line says so, but the client has
+  // one recovery path and it keys on one string, so a body only this branch
+  // produced would be a body nothing reads.
+  if (tokens?.sessionId && isSessionRevoked(tokens.sessionId)) {
+    logger.warn('BFF: rejecting request for revoked session', {
+      sessionId: tokens.sessionId.slice(0, 10) + '...',
+    });
+    return {
+      refusal: NextResponse.json(
+        { error: SESSION_TOKEN_EXPIRED_ERROR },
+        { status: 401 }
+      ),
+    };
+  }
+
+  // Same reason the revocation check lives here: without the `jwt()` callback
+  // nothing repairs the cookie, so whatever state the session was left in is
+  // still sitting in it. Three shapes arrive that way and they all mean the
+  // same thing to the caller, so they get the same answer:
+  //
+  //   - the access token lapsed while the user sat on one page
+  //   - the cookie decoded but the server had already marked the session
+  //     finished, which the `error` field records
+  //   - the cookie is present and no longer decodes at all, so there are no
+  //     tokens to read
+  //
+  // Forwarding any of them buys a generic rejection from the backend with an
+  // empty body, which is indistinguishable from that endpoint refusing this
+  // particular call. Answering with the machine-readable code instead is what
+  // lets `lib/api/api-client.ts` recognise a finished session and recover.
+  //
+  // A request carrying no session cookie at all is deliberately not in that
+  // list. It is an ordinary anonymous call, and which endpoints accept one is
+  // the backend's judgement to make, not this proxy's.
+  const isSessionUnusable = tokens
+    ? Boolean(tokens.error) ||
+      isAccessTokenExpired(tokens.expiresAt, Date.now())
+    : await hasSessionCookie();
+
+  if (isSessionUnusable) {
+    logger.warn('BFF: rejecting request for a session that has ended', {
+      sessionId: tokens?.sessionId
+        ? tokens.sessionId.slice(0, 10) + '...'
+        : undefined,
+      reason:
+        tokens?.error ?? (tokens ? 'access token expired' : 'undecodable'),
+    });
+    return {
+      refusal: NextResponse.json(
+        { error: SESSION_TOKEN_EXPIRED_ERROR },
+        { status: 401 }
+      ),
+    };
+  }
+
+  return {
+    accessToken: tokens?.accessToken,
+    organizationId: tokens?.defaultOrganizationId,
+  };
+}
+
+/**
  * proxyRequest
  *
  * Generic server-side proxy that forwards incoming Next.js API requests
@@ -109,93 +215,40 @@ async function proxyRequest(
 
   const { path } = await params;
 
-  // Pull access token from the encrypted JWT cookie server-side. The token is
-  // never exposed to the browser — `getSessionTokens` decrypts the cookie that
-  // rode in with this request and gives us the access token to forward upstream.
-  const tokens = await getSessionTokens();
+  // Who is calling, and with what. Under WorkOS the library reads the session
+  // itself, refreshing it when due; under Keycloak the Auth.js cookie is read
+  // and checked exactly as before.
+  // The WorkOS module is loaded only on a WorkOS stack.
+  const caller =
+    getAuthProvider() === 'workos'
+      ? await import('@/lib/auth/workos/bff').then((workos) =>
+          workos.resolveWorkosBffCaller(request)
+        )
+      : await resolveKeycloakCaller();
+  if ('refusal' in caller) return caller.refusal;
 
-  // The idle deadline, as far as this path can see it. Nothing else here would
-  // stop a cookie being replayed indefinitely: the proxy never runs `jwt()`, so
-  // no client-side inactivity rule reaches it, and Keycloak's own idle timer
-  // resets on every refresh rather than on every use.
-  //
-  // The deadline it reads was written by the last session update, so it is
-  // always somewhat behind a user who is working right now, and the allowance
-  // for that is generous on purpose. See `isIdlePastProxyGrace` for the size of
-  // the gap and why paying for it costs nothing real.
-  if (isIdlePastProxyGrace(tokens?.lastActivityAt, Date.now())) {
-    logger.warn('BFF: rejecting request for a session idle past its deadline', {
-      sessionId: tokens?.sessionId
-        ? tokens.sessionId.slice(0, 10) + '...'
-        : undefined,
-    });
-    return NextResponse.json(
-      { error: SESSION_TOKEN_EXPIRED_ERROR },
-      { status: 401 }
-    );
+  const response = await forwardToBackend(request, BACKEND_URL, path, caller);
+  // A session the library refreshed on the way through has a new cookie to
+  // hand back. Keycloak callers carry none.
+  if (caller.responseHeaders) {
+    applyAuthResponseHeaders(response, caller.responseHeaders);
   }
+  return response;
+}
 
-  // getSessionTokens skips the NextAuth `jwt()` callback (which is where
-  // revocation is normally checked) — so we must check explicitly here.
-  // Revoked sessions can still hold a valid-looking cookie until it expires;
-  // this enforces logout-effective-immediately on the BFF surface.
-  //
-  // It answers with the same code as every other ended session below. A
-  // revocation is a distinct thing and the log line says so, but the client has
-  // one recovery path and it keys on one string, so a body only this branch
-  // produced would be a body nothing reads.
-  if (tokens?.sessionId && isSessionRevoked(tokens.sessionId)) {
-    logger.warn('BFF: rejecting request for revoked session', {
-      sessionId: tokens.sessionId.slice(0, 10) + '...',
-    });
-    return NextResponse.json(
-      { error: SESSION_TOKEN_EXPIRED_ERROR },
-      { status: 401 }
-    );
-  }
-
-  // Same reason the revocation check lives here: without the `jwt()` callback
-  // nothing repairs the cookie, so whatever state the session was left in is
-  // still sitting in it. Three shapes arrive that way and they all mean the
-  // same thing to the caller, so they get the same answer:
-  //
-  //   - the access token lapsed while the user sat on one page
-  //   - the cookie decoded but the server had already marked the session
-  //     finished, which the `error` field records
-  //   - the cookie is present and no longer decodes at all, so there are no
-  //     tokens to read
-  //
-  // Forwarding any of them buys a generic rejection from the backend with an
-  // empty body, which is indistinguishable from that endpoint refusing this
-  // particular call. Answering with the machine-readable code instead is what
-  // lets `lib/api/api-client.ts` recognise a finished session and recover.
-  //
-  // A request carrying no session cookie at all is deliberately not in that
-  // list. It is an ordinary anonymous call, and which endpoints accept one is
-  // the backend's judgement to make, not this proxy's.
-  const isSessionUnusable = tokens
-    ? Boolean(tokens.error) || isAccessTokenExpired(tokens.expiresAt, Date.now())
-    : await hasSessionCookie();
-
-  if (isSessionUnusable) {
-    logger.warn('BFF: rejecting request for a session that has ended', {
-      sessionId: tokens?.sessionId
-        ? tokens.sessionId.slice(0, 10) + '...'
-        : undefined,
-      reason: tokens?.error ?? (tokens ? 'access token expired' : 'undecodable'),
-    });
-    return NextResponse.json(
-      { error: SESSION_TOKEN_EXPIRED_ERROR },
-      { status: 401 }
-    );
-  }
-
+/** Forwards the request to the backend as `caller`, and relays the answer. */
+async function forwardToBackend(
+  request: NextRequest,
+  backendUrl: string,
+  path: string[],
+  caller: BffForward
+): Promise<NextResponse> {
   const targetPath = path.join('/');
   const url = new URL(request.url);
-  const targetUrl = `${BACKEND_URL}/${targetPath}${url.search}`;
+  const targetUrl = `${backendUrl}/${targetPath}${url.search}`;
 
   // Extract hostname from BACKEND_URL for Host header
-  const backendHost = new URL(BACKEND_URL).host;
+  const backendHost = new URL(backendUrl).host;
 
   // Build headers
   const headers: HeadersInit = {
@@ -215,13 +268,13 @@ async function proxyRequest(
   headers['Content-Type'] = contentType || 'application/json';
 
   // Forward the access token if available
-  if (tokens?.accessToken) {
-    headers['Authorization'] = `Bearer ${tokens.accessToken}`;
+  if (caller.accessToken) {
+    headers['Authorization'] = `Bearer ${caller.accessToken}`;
   }
 
   // Forward organization ID for multi-tenancy
-  if (tokens?.defaultOrganizationId) {
-    headers['X-Organization-Id'] = tokens.defaultOrganizationId;
+  if (caller.organizationId) {
+    headers['X-Organization-Id'] = caller.organizationId;
   }
 
   // A server-sent event stream is meant to stay open, so it must not be raced against a
@@ -241,7 +294,7 @@ async function proxyRequest(
     logger.debug('Proxying request', {
       method: request.method,
       targetUrl,
-      hasAuth: !!tokens?.accessToken,
+      hasAuth: !!caller.accessToken,
     });
 
     // Get request body for non-GET/HEAD requests

@@ -55,3 +55,30 @@ test('Razorpay Checkout.js is allowed as a script, a frame and a connect target 
   expect(connectSrc).toContain('https://api.razorpay.com');
   expect(connectSrc).toContain("'self'");
 });
+
+test('form-action allows the WorkOS sign-out host under WorkOS only', () => {
+  const saved = process.env.AUTH_PROVIDER;
+  const savedHost = process.env.WORKOS_API_HOSTNAME;
+  try {
+    delete process.env.AUTH_PROVIDER;
+    delete process.env.WORKOS_API_HOSTNAME;
+    expect(directive(buildCsp().policy, 'form-action')).toBe(
+      "form-action 'self'"
+    );
+
+    process.env.AUTH_PROVIDER = 'workos';
+    expect(directive(buildCsp().policy, 'form-action')).toBe(
+      "form-action 'self' https://api.workos.com"
+    );
+
+    process.env.WORKOS_API_HOSTNAME = 'auth.example.test';
+    expect(directive(buildCsp().policy, 'form-action')).toBe(
+      "form-action 'self' https://auth.example.test"
+    );
+  } finally {
+    if (saved === undefined) delete process.env.AUTH_PROVIDER;
+    else process.env.AUTH_PROVIDER = saved;
+    if (savedHost === undefined) delete process.env.WORKOS_API_HOSTNAME;
+    else process.env.WORKOS_API_HOSTNAME = savedHost;
+  }
+});

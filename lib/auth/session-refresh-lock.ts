@@ -8,7 +8,7 @@
  * spent token, so Keycloak revokes the chain and signs the user out everywhere.
  *
  * The Web Locks API is a same-origin mutex shared by every tab, which is the
- * right primitive for the tabs it can see: the `jwt()` callback in `auth.ts`
+ * right primitive for the tabs it can see: the `jwt()` callback in `lib/auth/keycloak/auth.ts`
  * only exchanges when the token is inside its refresh buffer, so the tab that
  * acquires the lock second reads an `expiresAt` its peer has already advanced
  * and returns without exchanging anything.

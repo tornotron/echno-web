@@ -13,7 +13,7 @@ const failingRefresh = async (): Promise<never> => {
 };
 
 /**
- * Stands in for the session cookie, the `jwt()` callback in auth.ts, and a
+ * Stands in for the session cookie, the `jwt()` callback in lib/auth/keycloak/auth.ts, and a
  * Keycloak realm running revokeRefreshToken with refreshTokenMaxReuse 0.
  *
  * `refreshToken` is the serial of the only refresh token the realm will accept.

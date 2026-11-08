@@ -10,7 +10,7 @@
  * that opt into it. It cannot reach the refreshes NextAuth starts on its own
  * (the `SessionProvider` visibility refetch), the ones the middleware starts on
  * a document request, or another device entirely. All of those land in the
- * `jwt()` callback in `auth.ts`, so that is where the exchange has to be made
+ * `jwt()` callback in `lib/auth/keycloak/auth.ts`, so that is where the exchange has to be made
  * safe rather than merely discouraged.
  *
  * Two callers arriving with the same refresh token are the same exchange, so
