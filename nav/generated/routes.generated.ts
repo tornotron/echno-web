@@ -111,6 +111,24 @@ export const ROUTE_TREE: RouteNode = {
     ],
   },
   {
+    id: 'document-ingestion',
+    segment: 'document-ingestion',
+    path: '/users/dashboard/document-ingestion',
+    isDynamic: false,
+    isCatchAll: false,
+    children: [
+      {
+        id: 'document-ingestion-[id]',
+        segment: '[id]',
+        path: '/users/dashboard/document-ingestion/[id]',
+        isDynamic: true,
+        isCatchAll: false,
+        paramName: 'id',
+        children: [],
+      },
+    ],
+  },
+  {
     id: 'finance',
     segment: 'finance',
     path: '/users/dashboard/finance',
