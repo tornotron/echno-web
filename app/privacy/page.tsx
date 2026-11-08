@@ -188,8 +188,8 @@ export default function PrivacyPage() {
               <ul className="mt-3 list-inside list-disc space-y-2 leading-relaxed">
                 <li>Encryption of data in transit (TLS/SSL) and at rest.</li>
                 <li>
-                  Secure authentication through Keycloak identity management
-                  with role-based access control.
+                  Secure authentication through an identity provider, with
+                  role-based access control.
                 </li>
                 <li>Regular security assessments and vulnerability testing.</li>
                 <li>
@@ -283,10 +283,10 @@ export default function PrivacyPage() {
               </h2>
               <p className="leading-relaxed">
                 The Platform integrates with third-party services for
-                authentication (Keycloak) and other functionalities. These
-                services have their own privacy policies, and we encourage you
-                to review them. We are not responsible for the privacy practices
-                of third-party services.
+                authentication (an identity provider that handles sign-in) and
+                other functionalities. These services have their own privacy
+                policies, and we encourage you to review them. We are not
+                responsible for the privacy practices of third-party services.
               </p>
             </div>
 
@@ -336,10 +336,10 @@ export default function PrivacyPage() {
               </Link>
             </p>
             <Link
-              href="/register"
+              href="/"
               className="inline-flex items-center text-sm font-medium text-indigo-600 hover:underline dark:text-amber-500"
             >
-              Back to Registration
+              Back to Home
               <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           </div>

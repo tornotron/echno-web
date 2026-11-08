@@ -7,11 +7,6 @@ export const organizationsMetadata = {
     icon: Building,
     sidebarHidden: true,
   },
-  'organizations-join': {
-    label: 'Join Organization',
-    breadcrumb: 'Join',
-    sidebarHidden: true,
-  },
   'organizations-new': { label: 'New Organization', sidebarHidden: true },
   'organizations-[id]': { label: 'Organization', sidebarHidden: true },
   'organizations-[id]-edit': { label: 'Edit', sidebarHidden: true },

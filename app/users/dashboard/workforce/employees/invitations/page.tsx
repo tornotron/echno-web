@@ -2,7 +2,7 @@
 
 import { ActiveFilterChip, PageHeader, OrgGuard } from '@/components/common';
 import { Plus } from 'lucide-react';
-import { useInvitationsByOrganization } from '@tornotron/echno-core/invitation/hooks';
+import { useMemberInvitations } from '@tornotron/echno-core/member-invitations/hooks';
 import { useUser } from '@tornotron/echno-core/user/hooks';
 import {
   InvitationTable,
@@ -14,13 +14,20 @@ import Link from 'next/link';
 import { routes } from '@/nav';
 import { useEmployeeFilterFromParams } from '@/hooks/use-employee-filter';
 
+/**
+ * The largest page the backend serves. The list is read in one page so the
+ * search, the state filter and the manager link below narrow everything the
+ * organization has sent, not only the newest ten.
+ */
+const INVITATION_PAGE = { pageNo: 0, pageSize: 500 } as const;
+
 export default function InvitationsPage() {
   const { data: user, isLoading: isUserLoading } = useUser();
   const {
     data: invitations,
     isLoading,
     error,
-  } = useInvitationsByOrganization(user?.defaultOrganizationId);
+  } = useMemberInvitations(INVITATION_PAGE);
 
   const allInvitations = invitations || [];
 
@@ -28,12 +35,12 @@ export default function InvitationsPage() {
   // module's slug now narrows nothing and says nothing, instead of naming a
   // person over a list nothing narrowed.
   //
-  // The whole collection is loaded, so narrowing it here hides nothing. The
-  // manager id is an employee id, resolved through the employee lookup by the
+  // The whole collection is loaded (up to the page above), so narrowing it
+  // here hides nothing. The manager id is an employee id, resolved through the employee lookup by the
   // same `useManagerName` the detail screen uses to name it.
   const { chip, filtered: invitationsList } = useEmployeeFilterFromParams({
     rows: allInvitations,
-    roles: { manager: (i) => i.employeeDetails.managerId },
+    roles: { manager: (i) => i.employee.managerId },
   });
 
   return (
@@ -51,7 +58,7 @@ export default function InvitationsPage() {
         <div className="space-y-4 sm:space-y-6">
           <PageHeader
             title="Employee Invitations"
-            description="Manage and track employee invitation status"
+            description="Invite people by email and follow each invitation"
           />
           <InvitationEmptyState />
         </div>
@@ -59,12 +66,12 @@ export default function InvitationsPage() {
         <div className="space-y-4 sm:space-y-6">
           <PageHeader
             title="Employee Invitations"
-            description="Manage and track employee invitation status"
+            description="Invite people by email and follow each invitation"
             actions={
               <Button asChild>
                 <Link href={routes.workforce.employees.invitations.new}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Create Invitation
+                  Invite Person
                 </Link>
               </Button>
             }

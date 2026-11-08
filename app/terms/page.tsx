@@ -274,10 +274,10 @@ export default function TermsPage() {
               </Link>
             </p>
             <Link
-              href="/register"
+              href="/"
               className="inline-flex items-center text-sm font-medium text-indigo-600 hover:underline dark:text-amber-500"
             >
-              Back to Registration
+              Back to Home
               <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           </div>

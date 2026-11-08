@@ -13,12 +13,10 @@ import {
 } from '@/components/shadcn/empty';
 
 interface InvitationErrorStateProps {
-  inviteCode: string;
   backLink?: string;
 }
 
 export function InvitationErrorState({
-  inviteCode,
   backLink = routes.workforce.employees.invitations.href,
 }: InvitationErrorStateProps) {
   return (
@@ -29,8 +27,7 @@ export function InvitationErrorState({
       <EmptyHeader>
         <EmptyTitle>Invitation Not Found</EmptyTitle>
         <EmptyDescription>
-          TThe invitation code &quot;{inviteCode}&quot; could not be found or is
-          invalid.
+          This invitation could not be found in your organization.
         </EmptyDescription>
       </EmptyHeader>
       <Button asChild>

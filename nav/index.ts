@@ -175,7 +175,6 @@ export const publicRoutes = {
   contact: '/contact',
   privacy: '/privacy',
   terms: '/terms',
-  register: '/register',
   login: '/login',
   profile: '/profile',
   profileEdit: '/profile/edit',

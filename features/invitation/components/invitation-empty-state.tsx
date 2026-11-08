@@ -19,13 +19,13 @@ export function InvitationEmptyState() {
       <EmptyHeader>
         <EmptyTitle>No Invitations Yet</EmptyTitle>
         <EmptyDescription>
-          Get started by sending your first employee invitation.
+          Invite the first person by email. They join when they accept the link.
         </EmptyDescription>
       </EmptyHeader>
       <Button asChild>
         <Link href={routes.workforce.employees.invitations.new}>
           <Plus className="mr-2 h-4 w-4" />
-          Create Invitation
+          Invite Person
         </Link>
       </Button>
     </Empty>
