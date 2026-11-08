@@ -33,6 +33,11 @@ export const routes = {
     detail: (roomId: string | number) => ({ href: b(`/chat/${roomId}`) }),
   },
 
+  documentIngestion: {
+    href: b('/document-ingestion'),
+    detail: (id: string | number) => ({ href: b(`/document-ingestion/${id}`) }),
+  },
+
   finance: {
     href: b('/finance'),
     budgets: b('/finance/budgets'),
