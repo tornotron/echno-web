@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useAuthSession } from '@/lib/auth/client';
 import { Button } from '@/components/shadcn/button';
 import {
   DropdownMenu,
@@ -25,7 +25,7 @@ const onSignOut = () => {
 };
 
 export function UserMenu() {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useAuthSession();
   const { data: user } = useUser({ enabled: status === 'authenticated' });
 
   if (!session) {

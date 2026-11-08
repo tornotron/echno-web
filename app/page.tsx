@@ -1,4 +1,4 @@
-import { auth } from '@/auth';
+import { getSession } from '@/lib/auth/server';
 import { WelcomeScreen } from '@/features/home/components/welcome-screen';
 
 /**
@@ -25,7 +25,7 @@ export default async function WelcomePage({
 
   let hasSession = false;
   if (errorCode) {
-    const session = await auth();
+    const session = await getSession();
     hasSession = !!session?.user && !session.error;
   }
 

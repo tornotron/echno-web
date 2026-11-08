@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useAuthSession } from '@/lib/auth/client';
 import { useEffect, useState } from 'react';
 import {
   Card,
@@ -128,7 +128,7 @@ const announcements = [
 ];
 
 export default function FieldWorkersDashboard() {
-  const { data: session } = useSession();
+  const { data: session } = useAuthSession();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [tasks, setTasks] = useState(todayTasks);
 

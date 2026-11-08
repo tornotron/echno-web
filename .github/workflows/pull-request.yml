@@ -1,10 +1,11 @@
 name: Pull request
 
-# Gate for changes entering `development`.
+# Gate for changes entering `development`, and `auth-workos` while the WorkOS
+# sign-in is built there.
 
 on:
   pull_request:
-    branches: [development]
+    branches: [development, auth-workos]
 
 permissions:
   contents: read

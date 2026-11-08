@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, Save, LogOut } from 'lucide-react';
-import { signOut } from 'next-auth/react';
+import { signOut } from '@/lib/auth/client';
 import {
   OrganizationForm,
   ORGANIZATION_FORM_ID,

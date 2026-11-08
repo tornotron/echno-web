@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useAuthSession } from '@/lib/auth/client';
 import {
   clearFormDraft,
   formDraftKey,
@@ -91,7 +91,7 @@ export interface FormDraftControls {
  * offered while the user is working in another's.
  */
 export function useFormDraftScope(): FormDraftScope {
-  const { data: session } = useSession();
+  const { data: session } = useAuthSession();
   const userId = session?.user?.id;
   const organizationId = session?.user?.defaultOrganizationId;
 

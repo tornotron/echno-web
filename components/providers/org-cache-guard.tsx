@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useSession } from 'next-auth/react';
+import { useAuthSession } from '@/lib/auth/client';
 import { useQueryClient } from '@tanstack/react-query';
 
 /**
@@ -16,7 +16,7 @@ import { useQueryClient } from '@tanstack/react-query';
  * previous tenant's rows before it refetches under the new organization.
  */
 export function OrgCacheGuard({ children }: { children: React.ReactNode }) {
-  const { data: session } = useSession();
+  const { data: session } = useAuthSession();
   const queryClient = useQueryClient();
   const orgId = session?.user?.defaultOrganizationId;
   const previousOrgId = useRef<string | number | null | undefined>(undefined);

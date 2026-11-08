@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useAuthSession } from '@/lib/auth/client';
 import { useEffect, useState } from 'react';
 import {
   Card,
@@ -167,7 +167,7 @@ const safetyAlerts = [
 ];
 
 export default function SiteOperationsDashboard() {
-  const { data: session } = useSession();
+  const { data: session } = useAuthSession();
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {

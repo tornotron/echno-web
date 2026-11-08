@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useSession } from 'next-auth/react';
+import { useAuthSession } from '@/lib/auth/client';
 import { useEmployeeRoles } from '@tornotron/echno-core/employee/hooks';
 import {
   isAdmin as hasAdminRole,
@@ -20,7 +20,10 @@ import {
   type ResolvedNavItem,
   type Role,
 } from '@/nav';
-import { useEnabledModuleIds, shouldShowNavSkeleton } from '@/hooks/use-enabled-module-ids';
+import {
+  useEnabledModuleIds,
+  shouldShowNavSkeleton,
+} from '@/hooks/use-enabled-module-ids';
 import { ChevronRight, Lock, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -115,7 +118,7 @@ interface AppSidebarProps {
 const SKELETON_ROWS = [0, 1, 2, 3, 4, 5, 6, 7] as const;
 
 export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
-  const { data: session } = useSession();
+  const { data: session } = useAuthSession();
   const pathname = usePathname();
   const router = useRouter();
   const { state } = useSidebar();
@@ -381,16 +384,17 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-        {!navPending && sections.map((group) => (
-          <SidebarGroup key={group.section.id}>
-            <SidebarGroupLabel>{group.section.label}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {group.items.map((item) => renderItem(item))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
+        {!navPending &&
+          sections.map((group) => (
+            <SidebarGroup key={group.section.id}>
+              <SidebarGroupLabel>{group.section.label}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {group.items.map((item) => renderItem(item))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))}
       </SidebarContent>
 
       <SidebarFooter>

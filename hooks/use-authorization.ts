@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useAuthSession } from '@/lib/auth/client';
 import { useEmployeeRoles } from '@tornotron/echno-core/employee/hooks';
 import {
   isSystemAdmin as checkSystemAdmin,
@@ -32,7 +32,7 @@ import { hasRole, hasAllRoles } from '@/lib/rbac/permissions';
  * ```
  */
 export function useAuthorization() {
-  const { status } = useSession();
+  const { status } = useAuthSession();
   const { orgRoles, isLoading: employeeLoading, employee } = useEmployeeRoles();
 
   const isAuthenticated = status === 'authenticated';

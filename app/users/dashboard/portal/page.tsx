@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useAuthSession } from '@/lib/auth/client';
 import { useState } from 'react';
 import {
   Card,
@@ -249,7 +249,7 @@ const getPortalTitle = () => {
 };
 
 export default function ExternalPortalDashboard() {
-  const { data: session } = useSession();
+  const { data: session } = useAuthSession();
   const [activeTab, setActiveTab] = useState('overview');
 
   const userName = session?.user?.name || 'Partner';
@@ -405,9 +405,7 @@ export default function ExternalPortalDashboard() {
                     <Button variant="outline" size="sm" asChild>
                       <Link
                         href={
-                          routes.projects.allProjects.detail(
-                            project.id
-                          ).href
+                          routes.projects.allProjects.detail(project.id).href
                         }
                       >
                         View Details
