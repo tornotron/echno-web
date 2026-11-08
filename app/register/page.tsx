@@ -93,10 +93,10 @@ export default function RegisterPage() {
         <div className="relative">
           <Link href="/">
             <Image
-              src="/e-ai-logo.png"
+              src="/echno-logo.svg"
               alt="Echno"
               width={110}
-              height={40}
+              height={43}
               className="invert"
             />
           </Link>
@@ -167,10 +167,10 @@ export default function RegisterPage() {
         <div className="mb-8 flex justify-center lg:hidden">
           <Link href="/">
             <Image
-              src="/e-ai-logo.png"
+              src="/echno-logo.svg"
               alt="Echno"
               width={100}
-              height={36}
+              height={39}
               className="dark:invert"
             />
           </Link>
