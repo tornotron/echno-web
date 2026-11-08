@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { useAuthSession } from '@/lib/auth/client';
 import { useEmployeeRoles } from '@tornotron/echno-core/employee/hooks';
+import { useCurrentUserAccess } from '@tornotron/echno-core/access/hooks';
 import {
   isAdmin as hasAdminRole,
   isManagerOrAbove as hasManagerRole,
@@ -157,6 +158,8 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
     moduleIds: enabledModules,
   });
 
+  const { access } = useCurrentUserAccess();
+
   const sections = useMemo(() => {
     const role = toNavRole(orgRoles as string[]);
     const items = resolveSidebarAccess(getSidebarItems(), {
@@ -164,12 +167,15 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
       // Passed alongside the collapsed tier so entries gated on a specific
       // backend role (allowOrgRoles, e.g. the store documents) can resolve.
       orgRoles,
+      // The caller's access on the matrix, for entries gated on one of its
+      // permissions (matrixPermission, e.g. the asset forms).
+      access,
       permissions: getPermissionsForRole(role),
       isAuthenticated: true,
       enabledModules,
     });
     return groupBySection(items);
-  }, [orgRoles, enabledModules]);
+  }, [orgRoles, access, enabledModules]);
 
   const activePath = useMemo(
     () =>

@@ -22,7 +22,7 @@ import {
   AssetFormData,
   ASSET_FORM_ID,
 } from '@/features/assets/components/asset-form';
-import { ASSET_WRITE_ACCESS } from '@/nav/access/roles';
+import { ASSET_EDIT_ACCESS } from '@/nav/access/roles';
 
 function EditAssetPageContent() {
   const { id } = useParams();
@@ -101,9 +101,9 @@ function EditAssetPageContent() {
 export default function EditAssetPage() {
   return (
     <AccessGate
-      config={ASSET_WRITE_ACCESS}
+      config={ASSET_EDIT_ACCESS}
       subject="edit assets"
-      allowed="system administrators and project managers"
+      allowed="roles your organization has given this permission"
       backHref={routes.resources.href}
       backLabel="Back to Resources"
     >
