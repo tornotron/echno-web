@@ -20,7 +20,10 @@ import {
   type ResolvedNavItem,
   type Role,
 } from '@/nav';
-import { useEnabledModuleIds, shouldShowNavSkeleton } from '@/hooks/use-enabled-module-ids';
+import {
+  useEnabledModuleIds,
+  shouldShowNavSkeleton,
+} from '@/hooks/use-enabled-module-ids';
 import { ChevronRight, Lock, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -341,10 +344,10 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
         <div className="flex items-center gap-2 px-2 py-1 group-data-[collapsible=icon]:hidden">
           <div className="flex items-center gap-2">
             <Image
-              src="/e-ai-logo.png"
+              src="/echno-logo.svg"
               alt="Echno Logo"
               width={110}
-              height={40}
+              height={43}
               priority
               style={{ width: 'auto', height: 'auto' }}
               className="dark:invert"
@@ -354,7 +357,7 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
         {/* Collapsed state - centered bigger logo */}
         <div className="relative hidden items-center justify-center py-1 group-data-[collapsible=icon]:flex">
           <Image
-            src="/e-logo.png"
+            src="/echno-mark.svg"
             alt="Echno Logo"
             width={40}
             height={40}
@@ -381,16 +384,17 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-        {!navPending && sections.map((group) => (
-          <SidebarGroup key={group.section.id}>
-            <SidebarGroupLabel>{group.section.label}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {group.items.map((item) => renderItem(item))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
+        {!navPending &&
+          sections.map((group) => (
+            <SidebarGroup key={group.section.id}>
+              <SidebarGroupLabel>{group.section.label}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {group.items.map((item) => renderItem(item))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))}
       </SidebarContent>
 
       <SidebarFooter>

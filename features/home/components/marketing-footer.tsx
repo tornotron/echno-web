@@ -63,10 +63,10 @@ export function MarketingFooter() {
           <div className="col-span-2 md:col-span-1">
             <Link href="/">
               <Image
-                src="/e-ai-logo.png"
+                src="/echno-logo.svg"
                 alt="Echno"
                 width={96}
-                height={32}
+                height={37}
                 className="mb-5 dark:invert"
               />
             </Link>
