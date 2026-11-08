@@ -349,7 +349,7 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
               width={110}
               height={43}
               priority
-              style={{ width: 'auto', height: 'auto' }}
+              style={{ width: '110px', height: 'auto' }}
               className="dark:invert"
             />
           </div>
