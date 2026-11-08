@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import {
+  BillPaymentAuthority,
+  BillPaymentAuthorizeBlock,
   BillPaymentProvider,
   BillPaymentState,
   BillPaymentStatus,
@@ -11,6 +13,9 @@ import {
   PAYMENT_STATUS_CLASSES,
   PAYMENT_STATUS_LABELS,
   PROVIDER_NOTES,
+  authorizeWaitReason,
+  authorizedByText,
+  authorizerChangeText,
   parsePaymentAmount,
   paymentActions,
   raiseBlockedReason,
@@ -27,6 +32,8 @@ function view(overrides: Partial<BillPayments> = {}): BillPayments {
     amountDue: 1000,
     inFlight: false,
     beneficiaryReady: true,
+    authorizerActive: true,
+    readerIsAuthorizer: false,
     payments: [],
     ...overrides,
   };
@@ -49,11 +56,13 @@ describe('payment labels', () => {
   });
 });
 
+const signable = { readerMayAuthorize: true };
+
 describe('paymentActions', () => {
-  test('someone who cannot authorize gets no actions', () => {
+  test("someone who is not the project's authorizer gets no actions, whatever their role", () => {
     expect(
       paymentActions(
-        { status: BillPaymentStatus.REQUESTED, provider: MANUAL },
+        { status: BillPaymentStatus.REQUESTED, provider: MANUAL, ...signable },
         false
       )
     ).toEqual([]);
@@ -62,21 +71,41 @@ describe('paymentActions', () => {
   test('a requested payment is authorized or rejected, whatever carries it', () => {
     for (const provider of [MANUAL, RAZORPAY]) {
       expect(
-        paymentActions({ status: BillPaymentStatus.REQUESTED, provider }, true)
+        paymentActions(
+          { status: BillPaymentStatus.REQUESTED, provider, ...signable },
+          true
+        )
       ).toEqual(['authorize', 'reject']);
     }
+  });
+
+  test('the authorizer cannot sign a payment they raised, but can withdraw it', () => {
+    expect(
+      paymentActions(
+        {
+          status: BillPaymentStatus.REQUESTED,
+          provider: MANUAL,
+          readerMayAuthorize: false,
+        },
+        true
+      )
+    ).toEqual(['reject']);
   });
 
   test('an authorized manual payment is recorded; a provider one is sent again', () => {
     expect(
       paymentActions(
-        { status: BillPaymentStatus.AUTHORIZED, provider: MANUAL },
+        { status: BillPaymentStatus.AUTHORIZED, provider: MANUAL, ...signable },
         true
       )
     ).toEqual(['record', 'reject']);
     expect(
       paymentActions(
-        { status: BillPaymentStatus.AUTHORIZED, provider: RAZORPAY },
+        {
+          status: BillPaymentStatus.AUTHORIZED,
+          provider: RAZORPAY,
+          ...signable,
+        },
         true
       )
     ).toEqual(['sync', 'reject']);
@@ -85,7 +114,7 @@ describe('paymentActions', () => {
   test('a payment with the provider can only be asked about, and an ended one nothing', () => {
     expect(
       paymentActions(
-        { status: BillPaymentStatus.PROCESSING, provider: FAKE },
+        { status: BillPaymentStatus.PROCESSING, provider: FAKE, ...signable },
         true
       )
     ).toEqual(['sync']);
@@ -95,8 +124,104 @@ describe('paymentActions', () => {
       BillPaymentStatus.REJECTED,
       BillPaymentStatus.REVERSED,
     ]) {
-      expect(paymentActions({ status, provider: FAKE }, true)).toEqual([]);
+      expect(
+        paymentActions({ status, provider: FAKE, ...signable }, true)
+      ).toEqual([]);
     }
+  });
+});
+
+const requested = (authorizeBlock?: BillPaymentAuthorizeBlock) => ({
+  status: BillPaymentStatus.REQUESTED,
+  authorizeBlock,
+});
+
+describe('why the Authorize button is absent', () => {
+  test('each reason says who can unblock it', () => {
+    const named = view({ authorizerName: 'Meera' });
+    expect(
+      authorizeWaitReason(
+        requested(BillPaymentAuthorizeBlock.NOT_THE_AUTHORIZER),
+        named
+      )
+    ).toBe("Waiting for Meera, this project's payment authorizer.");
+    expect(
+      authorizeWaitReason(
+        requested(BillPaymentAuthorizeBlock.OWN_REQUEST),
+        named
+      )
+    ).toContain('You raised this payment');
+    expect(
+      authorizeWaitReason(
+        requested(BillPaymentAuthorizeBlock.RAISED_BY_THE_AUTHORIZER),
+        named
+      )
+    ).toContain(
+      "Meera raised this payment and is the project's only payment authorizer"
+    );
+    expect(
+      authorizeWaitReason(
+        requested(BillPaymentAuthorizeBlock.NO_AUTHORIZER),
+        view({ authorizerName: undefined, authorizerActive: false })
+      )
+    ).toContain('has no payment authorizer');
+    expect(
+      authorizeWaitReason(
+        requested(BillPaymentAuthorizeBlock.NO_AUTHORIZER),
+        view({ authorizerName: 'Meera', authorizerActive: false })
+      )
+    ).toContain(
+      "Meera, this project's payment authorizer, is no longer active"
+    );
+  });
+
+  test('nothing to say when the reader may sign, or the payment is past that step', () => {
+    expect(authorizeWaitReason(requested(undefined), view())).toBeNull();
+    expect(
+      authorizeWaitReason(
+        { status: BillPaymentStatus.AUTHORIZED, authorizeBlock: undefined },
+        view()
+      )
+    ).toBeNull();
+  });
+
+  test('an authorization says the capacity it was given in, and an old self-authorization says so', () => {
+    expect(
+      authorizedByText({
+        authorizedByName: 'Meera',
+        authorizedAs: BillPaymentAuthority.PROJECT_AUTHORIZER,
+        selfAuthorized: false,
+      })
+    ).toBe("Authorized by Meera, the project's payment authorizer");
+    expect(
+      authorizedByText({ authorizedByName: 'Admin', selfAuthorized: true })
+    ).toBe('Authorized by Admin, who raised it');
+    expect(authorizedByText({ selfAuthorized: false })).toBeNull();
+  });
+
+  test('a change of authorizer reads as a sentence', () => {
+    expect(
+      authorizerChangeText({
+        id: 'c1',
+        employeeName: 'Meera',
+        changedByName: 'Ravi',
+      })
+    ).toBe('Ravi named Meera');
+    expect(
+      authorizerChangeText({
+        id: 'c2',
+        previousEmployeeName: 'Meera',
+        employeeName: 'Arun',
+        changedByName: 'Ravi',
+      })
+    ).toBe('Ravi replaced Meera with Arun');
+    expect(
+      authorizerChangeText({
+        id: 'c3',
+        previousEmployeeName: 'Arun',
+        changedByName: 'Ravi',
+      })
+    ).toBe('Ravi cleared Arun');
   });
 });
 
