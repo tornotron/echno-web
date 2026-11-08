@@ -1,4 +1,5 @@
 import { AppLayout } from '@/features/common/components/app-layout';
+import { TrialEndedNotice } from '@/features/billing';
 import { ChatStreamProvider } from '@/features/chat/components/chat-stream-provider';
 import { FloatingChatSlot } from './floating-chat-slot';
 
@@ -11,10 +12,14 @@ export default function DashboardLayout({
 }) {
   // The chat stream is opened here, once, rather than inside the chat feature: the floating
   // chat is present on every dashboard page, so the connection has to outlive navigation
-  // between them.
+  // between them. The trial-ended notice sits here for the same reason: it is asked for once
+  // per dashboard visit, not once per page.
   return (
     <ChatStreamProvider>
-      <AppLayout floatingChat={<FloatingChatSlot />}>{children}</AppLayout>
+      <AppLayout floatingChat={<FloatingChatSlot />}>
+        <TrialEndedNotice />
+        {children}
+      </AppLayout>
     </ChatStreamProvider>
   );
 }
