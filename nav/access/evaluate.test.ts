@@ -19,7 +19,10 @@ import {
   type AccessConfig,
 } from './roles';
 import { OrgRole } from '@tornotron/echno-core/employee/types';
-import type { CurrentUserAccess } from '@tornotron/echno-core/access/types';
+import {
+  parseCurrentUserAccess,
+  type CurrentUserAccess,
+} from '@tornotron/echno-core/access/types';
 import type { ComposedNavItem } from '../types';
 
 function item(overrides: Partial<ComposedNavItem>): ComposedNavItem {
@@ -349,8 +352,9 @@ const CREATE_ASSETS: AccessConfig = { matrixPermission: 'assets:create' };
 const EDIT_ASSETS: AccessConfig = { matrixPermission: 'assets:edit' };
 const DELETE_ASSETS: AccessConfig = { matrixPermission: 'assets:delete' };
 
+/** Parsed as the endpoint's answer is, so the fixture follows core's shape. */
 function access(grants: CurrentUserAccess['grants']): CurrentUserAccess {
-  return { organizationId: 5, employeeId: 42, grants, projectGrants: {} };
+  return parseCurrentUserAccess({ organizationId: 5, employeeId: 42, grants });
 }
 
 describe('can: a gate on the access matrix', () => {

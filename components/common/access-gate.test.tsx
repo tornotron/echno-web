@@ -8,7 +8,10 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test';
 import { cleanup, render } from '@testing-library/react';
 import { OrgRole } from '@tornotron/echno-core/employee/types';
-import type { CurrentUserAccess } from '@tornotron/echno-core/access/types';
+import {
+  parseCurrentUserAccess,
+  type CurrentUserAccess,
+} from '@tornotron/echno-core/access/types';
 import { PROJECT_WRITE_ACCESS, type AccessConfig } from '@/nav/access/roles';
 
 /** A gate on the access matrix, as the backend's @access.can('assets', 'create'). */
@@ -102,12 +105,11 @@ describe('AccessGate', () => {
 
   test('renders the page for a holder of the matrix permission, whatever their roles', () => {
     accessState = {
-      access: {
+      access: parseCurrentUserAccess({
         organizationId: 5,
         employeeId: 42,
         grants: { 'assets:create': ['ALL'] },
-        projectGrants: {},
-      },
+      }),
       isLoading: false,
     };
     expect(page(CREATE_ASSETS).container.textContent).toBe('the page');
@@ -116,12 +118,11 @@ describe('AccessGate', () => {
   test('refuses the old role holder a matrix gate when they lack the permission', () => {
     employeeState = { ...employeeState, orgRoles: [OrgRole.PROJECT_MANAGER] };
     accessState = {
-      access: {
+      access: parseCurrentUserAccess({
         organizationId: 5,
         employeeId: 42,
         grants: { 'assets:read': ['ALL'] },
-        projectGrants: {},
-      },
+      }),
       isLoading: false,
     };
     expect(page(CREATE_ASSETS).container.textContent).toContain(
