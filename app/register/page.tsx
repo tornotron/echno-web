@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useAuthSession } from '@/lib/auth/client';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { RegistrationForm } from '@/features/auth/registration-form';
@@ -41,7 +41,7 @@ const HIGHLIGHTS = [
 ];
 
 export default function RegisterPage() {
-  const { status } = useSession();
+  const { status } = useAuthSession();
   const router = useRouter();
 
   useEffect(() => {

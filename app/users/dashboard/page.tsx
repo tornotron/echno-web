@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useAuthSession } from '@/lib/auth/client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import { toast } from '@/lib/styles/toast-styles';
@@ -8,7 +8,7 @@ import { useUser } from '@tornotron/echno-core/user/hooks';
 import { HomeDashboard } from '@/features/dashboard/components/home-dashboard';
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useAuthSession();
   const router = useRouter();
   const loginToastShown = useRef(false);
   const { data: user } = useUser();

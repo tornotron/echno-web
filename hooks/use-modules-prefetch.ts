@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useSession } from 'next-auth/react';
+import { useAuthSession } from '@/lib/auth/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { logger } from '@tornotron/echno-core';
 import { moduleService } from '@tornotron/echno-core/module/services';
@@ -23,7 +23,7 @@ import { moduleKeys } from '@tornotron/echno-core/module/hooks/keys';
  * Mount this hook once at the app level, alongside `useOrganizationPrefetch`.
  */
 export function useModulesPrefetch() {
-  const { status } = useSession();
+  const { status } = useAuthSession();
   const queryClient = useQueryClient();
   const hasPrefetched = useRef(false);
 

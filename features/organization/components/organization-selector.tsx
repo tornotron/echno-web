@@ -10,11 +10,11 @@ import {
 } from '@/components/shadcn/select';
 import { Building } from 'lucide-react';
 import { useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useAuthSession } from '@/lib/auth/client';
 import { useOrganizationSummaries } from '@tornotron/echno-core/organization/hooks';
 
 export function OrganizationSelector() {
-  const { data: session } = useSession();
+  const { data: session } = useAuthSession();
   const {
     defaultOrganization,
     setDefaultOrganization,

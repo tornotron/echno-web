@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { signOut } from 'next-auth/react';
+import { signOut } from '@/lib/auth/client';
 import { useState } from 'react';
 import { describeAuthError } from '@/lib/auth/auth-error-messages';
 

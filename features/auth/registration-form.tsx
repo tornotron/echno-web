@@ -22,7 +22,7 @@ import {
 } from '@/components/shadcn/select';
 import { CalendarIcon, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { format, isValid, parse, subYears } from 'date-fns';
-import { signIn } from 'next-auth/react';
+import { startSignIn } from '@/lib/auth/client';
 import { toast } from '@/lib/styles/toast-styles';
 import {
   RegistrationFormData,
@@ -185,7 +185,7 @@ export function RegistrationForm() {
       setFormData(initialRegistrationFormData);
 
       setTimeout(() => {
-        signIn('keycloak');
+        startSignIn();
       }, 1500);
     } catch (error) {
       logger.error('Registration error:', error);
@@ -602,7 +602,7 @@ export function RegistrationForm() {
             type="button"
             variant="link"
             className="h-auto p-0 font-semibold text-amber-600 hover:text-amber-700 dark:text-amber-500"
-            onClick={() => signIn('keycloak')}
+            onClick={() => startSignIn()}
           >
             Sign in
           </Button>

@@ -2,10 +2,9 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
+import { startSignIn } from '@/lib/auth/client';
 import { AlertCircle, ArrowLeft, Home, LogIn, Lock } from 'lucide-react';
 import { Button } from '@/components/shadcn/button';
-import { startKeycloakSignIn } from '@/lib/auth/sign-in-flow';
 import { routes } from '@/nav';
 
 /**
@@ -54,7 +53,7 @@ const COPY: Record<LoadErrorKind, { title: string; message: string }> = {
 function signInAgain() {
   const here = `${globalThis.location.pathname}${globalThis.location.search}`;
   const search = `?${new URLSearchParams({ callbackUrl: here }).toString()}`;
-  void startKeycloakSignIn(signIn, search);
+  void startSignIn(search);
 }
 
 /**

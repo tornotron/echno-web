@@ -1,6 +1,10 @@
 'use client';
 
-import { SessionProvider, signOut, useSession } from 'next-auth/react';
+import {
+  AuthSessionProvider,
+  signOut,
+  useAuthSession,
+} from '@/lib/auth/client';
 import { QueryProvider } from './query-provider';
 import { OrgCacheGuard } from './org-cache-guard';
 import { UserPrefetcher } from './user-prefetcher';
@@ -23,7 +27,7 @@ import {
  * the two collaborators the hook takes as arguments rather than imports.
  */
 function SessionMonitor({ children }: { children: React.ReactNode }) {
-  const { data: session, status, update } = useSession();
+  const { data: session, status, update } = useAuthSession();
 
   const notify = useMemo<SessionNotifier>(
     () => ({
@@ -93,7 +97,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     // and it raced one, which is what revoked a user's session mid-form.
     // `useSessionLifecycle` owns the visibility handling instead, so the
     // refreshes all queue behind each other.
-    <SessionProvider refetchOnWindowFocus={false}>
+    <AuthSessionProvider refetchOnWindowFocus={false}>
       <SessionMonitor>
         <QueryProvider>
           <OrgCacheGuard>
@@ -103,6 +107,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
           </OrgCacheGuard>
         </QueryProvider>
       </SessionMonitor>
-    </SessionProvider>
+    </AuthSessionProvider>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useSession } from 'next-auth/react';
+import { useAuthSession } from '@/lib/auth/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { userService } from '@tornotron/echno-core/user/services';
 import { userKeys } from '@tornotron/echno-core/user/hooks/keys';
@@ -26,7 +26,7 @@ import { ApiError } from '@/lib/api/api-client';
  * according to the staleTime configured in respective hooks.
  */
 export function UserPrefetcher({ children }: { children: React.ReactNode }) {
-  const { status } = useSession();
+  const { status } = useAuthSession();
   const queryClient = useQueryClient();
   const hasPrefetched = useRef(false);
 

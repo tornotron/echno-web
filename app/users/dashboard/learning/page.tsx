@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useAuthSession } from '@/lib/auth/client';
 import { useState } from 'react';
 import {
   Card,
@@ -229,7 +229,7 @@ const mentor = {
 };
 
 export default function LearningDashboard() {
-  const { data: session } = useSession();
+  const { data: session } = useAuthSession();
   const [activeTab, setActiveTab] = useState('courses');
 
   const userName = session?.user?.name?.split(' ')[0] || 'Trainee';

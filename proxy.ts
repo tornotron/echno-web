@@ -1,4 +1,4 @@
-import { auth } from '@/auth';
+import { authProxy } from '@/lib/auth/server';
 import { NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { buildCsp } from '@/lib/csp';
@@ -31,7 +31,7 @@ const MARKETING_PATHS = new Set([
  * The matcher (below) excludes API routes, so the BFF proxy path is never made to
  * decrypt the session cookie here; it resolves auth itself.
  */
-export default auth((req) => {
+export default authProxy((req) => {
   const { pathname } = req.nextUrl;
   const isLoggedIn = !!req.auth;
   const sessionError = req.auth?.error;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useSession } from 'next-auth/react';
+import { useAuthSession } from '@/lib/auth/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { logger } from '@tornotron/echno-core';
 import { organizationService } from '@tornotron/echno-core/organization/services';
@@ -28,7 +28,7 @@ import { organizationKeys } from '@tornotron/echno-core/organization/hooks/keys'
  * ```
  */
 export function useOrganizationPrefetch() {
-  const { status } = useSession();
+  const { status } = useAuthSession();
   const queryClient = useQueryClient();
   const hasPrefetched = useRef(false);
 
