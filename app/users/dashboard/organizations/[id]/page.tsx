@@ -17,6 +17,7 @@ import {
   Network,
   Loader2,
   Star,
+  ShieldCheck,
 } from 'lucide-react';
 import Link from 'next/link';
 import { routes } from '@/nav';
@@ -31,6 +32,14 @@ import {
   OrganizationHierarchyTab,
 } from '@/features/organization';
 import { EmployeeTreeNode } from '@/features/employee';
+import {
+  AccessView,
+  DiscardChangesDialog,
+  mayOpenScreen,
+} from '@/features/access';
+import { useCurrentUserAccess } from '@tornotron/echno-core/access/hooks';
+
+type OrganizationTab = 'overview' | 'settings' | 'hierarchy' | 'access';
 
 interface OrganizationDetailPageProps {
   params: Promise<{
@@ -43,9 +52,16 @@ export default function OrganizationDetailPage({
 }: OrganizationDetailPageProps) {
   const resolvedParams = use(params);
   const organizationId = Number.parseInt(resolvedParams.id);
-  const [activeTab, setActiveTab] = useState<
-    'overview' | 'settings' | 'hierarchy'
-  >('overview');
+  const [activeTab, setActiveTab] = useState<OrganizationTab>('overview');
+  // The Roles & Permissions screen holds unsaved edits until Save; leaving
+  // the tab asks first.
+  const [accessDirty, setAccessDirty] = useState(false);
+  const [pendingTab, setPendingTab] = useState<OrganizationTab | null>(null);
+  // The screen reads and writes the signed-in member's current organization,
+  // so it is offered on that organization's page only, to a holder of
+  // access:read (the backend's guard on every read it makes).
+  const { access } = useCurrentUserAccess();
+  const canReadAccess = mayOpenScreen(access, organizationId);
   const [selectedDepartment, setSelectedDepartment] =
     useState<Department | null>(null);
 
@@ -100,7 +116,16 @@ export default function OrganizationDetailPage({
     { id: 'overview', label: 'Overview', icon: Building2 },
     { id: 'settings', label: 'Settings', icon: Settings },
     { id: 'hierarchy', label: 'Hierarchy', icon: Network },
+    ...(canReadAccess
+      ? [{ id: 'access', label: 'Roles & Permissions', icon: ShieldCheck }]
+      : []),
   ];
+
+  const switchTab = (tab: OrganizationTab) => {
+    if (activeTab === 'access' && tab !== 'access' && accessDirty)
+      setPendingTab(tab);
+    else setActiveTab(tab);
+  };
 
   const hierarchyEmployees = orgEmployees;
   const hierarchyDepartments = [
@@ -206,11 +231,11 @@ export default function OrganizationDetailPage({
 
       {/* Tabs */}
       <div className="mb-6 border-b border-zinc-200 dark:border-zinc-800">
-        <nav className="flex space-x-8">
+        <nav className="flex space-x-8 overflow-x-auto whitespace-nowrap">
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as typeof activeTab)}
+              onClick={() => switchTab(tab.id as OrganizationTab)}
               className={`flex items-center space-x-2 border-b-2 px-1 py-4 text-sm font-medium transition-colors ${
                 activeTab === tab.id
                   ? 'border-primary text-primary'
@@ -254,6 +279,22 @@ export default function OrganizationDetailPage({
           renderNode={(node) => <EmployeeTreeNode node={node} />}
         />
       )}
+
+      {activeTab === 'access' && canReadAccess && (
+        <AccessView onDirtyChange={setAccessDirty} />
+      )}
+
+      <DiscardChangesDialog
+        open={pendingTab !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingTab(null);
+        }}
+        onConfirm={() => {
+          if (pendingTab) setActiveTab(pendingTab);
+          setAccessDirty(false);
+          setPendingTab(null);
+        }}
+      />
     </div>
   );
 }
