@@ -1,5 +1,7 @@
 import { getSession } from 'next-auth/react';
+import { clientAuthProvider } from '@/lib/auth/client-provider';
 import { sessionRefresh } from '@/lib/auth/session-refresh-lock';
+import { refreshWorkosSession } from '@/lib/auth/workos/client-session';
 
 /**
  * Forces the session round trip that refreshes the access token, at most one at
@@ -25,10 +27,16 @@ import { sessionRefresh } from '@/lib/auth/session-refresh-lock';
  *
  * It never throws. A refresh that fails leaves the caller to fail on its own
  * 401, which is exactly what would have happened without this step.
+ *
+ * Under WorkOS the round trip is `/api/session`, where the library refreshes
+ * the access token when it is due. Its refresh tokens are single-use too, so
+ * the same coordinator applies.
  */
 export async function refreshSessionOnce(): Promise<void> {
+  const refresh =
+    clientAuthProvider() === 'workos' ? refreshWorkosSession : getSession;
   try {
-    await sessionRefresh.refreshOnce(getSession);
+    await sessionRefresh.refreshOnce(refresh);
   } catch {
     // Intentionally swallowed: see the note above.
   }

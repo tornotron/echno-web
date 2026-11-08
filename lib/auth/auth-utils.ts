@@ -1,14 +1,15 @@
 'use client';
 
-import { signOut as nextAuthSignOut } from 'next-auth/react';
+import { signOut } from '@/lib/auth/client';
 import { logger } from '@/lib/logger';
 import { clearAllFormDrafts } from '@/lib/forms/form-draft-storage';
 
 /**
- * Simple sign out (NextAuth + Keycloak)
+ * Simple sign out (NextAuth + Keycloak, or WorkOS)
  *
- * Keycloak logout is handled server-side in auth.ts events.signOut callback
- * This keeps the client-side simple and avoids race conditions
+ * Keycloak logout is handled server-side in lib/auth/keycloak/auth.ts events.signOut callback
+ * This keeps the client-side simple and avoids race conditions. Under WorkOS the
+ * same call goes through `/sign-out` and WorkOS's hosted logout.
  */
 export async function handleSignOut() {
   try {
@@ -24,8 +25,8 @@ export async function handleSignOut() {
     clearAllFormDrafts();
 
     // Sign out from NextAuth
-    // The events.signOut callback in auth.ts will handle Keycloak logout
-    await nextAuthSignOut({ callbackUrl: '/?logout=success' });
+    // The events.signOut callback in lib/auth/keycloak/auth.ts will handle Keycloak logout
+    await signOut({ callbackUrl: '/?logout=success' });
   } catch (error) {
     logger.error('Logout: Error during sign out', error);
     // Fallback: force redirect to home
@@ -46,7 +47,7 @@ export async function silentLogout() {
       localStorage.removeItem('defaultOrganization');
     }
     clearAllFormDrafts();
-    await nextAuthSignOut({ redirect: false });
+    await signOut({ redirect: false });
   } catch (error) {
     logger.error('Logout: Silent logout failed', error);
   }
@@ -64,7 +65,7 @@ export async function forceLogout(reason = 'session_invalid') {
     }
 
     // Sign out from NextAuth
-    await nextAuthSignOut({ redirect: false });
+    await signOut({ redirect: false });
 
     // Small delay to ensure cleanup
     await new Promise((resolve) => setTimeout(resolve, 100));

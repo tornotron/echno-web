@@ -277,13 +277,13 @@ const nextFileOverrides = {
 // SIGN-IN BOUNDARY ---
 // Pages and components reach the sign-in library only through `lib/auth`
 // (`lib/auth/client` and `lib/auth/server`), so the provider behind it can change
-// in one place. The Auth.js configuration (`auth.ts`) and its type augmentation
-// are the library's own files. Tests may mock the library directly.
+// in one place. Both providers' configuration lives under `lib/auth` (Auth.js in
+// `lib/auth/keycloak`, WorkOS in `lib/auth/workos`); the Auth.js type
+// augmentation is the library's own file. Tests may mock the library directly.
 export const signInBoundaryRules = {
   files: ['**/*.{js,jsx,ts,tsx}'],
   ignores: [
     'lib/auth/**',
-    'auth.ts',
     'types/next-auth.d.ts',
     '**/*.test.{ts,tsx}',
     'test/**',

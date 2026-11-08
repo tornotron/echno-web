@@ -22,6 +22,12 @@ ARG NEXT_PUBLIC_API_URL
 # image optimizer refuses every attachment the object store serves.
 ARG NEXT_PUBLIC_STORAGE_ORIGIN
 
+# NEXT_PUBLIC_WORKOS_REDIRECT_URI must never be added here. Next inlines a
+# NEXT_PUBLIC_ value present at build into the bundle, which would freeze one
+# stack's callback URL into every container started from this image. Left
+# unset, the app reads it when the server runs (lib/auth/workos/settings.ts),
+# and AUTH_PROVIDER and the other WORKOS_* variables are run-time only as well.
+
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}

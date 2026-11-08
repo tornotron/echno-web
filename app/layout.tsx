@@ -3,8 +3,9 @@ import { headers } from 'next/headers';
 import { Providers } from '@/components/providers/auth-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { Toaster } from '@/components/shadcn/sonner';
+import { getAuthProvider } from '@/lib/auth/provider';
 
-// Auth validation handled by Keycloak provider at runtime
+// Auth validation handled by the sign-in provider at runtime
 // Missing/invalid env vars will produce descriptive errors when authentication is attempted
 
 // Render every route per request so the CSP nonce set in proxy.ts reaches the
@@ -23,6 +24,9 @@ export default async function RootLayout({
   // theme script is nonced (otherwise the enforced policy blocks that inline script).
   const headersList = await headers();
   const nonce = headersList.get('x-nonce') ?? undefined;
+  // Read per request on the server, because client components cannot read a
+  // server variable and a NEXT_PUBLIC_ one would be frozen in at build.
+  const authProvider = getAuthProvider();
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -34,7 +38,7 @@ export default async function RootLayout({
           disableTransitionOnChange
           nonce={nonce}
         >
-          <Providers>{children}</Providers>
+          <Providers authProvider={authProvider}>{children}</Providers>
           <Toaster />
         </ThemeProvider>
       </body>

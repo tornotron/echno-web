@@ -241,7 +241,10 @@ export function useSessionLifecycle({
   // only when the token actually rotates.
   useEffect(() => {
     if (status !== 'authenticated') return;
-    if (provider !== 'keycloak') return;
+    // Both providers keep a server-side idle deadline: Keycloak on the Auth.js
+    // token, WorkOS in the signed activity cookie. A development credentials
+    // session has neither and is left alone.
+    if (provider !== 'keycloak' && provider !== 'workos') return;
 
     let disposed = false;
 

@@ -47,7 +47,12 @@ mock.module('next/image', () => ({
 let sessionValue: unknown = null;
 let authCalls = 0;
 
-mock.module('@/auth', () => ({
+// Spread over the real module, because a module mock outlives this file and
+// the Auth.js configuration suite reads `authConfig` from the same path.
+const realKeycloakAuth = await import('@/lib/auth/keycloak/auth');
+
+mock.module('@/lib/auth/keycloak/auth', () => ({
+  ...realKeycloakAuth,
   auth: () => {
     authCalls += 1;
     return Promise.resolve(sessionValue);

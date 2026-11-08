@@ -47,7 +47,7 @@ From [package.json](../package.json):
 
 - **Next.js 16** + **React 19** (App Router only — no `pages/`).
 - **Auth.js v5** (`next-auth@5.0.0-beta.30`) with a Keycloak (OIDC) provider —
-  see [auth.ts](../auth.ts).
+  see [lib/auth/keycloak/auth.ts](../lib/auth/keycloak/auth.ts).
 - **TanStack Query v5** for client-side data fetching/caching (see §5 for
   the configured global defaults).
 - **Zustand v5** for ad-hoc client state (sparingly used).
@@ -113,7 +113,7 @@ app/                  → routing + pages + API routes (Next.js)
     tasks/            → standalone task view
     organizations/    → multi-org management
     portal/ learning/ → additional feature areas
-auth.ts               → Auth.js config (Keycloak, JWT callbacks, refresh)
+lib/auth/keycloak/auth.ts → Auth.js config (Keycloak, JWT callbacks, refresh)
 proxy.ts              → middleware (auth gate, session checks)
 next.config.ts        → Next.js config (redirects, image hosts, output mode)
 scripts/              → codegen scripts (generate-routes.ts, watch-routes.ts) — run on
@@ -281,7 +281,7 @@ pattern.
 
 The whole auth story is in three files:
 
-1. [auth.ts](../auth.ts) — defines the Keycloak provider, JWT/session
+1. [lib/auth/keycloak/auth.ts](../lib/auth/keycloak/auth.ts): defines the Keycloak provider, JWT/session
    callbacks, access-token refresh, and exports `auth`, `signIn`, `signOut`,
    and a `handlers` object.
 2. [proxy.ts](../proxy.ts) — wraps the entire app in `auth(...)` middleware
@@ -303,8 +303,8 @@ const { data: session, status } = useSession(); // status: 'loading' | 'authenti
 On the server (RSC, Route Handler, middleware):
 
 ```ts
-import { auth } from '@/auth';
-const session = await auth();
+import { getSession } from '@/lib/auth/server';
+const session = await getSession();
 ```
 
 **RBAC** is layered on top — see [lib/rbac/](../lib/rbac/), [hooks/use-authorization.ts](../hooks/use-authorization.ts),
@@ -384,7 +384,7 @@ model afterwards.
 
 ### Phase 3 — Auth & API plumbing (30 min)
 
-11. [auth.ts](../auth.ts) — read top-to-bottom. The JWT callback (refresh
+11. [lib/auth/keycloak/auth.ts](../lib/auth/keycloak/auth.ts): read top-to-bottom. The JWT callback (refresh
     logic) is the core piece.
 12. [proxy.ts](../proxy.ts) — middleware for auth gating.
 13. [app/api/v1/[...path]/route.ts](../app/api/v1/%5B...path%5D/route.ts) — the

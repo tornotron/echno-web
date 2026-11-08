@@ -24,7 +24,7 @@ const COOKIE_NAME = 'authjs.session-token';
 
 process.env.NEXTAUTH_SECRET = SECRET;
 
-const { authConfig } = await import('@/auth');
+const { authConfig } = await import('@/lib/auth/keycloak/auth');
 
 const MINUTE_MS = 60 * 1000;
 const DEADLINE_MINUTES = SESSION_ACTIVITY.IDLE_SIGN_OUT_MS / MINUTE_MS;

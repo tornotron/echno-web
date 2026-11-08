@@ -11,6 +11,7 @@ import { UserPrefetcher } from './user-prefetcher';
 import { useOrganizationPrefetch } from '@/features/organization/hooks/use-organization-prefetch';
 import { useModulesPrefetch } from '@/hooks/use-modules-prefetch';
 import { useCallback, useEffect, useMemo } from 'react';
+import type { AuthProviderName } from '@/lib/auth/provider';
 import { apiClient } from '@/lib/api/api-client';
 import { toast } from '@/lib/styles/toast-styles';
 import { clearAllFormDrafts } from '@/lib/forms/form-draft-storage';
@@ -89,7 +90,14 @@ function FeaturePrefetcher({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({
+  children,
+  authProvider,
+}: {
+  children: React.ReactNode;
+  /** The sign-in provider, read on the server by the root layout. */
+  authProvider?: AuthProviderName;
+}) {
   return (
     // NextAuth refetches the session whenever a tab becomes visible, which
     // reaches the `jwt()` callback and can exchange the refresh token. That
@@ -97,7 +105,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     // and it raced one, which is what revoked a user's session mid-form.
     // `useSessionLifecycle` owns the visibility handling instead, so the
     // refreshes all queue behind each other.
-    <AuthSessionProvider refetchOnWindowFocus={false}>
+    <AuthSessionProvider provider={authProvider} refetchOnWindowFocus={false}>
       <SessionMonitor>
         <QueryProvider>
           <OrgCacheGuard>
