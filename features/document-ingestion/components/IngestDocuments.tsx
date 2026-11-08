@@ -8,7 +8,11 @@ import {
   usePresignIngestDocument,
   useRegisterIngestDocument,
 } from '@tornotron/echno-core/document-ingestion/hooks';
-import type { IngestDocument } from '@tornotron/echno-core/document-ingestion/types';
+import type {
+  DocumentClassification,
+  ExtractJob,
+  IngestDocument,
+} from '@tornotron/echno-core/document-ingestion/types';
 import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
 import {
@@ -19,11 +23,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/shadcn/table';
-import { documentStatusLabel } from '../lib/labels';
+import {
+  docClassLabel,
+  documentStatusLabel,
+  extractJobStatusLabels,
+  segmentStatusLabels,
+} from '../lib/labels';
 import {
   formatBytes,
-  isWorkbookName,
-  workbookContentType,
+  INGEST_ACCEPT,
+  ingestContentType,
+  isIngestFileName,
+  MAX_INGEST_FILE_BYTES,
 } from '../lib/workbook';
 
 type UploadState =
@@ -33,7 +44,7 @@ type UploadState =
   | { phase: 'error'; fileName: string; message: string };
 
 /**
- * Uploads one Excel workbook straight to storage: presign, PUT the bytes to
+ * Uploads one tender file straight to storage: presign, PUT the bytes to
  * the signed url with the signed content type, then register the key so the
  * file is queued for reading. Mirrors `hooks/use-direct-attachment-upload.ts`
  * with the module's own presign and register calls.
@@ -45,12 +56,20 @@ export function IngestUpload({ packageId }: { packageId: string }) {
   const [state, setState] = useState<UploadState>({ phase: 'idle' });
 
   const upload = async (file: File) => {
-    if (!isWorkbookName(file.name)) {
+    if (!isIngestFileName(file.name)) {
       setState({
         phase: 'error',
         fileName: file.name,
         message:
-          'Only Excel workbooks (.xlsx or .xls) are read as a BOQ for now.',
+          'Upload a PDF, an Excel workbook (.xlsx or .xls), a Word file (.docx), a drawing (.dxf or .dwg), or a ZIP of them. RAR, 7z and .doc files are not read.',
+      });
+      return;
+    }
+    if (file.size > MAX_INGEST_FILE_BYTES) {
+      setState({
+        phase: 'error',
+        fileName: file.name,
+        message: `The file is ${formatBytes(file.size)}; a single file can be up to 200 MB.`,
       });
       return;
     }
@@ -61,7 +80,7 @@ export function IngestUpload({ packageId }: { packageId: string }) {
         req: {
           fileName: file.name,
           fileSize: file.size,
-          contentType: workbookContentType(file),
+          contentType: ingestContentType(file),
         },
       });
       await attachmentService.putToStorage(
@@ -96,9 +115,9 @@ export function IngestUpload({ packageId }: { packageId: string }) {
         <input
           ref={input}
           type="file"
-          accept=".xlsx,.xls"
+          accept={INGEST_ACCEPT}
           className="hidden"
-          aria-label="BOQ workbook"
+          aria-label="Tender file"
           onChange={(event) => {
             const file = event.target.files?.[0];
             event.target.value = '';
@@ -116,10 +135,10 @@ export function IngestUpload({ packageId }: { packageId: string }) {
           ) : (
             <Upload className="size-4" />
           )}
-          Upload BOQ workbook
+          Upload a file
         </Button>
         <span className="text-muted-foreground text-xs">
-          Excel only (.xlsx or .xls). Other files are kept but not read yet.
+          PDF, Excel, Word, DXF, DWG, or a ZIP of them, up to 200 MB each.
         </span>
       </div>
       {state.phase === 'uploading' && (
@@ -141,57 +160,136 @@ export function IngestUpload({ packageId }: { packageId: string }) {
   );
 }
 
+/** The reading jobs of one document, newest last. */
+function jobsOf(jobs: ExtractJob[], documentId: string): ExtractJob[] {
+  return jobs.filter((j) => j.documentId === documentId);
+}
+
+/**
+ * The package's files with what each one is and how far its reading got: the
+ * file's own read, its class and parts, and each reading job with its chunks.
+ */
 export function IngestDocumentsTable({
   documents,
+  classifications = [],
+  jobs = [],
 }: {
   documents: IngestDocument[];
+  classifications?: DocumentClassification[];
+  jobs?: ExtractJob[];
 }) {
+  const classes = new Map(classifications.map((c) => [c.documentId, c]));
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>File</TableHead>
           <TableHead>Size</TableHead>
-          <TableHead>Sheets</TableHead>
           <TableHead>Status</TableHead>
+          <TableHead>Class and parts</TableHead>
+          <TableHead>Reading</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {documents.length === 0 && (
           <TableRow>
-            <TableCell colSpan={4} className="text-muted-foreground">
+            <TableCell colSpan={5} className="text-muted-foreground">
               No files yet.
             </TableCell>
           </TableRow>
         )}
-        {documents.map((doc) => (
-          <TableRow key={doc.id}>
-            <TableCell className="font-medium">{doc.fileName}</TableCell>
-            <TableCell>{formatBytes(doc.sizeBytes)}</TableCell>
-            <TableCell>{doc.sheetCount ?? ''}</TableCell>
-            <TableCell>
-              <div className="flex flex-col gap-1">
-                <Badge
-                  variant={
-                    doc.status === 'FAILED'
-                      ? 'destructive'
-                      : doc.status === 'PARSED'
-                        ? 'default'
-                        : 'outline'
-                  }
-                  className="w-fit"
-                >
-                  {documentStatusLabel(doc)}
-                </Badge>
-                {doc.error && (
+        {documents.map((doc) => {
+          const cls = classes.get(doc.id);
+          const docJobs = jobsOf(jobs, doc.id);
+          return (
+            <TableRow key={doc.id} data-testid={`document-${doc.id}`}>
+              <TableCell className="font-medium">
+                <div className="flex flex-col">
+                  <span>{doc.fileName}</span>
                   <span className="text-muted-foreground text-xs">
-                    {doc.error}
+                    {[
+                      doc.pageCount === undefined
+                        ? undefined
+                        : `${doc.pageCount} pages`,
+                      doc.sheetCount === undefined
+                        ? undefined
+                        : `${doc.sheetCount} sheets`,
+                      doc.pagesOcr ? `${doc.pagesOcr} scanned` : undefined,
+                      doc.revisionLabel,
+                    ]
+                      .filter(Boolean)
+                      .join(', ')}
                   </span>
+                </div>
+              </TableCell>
+              <TableCell>{formatBytes(doc.sizeBytes)}</TableCell>
+              <TableCell>
+                <div className="flex flex-col gap-1">
+                  <Badge
+                    variant={
+                      doc.status === 'FAILED'
+                        ? 'destructive'
+                        : doc.status === 'PARSED'
+                          ? 'default'
+                          : 'outline'
+                    }
+                    className="w-fit"
+                  >
+                    {documentStatusLabel(doc)}
+                  </Badge>
+                  {doc.error && (
+                    <span className="text-muted-foreground text-xs">
+                      {doc.error}
+                    </span>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell className="text-xs">
+                {cls ? (
+                  <div className="flex flex-col gap-0.5">
+                    <span>
+                      {docClassLabel(cls.docClass ?? doc.docClass)}
+                      {cls.docClass && !cls.confirmed ? ', to confirm' : ''}
+                    </span>
+                    {cls.segments.map((s) => (
+                      <span key={s.id} className="text-muted-foreground">
+                        {s.sheetName
+                          ? `Sheet ${s.sheetName}`
+                          : `Pages ${s.pageFrom ?? '?'} to ${s.pageTo ?? '?'}`}
+                        : {docClassLabel(s.docClass)}
+                        {s.status ? `, ${segmentStatusLabels[s.status]}` : ''}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  docClassLabel(doc.docClass)
                 )}
-              </div>
-            </TableCell>
-          </TableRow>
-        ))}
+              </TableCell>
+              <TableCell className="text-xs">
+                {docJobs.length === 0 ? (
+                  <span className="text-muted-foreground">None yet</span>
+                ) : (
+                  <ul className="flex flex-col gap-0.5">
+                    {docJobs.map((job) => (
+                      <li key={job.id}>
+                        {job.extractorKey}:{' '}
+                        {extractJobStatusLabels[job.status] ?? job.status}
+                        {job.chunksTotal > 0 &&
+                          `, ${job.chunksDone} of ${job.chunksTotal} parts`}
+                        {job.chunksFailed > 0 && `, ${job.chunksFailed} failed`}
+                        {job.message && (
+                          <span className="text-muted-foreground block">
+                            {job.message}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </TableCell>
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );

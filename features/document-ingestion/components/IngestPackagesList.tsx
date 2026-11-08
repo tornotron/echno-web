@@ -75,7 +75,7 @@ export function IngestPackagesList() {
               {data.content.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={4} className="text-muted-foreground">
-                    No packages yet. Start one above to upload a BOQ workbook.
+                    No packages yet. Start one above to upload tender files.
                   </TableCell>
                 </TableRow>
               )}

@@ -80,6 +80,7 @@ import { SCurveTab } from '@/features/evm/components/s-curve-tab';
 import { RisksTab } from '@/features/risk/components/risks-tab';
 import { ProjectComplianceTab } from '@/features/compliance/components';
 import { ProjectBimTab } from '@/features/bim/components';
+import { ProjectDocumentsTab } from '@/features/document-ingestion';
 import { useEnabledModuleIds } from '@/hooks/use-enabled-module-ids';
 import { ProjectBudgetTab } from '@/features/project-budget/components';
 import { SiteStructureTab } from '@/features/spatial/components';
@@ -166,6 +167,7 @@ export default function ProjectDashboardPage() {
   const router = useRouter();
   const { moduleIds } = useEnabledModuleIds();
   const bimEnabled = moduleIds?.has('bim') ?? false;
+  const ingestionEnabled = moduleIds?.has('document-ingestion') ?? false;
   const now = new Date();
   const projectId = params.id
     ? Number.parseInt(params.id as string)
@@ -359,6 +361,15 @@ export default function ProjectDashboardPage() {
             <TabsTrigger value="bim" className="flex items-center gap-1.5">
               <Box className="h-4 w-4" />
               BIM
+            </TabsTrigger>
+          )}
+          {ingestionEnabled && (
+            <TabsTrigger
+              value="documents"
+              className="flex items-center gap-1.5"
+            >
+              <FileText className="h-4 w-4" />
+              Documents
             </TabsTrigger>
           )}
           <TabsTrigger value="budget" className="flex items-center gap-1.5">
@@ -981,6 +992,15 @@ export default function ProjectDashboardPage() {
         {bimEnabled && (
           <TabsContent value="bim" className="mt-6">
             <ProjectBimTab projectId={project.id} />
+          </TabsContent>
+        )}
+
+        {ingestionEnabled && (
+          <TabsContent value="documents" className="mt-6">
+            <ProjectDocumentsTab
+              projectId={project.id}
+              projectName={project.projectName}
+            />
           </TabsContent>
         )}
 
