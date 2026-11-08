@@ -20,10 +20,9 @@ import type { IssueFormState } from './issue-form-state';
 /**
  * Builds the create body from the form's fields.
  *
- * `projectId` comes from the route rather than the form. It is not sent: the
- * backend walks the parent task to the project, and the core request type
- * carries the field only so the mutation can file the new issue under the
- * right project's cached list.
+ * `projectId` comes from the route rather than the form. Core sends it with the
+ * task, the backend checks the two agree, and the mutation also uses it to file
+ * the new issue under the right project's cached list.
  *
  * @param fields - The form state at submit time.
  * @param projectId - The project the form was opened under, as a route param.

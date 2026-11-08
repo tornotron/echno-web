@@ -7,9 +7,9 @@
  * one, watched the form respond to it, saved, and found nothing recorded.
  *
  * The assertions are on the serialized body rather than on the request object,
- * because that is where a dropped field actually shows: the request interface
- * carries fields the serializer deliberately leaves out, and `projectId` is one
- * of them.
+ * because that is where a dropped field actually shows: the request object
+ * holding a value says nothing about whether the serializer puts it on the
+ * wire.
  */
 import { describe, expect, test } from 'bun:test';
 import {
@@ -72,14 +72,16 @@ describe('the create payload', () => {
     expect(body.assignedToId).toBe(5);
   });
 
-  test('routes on the project without sending it', () => {
-    // The backend walks the parent task to the project. The request object
-    // carries the id so the mutation can file the new issue under the right
-    // cached list, and the serializer drops it.
+  test('sends the project from the route alongside the task', () => {
+    // An issue belongs to a project or a domain, and the task is optional, so
+    // core sends the project id whenever the request carries one. The backend
+    // checks it against the task's own project.
     const request = buildCreateIssuePayload(filledForm(), '3');
+    const body = createIssueToJson(request);
 
     expect(request.projectId).toBe(3);
-    expect('projectId' in createIssueToJson(request)).toBe(false);
+    expect(body.projectId).toBe(3);
+    expect(body.taskId).toBe(11);
   });
 });
 
