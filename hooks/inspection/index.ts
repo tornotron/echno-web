@@ -26,7 +26,8 @@ export {
 } from '@tornotron/echno-core/inspection/hooks';
 
 // Observations (core v8.9.0): the review queue, one observation and its
-// evidence, recording a human one and the review decision.
+// evidence, recording a human one and the review decision. The bulk
+// decision for the grid review came in core 11.6.0.
 export {
   observationKeys,
   useCreateObservation,
@@ -34,5 +35,6 @@ export {
   useObservationEvidence,
   useObservations,
   useReviewObservation,
+  useReviewObservationBatch,
 } from '@tornotron/echno-core/inspection/hooks';
 export * from './use-observation-page-evidence';
