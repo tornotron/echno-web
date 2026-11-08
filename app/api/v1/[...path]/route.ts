@@ -346,6 +346,14 @@ async function forwardToBackend(
       responseContentType
     );
 
+    // A response that may not carry a body (204 No Content, 205, 304) is
+    // passed on without one: the Response constructor throws on any body
+    // for these statuses, even an empty string, which turned a successful
+    // write answering 204 into a 502.
+    if ([204, 205, 304].includes(response.status)) {
+      return new NextResponse(null, { status: response.status });
+    }
+
     // On error responses, read the body as text so it can be logged and
     // returned regardless of the advertised content type.
     if (!response.ok) {
