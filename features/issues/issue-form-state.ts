@@ -24,7 +24,18 @@ export type IssueFormPriority = IssuePriority | '';
 
 export interface IssueFormState {
   initialized: boolean;
+  /**
+   * The answer to "is this about a particular task?". When yes, a task has to
+   * be picked; when no, the issue belongs to the project the form was opened
+   * under, and the task is not sent (ClickUp 14zdkkvzx60).
+   */
+  relatedToTask: boolean;
   taskId: string;
+  /**
+   * The issue's domain: the id of the work category it concerns, or empty for
+   * none. On an issue raised on a task, none means the task's own category.
+   */
+  categoryId: string;
   title: string;
   description: string;
   issueType: IssueType;
