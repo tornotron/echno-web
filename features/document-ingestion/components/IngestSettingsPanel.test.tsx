@@ -13,6 +13,7 @@ import {
   installMocks,
   renderWithClient,
   resetMocks,
+  settings,
 } from '../test/mocks';
 
 installMocks();
@@ -33,15 +34,30 @@ describe('AiReadingNotice', () => {
     expect(notice).toHaveTextContent(
       /sent to an outside AI service|sent to the AI service/
     );
-    expect(notice).toHaveTextContent(
-      'The outside service is DigitalOcean hosted AI models (Gradient inference).'
-    );
-    expect(notice).toHaveTextContent(
-      'does not store inputs or outputs and does not train on them'
-    );
     expect(
       await screen.findByText('AI reading is on for your organization.')
     ).toBeInTheDocument();
+    expect(notice).toHaveTextContent(
+      'The outside service is Example AI Cloud (model example-model-1).'
+    );
+    expect(
+      screen.getByRole('link', { name: 'data privacy page' })
+    ).toHaveAttribute('href', 'https://ai.example.test/privacy');
+  });
+
+  test('with no provider configured it falls back and shows no link', async () => {
+    ingest.getSettings.mockImplementation(async () => ({
+      ...settings,
+      aiProvider: undefined,
+      aiModel: undefined,
+      aiProviderPrivacyUrl: '',
+    }));
+    const screen = renderWithClient(createElement(AiReadingNotice));
+    await screen.findByText('AI reading is on for your organization.');
+    expect(screen.getByTestId('ai-reading-notice')).toHaveTextContent(
+      'The outside service is the configured AI service.'
+    );
+    expect(screen.queryByRole('link')).toBeNull();
   });
 });
 

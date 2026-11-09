@@ -3,12 +3,21 @@
  * names the sheet, row and cell for a workbook, and shows the quote as
  * text, with a warning when it was not found on the page.
  */
-import { afterEach, describe, expect, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 import { createElement } from 'react';
-import { cleanup, render } from '@testing-library/react';
-import { pageSource } from '../test/mocks';
-import { PageViewer } from './PageViewer';
+import { cleanup } from '@testing-library/react';
+import {
+  ingest,
+  installMocks,
+  pageSource,
+  renderWithClient as render,
+  resetMocks,
+} from '../test/mocks';
 
+installMocks();
+const { PageViewer } = await import('./PageViewer');
+
+beforeEach(resetMocks);
 afterEach(cleanup);
 
 describe('PageViewer', () => {
@@ -30,6 +39,22 @@ describe('PageViewer', () => {
     expect(box.style.top).toBe('20%');
     expect(box.style.width).toBe('50%');
     expect(box.style.height).toBe('5%');
+  });
+
+  test('fetches the page image for the source and shows it', async () => {
+    ingest.getPageImage.mockImplementation(async () => ({
+      url: 'https://store.example.test/fetched/2.webp',
+      expiresInSeconds: 300,
+    }));
+    const screen = render(
+      createElement(PageViewer, { source: pageSource(), fileName: 'NIT.pdf' })
+    );
+    expect(await screen.findByRole('img')).toHaveAttribute(
+      'src',
+      'https://store.example.test/fetched/2.webp'
+    );
+    expect(ingest.getPageImage.mock.calls[0]).toEqual(['doc-nit', 2]);
+    expect(screen.getByTestId('source-box')).toBeInTheDocument();
   });
 
   test('with no image it still places the box and says why', () => {

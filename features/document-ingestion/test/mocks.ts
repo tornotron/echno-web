@@ -161,6 +161,9 @@ export const ingest = {
   listDrawingRevisions: mock(
     async (_drawingId: string): Promise<unknown> => []
   ),
+  getPageImage: mock(
+    async (_documentId: string, _page: number): Promise<unknown> => null
+  ),
   getTitleBlockImage: mock(
     async (_documentId: string, _page: number): Promise<unknown> => null
   ),
@@ -387,6 +390,9 @@ export const spend = {
 
 export const settings = {
   llmReadingEnabled: true,
+  aiProvider: 'Example AI Cloud',
+  aiModel: 'example-model-1',
+  aiProviderPrivacyUrl: 'https://ai.example.test/privacy',
   llmReadingDisclosure:
     'When this is on, the text of tender files uploaded here is sent to the AI service Echno is set up with. The service states that it does not keep the text or train on it.',
   recentChanges: [],

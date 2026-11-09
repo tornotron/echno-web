@@ -26,7 +26,7 @@
         "@tanstack/react-query": "^5.90.12",
         "@thatopen/components": "3.4.8",
         "@thatopen/fragments": "3.4.7",
-        "@tornotron/echno-core": "^11.14.0",
+        "@tornotron/echno-core": "^11.15.0",
         "camera-controls": "3.1.2",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
@@ -491,7 +491,7 @@
 
     "@thatopen/fragments": ["@thatopen/fragments@3.4.7", "", { "dependencies": { "earcut": "^3.0.1", "flatbuffers": "25.2.10", "lru-cache": "11.1.0", "pako": "2.1.0" }, "peerDependencies": { "three": ">=0.182.0", "web-ifc": ">=0.0.77" } }, "sha512-tGuS7LVf0BkN5qQISG3VAGeMyqiZYwkvcHGYZ+eA5emr+v8aIjEKZvM/eYrGhJKUv/eZ+N5qeevEftfcmoBc+g=="],
 
-    "@tornotron/echno-core": ["@tornotron/echno-core@11.14.0", "https://npm.pkg.github.com/download/@tornotron/echno-core/11.14.0/24be0839927e1f5933b42a9013073ce692792dd7", { "dependencies": { "@tanstack/react-query": "^5.90.12", "zod": "^4.3.6" }, "peerDependencies": { "react": ">=18" } }, "sha512-0cyL17ESIm+tLFymeJBiNCs6HCJZSkcq7dWBveoqVcApf4S5cQJg5pQ6BYJN4FRKF83OResih0/dLnQ7EVKNMg=="],
+    "@tornotron/echno-core": ["@tornotron/echno-core@11.15.0", "https://npm.pkg.github.com/download/@tornotron/echno-core/11.15.0/69d0a8a4b49c85a1c2a8613cf416f77dd5d934b9", { "dependencies": { "@tanstack/react-query": "^5.90.12", "zod": "^4.3.6" }, "peerDependencies": { "react": ">=18" } }, "sha512-wv7l6KcNtpI0UZWUu8Ugzq4GwkH+KCc16ZjfOECZnCYw83zmY4HLTf8A6jwiXETjrl092sd649Xsj9AYihGV5g=="],
 
     "@tweenjs/tween.js": ["@tweenjs/tween.js@23.1.3", "", {}, "sha512-vJmvvwFxYuGnF2axRtPYocag6Clbb5YS7kLL+SO/TeVFzHqDIWrNKYtcsPMibjDx9O+bu+psAy9NKfWklassUA=="],
 
