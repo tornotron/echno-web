@@ -54,9 +54,21 @@ const matrix = {
       requirement: 'similar_projects',
       label: 'Similar projects',
       tenderValue: 'One similar work of 10 crore',
-      status: 'GAP',
+      status: 'UNKNOWN',
       basis: 'PROFILE_BLANK',
       reason: 'No similar project is listed.',
+      evidence: [],
+    },
+    {
+      requirementId: 'r4',
+      candidateId: 'c-r4',
+      documentId: 'doc-elig',
+      requirement: 'experience',
+      label: 'Experience',
+      tenderValue: '7 years in building works',
+      companyValue: '5 years',
+      status: 'GAP',
+      basis: 'COMPARED',
       evidence: [],
     },
   ],
@@ -95,7 +107,7 @@ describe('ComplianceMatrixView', () => {
   test('counts and labels each status with its reason', async () => {
     const screen = open();
     expect(await screen.findByTestId('matrix-summary')).toHaveTextContent(
-      'Meets 1, gaps 1, not known 1.'
+      'Meets 1, gaps 1, not known 2.'
     );
     expect(screen.getByTestId('matrix-r1')).toHaveTextContent('Meets it');
     expect(screen.getByTestId('matrix-r1')).toHaveTextContent(
@@ -107,12 +119,15 @@ describe('ComplianceMatrixView', () => {
     expect(screen.getByTestId('matrix-r3')).toHaveTextContent(
       'No similar project is listed.'
     );
+    expect(screen.getByTestId('matrix-r3')).toHaveTextContent('Not known');
+    expect(screen.getByTestId('matrix-r4')).toHaveTextContent('Gap');
   });
 
   test('judges a requirement the backend does not compare, and clears it', async () => {
     const screen = open();
     const picker = await screen.findByLabelText('Judgement: Equipment');
     expect(screen.queryByLabelText('Judgement: Turnover')).toBeNull();
+    expect(screen.queryByLabelText('Judgement: Experience')).toBeNull();
     fireEvent.change(picker, { target: { value: 'GAP' } });
     await waitFor(() =>
       expect(ingest.setQualificationStatus).toHaveBeenCalledTimes(1)
