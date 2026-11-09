@@ -92,6 +92,11 @@ const EDIT_FIELDS: EditField[] = [
   },
 ];
 
+/** A short name for an ITP row; a blank activity falls back to the subject. */
+function rowName(q: QualityRequirementEntry): string {
+  return q.activity || q.subject || 'ITP row';
+}
+
 function describe(c: Candidate): string {
   const q = qualityRequirementOf(c);
   return q.activity ?? q.subject ?? 'requirement';
@@ -143,13 +148,13 @@ export function QualityRequirementsTable({
             <td className={CELL}>
               <input
                 type="checkbox"
-                aria-label={`Pick ${q.activity ?? q.subject}`}
+                aria-label={`Pick ${rowName(q)}`}
                 checked={selection.ids.includes(q.id)}
                 onChange={() => selection.toggle(q.id)}
               />
             </td>
           )}
-          <td className={CELL}>{q.activity ?? q.subject}</td>
+          <td className={CELL}>{rowName(q)}</td>
           <td className={CELL}>
             {[q.material, q.grade].filter(Boolean).join(', ')}
           </td>
@@ -187,7 +192,7 @@ function CopyOutcome({
 }) {
   const name = (id: string) => {
     const row = rows.find((q) => q.id === id);
-    return row ? (row.activity ?? row.subject) : id;
+    return row ? rowName(row) : id;
   };
   return (
     <div role="status" className="flex flex-col gap-1 text-sm">
