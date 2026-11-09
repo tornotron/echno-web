@@ -14,14 +14,16 @@ import { routes } from '@/nav';
 import { projectTargetFieldLabel } from '../lib/labels';
 import { IngestionGate } from './IngestionGate';
 import { ProvenanceList } from './ProvenanceList';
+import { ProjectItp } from './QualityReview';
 
 /** Packages are listed for the whole organization; this many are searched for the project's own. */
 export const PROJECT_PACKAGE_SCAN = 100;
 
 /**
  * The project's Documents tab: its document packages, an "Import from
- * documents" action that starts a package for the project, and which of the
- * project's fields came from a document, each with its source.
+ * documents" action that starts a package for the project, which of the
+ * project's fields came from a document, each with its source, and the
+ * project's ITP as read from its specifications.
  */
 export function ProjectDocumentsTab({
   projectId,
@@ -131,6 +133,10 @@ function ProjectDocuments({
           fieldLabel={projectTargetFieldLabel}
           emptyText="No field of this project came from a document."
         />
+      </div>
+      <div className="flex flex-col gap-2">
+        <p className="text-sm font-medium">Inspection and test plan</p>
+        <ProjectItp projectId={projectId} />
       </div>
     </div>
   );

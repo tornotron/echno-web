@@ -32,11 +32,15 @@ import {
   CLASSIFICATION_PAGE_SIZE,
   ClassConfirmation,
 } from './ClassConfirmation';
+import { ContractReview } from './ContractReview';
 import { CorrigendumReview } from './CorrigendumReview';
+import { DrawingRegister } from './DrawingRegister';
 import { IngestDocumentsTable, IngestUpload } from './IngestDocuments';
 import { LlmSpendPanel } from './LlmSpendPanel';
 import { MilestonesReview } from './MilestonesReview';
 import { ProjectFieldsReview } from './ProjectFieldsReview';
+import { QualificationReview } from './QualificationReview';
+import { QualityReview } from './QualityReview';
 import { UnreadPagesBanner } from './UnreadPagesBanner';
 
 /**
@@ -103,6 +107,10 @@ export function IngestPackageDetail({ packageId }: { packageId: string }) {
           <TabsTrigger value="boq">BOQ</TabsTrigger>
           <TabsTrigger value="project">Project</TabsTrigger>
           <TabsTrigger value="milestones">Milestones</TabsTrigger>
+          <TabsTrigger value="contract">Contract</TabsTrigger>
+          <TabsTrigger value="drawings">Drawings</TabsTrigger>
+          <TabsTrigger value="quality">Quality</TabsTrigger>
+          <TabsTrigger value="qualification">Qualification</TabsTrigger>
           <TabsTrigger value="changes">Corrigendum</TabsTrigger>
         </TabsList>
 
@@ -228,6 +236,72 @@ export function IngestPackageDetail({ packageId }: { packageId: string }) {
             </CardHeader>
             <CardContent>
               <MilestonesReview pkg={current} fileNames={fileNames} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="contract" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">
+                Contract and obligations
+              </CardTitle>
+              <CardDescription>
+                Terms and obligations read from the conditions of contract and
+                the contract data. Where the special conditions change a general
+                one, the special value is the one proposed.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ContractReview pkg={current} fileNames={fileNames} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="drawings" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Drawings</CardTitle>
+              <CardDescription>
+                Number, title and revision read from each sheet&apos;s title
+                block, with the crop it was read from.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DrawingRegister pkg={current} fileNames={fileNames} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="quality" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">
+                Inspection and test plan
+              </CardTitle>
+              <CardDescription>
+                Tests, frequencies and acceptance criteria read from the
+                specification. Applied rows can be copied to a checklist
+                template.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <QualityReview pkg={current} fileNames={fileNames} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="qualification" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Qualification</CardTitle>
+              <CardDescription>
+                What the tender asks a bidder to have, compared with the company
+                profile.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <QualificationReview pkg={current} fileNames={fileNames} />
             </CardContent>
           </Card>
         </TabsContent>
