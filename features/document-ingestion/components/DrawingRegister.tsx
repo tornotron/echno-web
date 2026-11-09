@@ -108,6 +108,11 @@ export function TitleBlockCrop({ drawing }: { drawing: DrawingEntry }) {
   );
 }
 
+/** The revision date as printed, else as parsed, else empty; a blank printed date falls through. */
+function revisionDate(d: DrawingEntry): string {
+  return d.revisionDateText || d.revisionDate || '';
+}
+
 function DrawingDetail({ drawing }: { drawing: DrawingEntry }) {
   const revisions = useDrawingRevisions(drawing.id);
   return (
@@ -143,9 +148,7 @@ function DrawingDetail({ drawing }: { drawing: DrawingEntry }) {
             {revisions.data.map((rev) => (
               <li key={rev.id}>
                 {rev.revision ? `Revision ${rev.revision}` : 'No revision'}
-                {rev.revisionDateText || rev.revisionDate
-                  ? `, ${rev.revisionDateText ?? rev.revisionDate}`
-                  : ''}
+                {revisionDate(rev) ? `, ${revisionDate(rev)}` : ''}
                 {rev.current ? ', current' : ', replaced'}
               </li>
             ))}
@@ -208,9 +211,7 @@ export function DrawingsList({ packageId }: { packageId: string }) {
                 <td className={CELL}>{d.title ?? ''}</td>
                 <td className={CELL}>{d.discipline ?? ''}</td>
                 <td className={CELL}>{d.revision ?? ''}</td>
-                <td className={CELL}>
-                  {d.revisionDateText ?? d.revisionDate ?? ''}
-                </td>
+                <td className={CELL}>{revisionDate(d)}</td>
                 <td className={CELL}>
                   <div className="flex flex-wrap gap-1">
                     {d.status === 'NOT_READ' && (
