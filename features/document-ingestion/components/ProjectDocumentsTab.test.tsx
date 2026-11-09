@@ -1,5 +1,5 @@
 /**
- * The project's Documents tab lists only this project's packages, starts a
+ * The project's Documents tab asks the backend for this project's packages, starts a
  * package for the project from "Import from documents", and lists the
  * project's fields read from documents.
  */
@@ -41,12 +41,7 @@ const { ProjectDocumentsTab } = await import('./ProjectDocumentsTab');
 beforeEach(() => {
   resetMocks();
   push.mockReset();
-  ingest.listPackages.mockImplementation(async () =>
-    page([
-      pkg,
-      { ...pkg, id: 'pkg-2', name: 'Another site tender', projectId: 9 },
-    ])
-  );
+  ingest.listPackages.mockImplementation(async () => page([pkg]));
   ingest.createPackage.mockImplementation(async () => ({
     ...pkg,
     id: 'pkg-new',
@@ -65,7 +60,7 @@ describe('ProjectDocumentsTab', () => {
     expect(
       await screen.findByText('Tower C civil works tender')
     ).toBeInTheDocument();
-    expect(screen.queryByText('Another site tender')).toBeNull();
+    expect(ingest.listPackages.mock.calls[0]).toEqual([{ projectId: 7 }]);
     fireEvent.click(
       screen.getByRole('button', { name: 'Import from documents' })
     );

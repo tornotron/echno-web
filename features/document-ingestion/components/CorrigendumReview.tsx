@@ -326,8 +326,12 @@ function Conflicts({ packageId }: { packageId: string }) {
             >
               <span className="font-medium">{target(c)}</span>
               <dl className="grid grid-cols-[10rem_1fr] gap-x-4 gap-y-1">
+                <dt className="text-muted-foreground">Value on the record</dt>
+                <dd>{c.conflictRecordValue ?? 'Not known'}</dd>
                 <dt className="text-muted-foreground">Value last applied</dt>
-                <dd>{change.priorValue ?? 'Not known'}</dd>
+                <dd>
+                  {c.conflictAppliedValue ?? change.priorValue ?? 'Not known'}
+                </dd>
                 <dt className="text-muted-foreground">Value in the change</dt>
                 <dd>{change.newValue ?? ''}</dd>
                 <dt className="text-muted-foreground">Reason</dt>

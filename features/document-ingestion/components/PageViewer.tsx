@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePageImage } from '@tornotron/echno-core/document-ingestion/hooks';
 import type { SourceRef } from '@tornotron/echno-core/document-ingestion/types';
 import { cn } from '@/lib/utils';
 import { boxOf, boxStyle, isSheetSource, sourcePlace } from '../lib/source';
@@ -9,9 +10,10 @@ interface PageViewerProps {
   source: SourceRef;
   fileName?: string;
   /**
-   * A short-lived link to the worker's image of the page
-   * (`page-images/<n>.webp`). Without one, the box is drawn on a blank page
-   * of the same shape, so its place on the page still shows.
+   * A link to use in place of the fetched page image. Left out, the image is
+   * fetched for the source's document and page. While it loads, or when the
+   * page has none, the box is drawn on a blank page of the same shape, so its
+   * place on the page still shows.
    */
   imageUrl?: string;
   className?: string;
@@ -26,9 +28,11 @@ interface PageViewerProps {
 export function PageViewer({
   source,
   fileName,
-  imageUrl,
+  imageUrl: imageUrlProp,
   className,
 }: PageViewerProps) {
+  const image = usePageImage(source.documentId, source.page);
+  const imageUrl = imageUrlProp ?? image.data?.url;
   const [failed, setFailed] = useState(false);
   const place = sourcePlace(source, fileName);
   const box = boxOf(source);

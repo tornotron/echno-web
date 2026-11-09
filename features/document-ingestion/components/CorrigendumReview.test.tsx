@@ -53,9 +53,11 @@ const unmatched = change(
 );
 const conflict = change(
   'ch-3',
-  { target: '4.1', field: 'rate', priorValue: '5400', newValue: '5600' },
+  { target: '4.1', field: 'rate', priorValue: '5300', newValue: '5600' },
   {
     status: 'APPLY_FAILED',
+    conflictRecordValue: '5500',
+    conflictAppliedValue: '5400',
     applyError:
       'The BOQ line 4.1 was edited by hand after it was applied. Its rate is 5500 on the record, 5400 was applied, and the change gives 5600. Nothing was overwritten; choose which to keep.',
   }
@@ -131,6 +133,7 @@ describe('CorrigendumReview', () => {
   test('a refused change offers the record or the change', async () => {
     const screen = open();
     const card = await screen.findByTestId('conflict-ch-3');
+    expect(card).toHaveTextContent('Value on the record5500');
     expect(card).toHaveTextContent('Value last applied5400');
     expect(card).toHaveTextContent('Value in the change5600');
     expect(card).toHaveTextContent('Its rate is 5500 on the record');

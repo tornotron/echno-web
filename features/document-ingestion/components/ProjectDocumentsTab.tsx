@@ -16,9 +16,6 @@ import { IngestionGate } from './IngestionGate';
 import { ProvenanceList } from './ProvenanceList';
 import { ProjectItp } from './QualityReview';
 
-/** Packages are listed for the whole organization; this many are searched for the project's own. */
-export const PROJECT_PACKAGE_SCAN = 100;
-
 /**
  * The project's Documents tab: its document packages, an "Import from
  * documents" action that starts a package for the project, which of the
@@ -47,11 +44,9 @@ function ProjectDocuments({
   projectName?: string;
 }) {
   const router = useRouter();
-  const packages = useIngestPackages({ size: PROJECT_PACKAGE_SCAN });
+  const packages = useIngestPackages({ projectId });
   const create = useCreateIngestPackage();
-  const own = (packages.data?.content ?? []).filter(
-    (p) => p.projectId === projectId
-  );
+  const own = packages.data?.content ?? [];
 
   const start = () => {
     create
