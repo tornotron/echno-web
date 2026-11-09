@@ -22,6 +22,7 @@ import type {
   SourceRef,
 } from '@tornotron/echno-core/document-ingestion/types';
 import { OrgRole } from '@tornotron/echno-core/employee/types';
+import * as realInspectionHooks from '@tornotron/echno-core/inspection/hooks';
 import * as realProjectHooks from '@tornotron/echno-core/project/hooks';
 import * as realUseCan from '@/hooks/use-can';
 import { can } from '@/nav/access/evaluate';
@@ -37,6 +38,7 @@ const originals: Record<string, Record<string, unknown>> = {
     ...realContractBillingServices,
   },
   '@tornotron/echno-core/project/hooks': { ...realProjectHooks },
+  '@tornotron/echno-core/inspection/hooks': { ...realInspectionHooks },
   '@/hooks/use-can': { ...realUseCan },
 };
 
@@ -140,7 +142,63 @@ export const ingest = {
     async (_packageId: string, _params?: unknown): Promise<unknown> => page([])
   ),
   createPackage: mock(async (_req: unknown): Promise<unknown> => pkg),
+  listContractTerms: mock(async (_packageId: string): Promise<unknown> => []),
+  getContractTermCoverage: mock(
+    async (_packageId: string): Promise<unknown> => ({ read: [], terms: [] })
+  ),
+  listObligations: mock(
+    async (_packageId: string, _params?: unknown): Promise<unknown> => page([])
+  ),
+  raiseContractTermRisk: mock(
+    async (_termId: string, _req?: unknown): Promise<unknown> => ({})
+  ),
+  raiseObligationRisk: mock(
+    async (_obligationId: string, _req?: unknown): Promise<unknown> => ({})
+  ),
+  listDrawings: mock(
+    async (_packageId: string, _params?: unknown): Promise<unknown> => page([])
+  ),
+  listDrawingRevisions: mock(
+    async (_drawingId: string): Promise<unknown> => []
+  ),
+  getTitleBlockImage: mock(
+    async (_documentId: string, _page: number): Promise<unknown> => null
+  ),
+  listQualityRequirements: mock(
+    async (_packageId: string, _params?: unknown): Promise<unknown> => page([])
+  ),
+  listProjectQualityRequirements: mock(
+    async (_projectId: number, _params?: unknown): Promise<unknown> => page([])
+  ),
+  copyQualityRequirementsToTemplate: mock(
+    async (_req: unknown): Promise<unknown> => ({ rows: [], templates: [] })
+  ),
+  listQualificationRequirements: mock(
+    async (_packageId: string): Promise<unknown> => []
+  ),
+  setQualificationStatus: mock(
+    async (_requirementId: string, _req: unknown): Promise<unknown> => ({})
+  ),
+  getComplianceMatrix: mock(
+    async (_packageId: string): Promise<unknown> => ({
+      packageId: 'pkg-1',
+      shown: true,
+      rows: [],
+    })
+  ),
 };
+
+/** The organization's trades, as the inspections module lists them. */
+export const orgTrades = [
+  {
+    id: 'trade-conc',
+    code: 'CONC',
+    name: 'Concrete',
+    groupCode: 'CIVIL',
+    sortOrder: 1,
+    active: true,
+  },
+];
 
 export const billing = {
   listContracts: mock(empty),
@@ -165,6 +223,10 @@ export function installMocks() {
   mock.module('@tornotron/echno-core/project/hooks', () => ({
     ...realProjectHooks,
     useProjects: () => ({ data: [], isPending: false, isLoading: false }),
+  }));
+  mock.module('@tornotron/echno-core/inspection/hooks', () => ({
+    ...realInspectionHooks,
+    useOrgTrades: () => ({ data: orgTrades, isLoading: false }),
   }));
   mock.module('@/hooks/use-can', () => ({
     ...originals['@/hooks/use-can'],

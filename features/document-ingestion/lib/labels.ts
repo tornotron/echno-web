@@ -10,6 +10,13 @@ import type {
   LlmCallOutcome,
   SegmentStatus,
 } from '@tornotron/echno-core/document-ingestion/types';
+import type {
+  ContractTermKey,
+  MatrixBasis,
+  MatrixStatus,
+  QualificationRequirementKey,
+  TermCoverageStatus,
+} from '@tornotron/echno-core/document-ingestion/types';
 
 export const boqFieldLabels: Record<BoqField, string> = {
   itemCode: 'Item code',
@@ -83,6 +90,12 @@ export const flagLabels: Record<string, string> = {
   TENDER_IMPACT: 'May affect bids',
   ITEM_ADDED: 'Item added',
   ITEM_REMOVED: 'Item removed',
+  OVERRIDDEN_BY_SCC: 'Replaced by the special conditions',
+  NOT_READ: 'Not read',
+  NUMBER_FROM_FILE_NAME: 'Number taken from the file name',
+  NO_REVISION: 'No revision printed',
+  FREQUENCY_NOT_STATED: 'Frequency not stated',
+  ACCEPTANCE_NOT_STATED: 'Acceptance criterion not stated',
 };
 
 export function flagLabel(code: string): string {
@@ -209,4 +222,74 @@ const projectTargetFields: Record<string, string> = {
 
 export function projectTargetFieldLabel(field: string): string {
   return projectTargetFields[field] ?? field;
+}
+
+export const contractTermLabels: Record<ContractTermKey, string> = {
+  duration: 'Duration',
+  mobilization: 'Mobilisation',
+  emd: 'EMD',
+  performance_security: 'Performance security',
+  retention: 'Retention',
+  advance: 'Advance',
+  payment_cycle: 'Payment cycle',
+  payment_period: 'Payment period',
+  ld_rate: 'Liquidated damages rate',
+  ld_cap: 'Liquidated damages cap',
+  dlp: 'Defects liability period',
+  insurance: 'Insurance',
+  escalation: 'Price escalation',
+  subcontracting: 'Subcontracting',
+  extension_of_time: 'Extension of time',
+  variation: 'Variations',
+  dispute_resolution: 'Dispute resolution',
+  applicable_law: 'Applicable law',
+  termination: 'Termination',
+};
+
+export function contractTermLabel(term: string | undefined): string {
+  if (!term) return 'Term';
+  return contractTermLabels[term as ContractTermKey] ?? term;
+}
+
+export const termCoverageLabels: Record<TermCoverageStatus, string> = {
+  FOUND: 'Found',
+  NOT_FOUND: 'Not found',
+  NOT_READ: 'Not read',
+};
+
+export const qualificationLabels: Record<QualificationRequirementKey, string> =
+  {
+    turnover: 'Turnover',
+    similar_projects: 'Similar projects',
+    experience: 'Experience',
+    equipment: 'Equipment',
+    personnel: 'Personnel',
+  };
+
+export function qualificationLabel(key: string | undefined): string {
+  if (!key) return 'Requirement';
+  return qualificationLabels[key as QualificationRequirementKey] ?? key;
+}
+
+export const matrixStatusLabels: Record<MatrixStatus, string> = {
+  MATCH: 'Meets it',
+  GAP: 'Gap',
+  UNKNOWN: 'Not known',
+};
+
+export const matrixBasisLabels: Record<MatrixBasis, string> = {
+  COMPARED: 'Compared with the company profile',
+  SET_BY_PERSON: 'Judged by a person',
+  AWAITING_PERSON: 'Waiting for a person to judge',
+  PROFILE_BLANK: 'The company profile has no value for this',
+  NOT_READABLE: 'Could not be compared',
+};
+
+export function matrixBasisLabel(basis: string): string {
+  return matrixBasisLabels[basis as MatrixBasis] ?? basis;
+}
+
+/** A field an ITP row leaves unsaid, as the backend names it in `notStated`. */
+export function qualityFieldLabel(field: string): string {
+  return field.replaceAll('_', ' ');
 }

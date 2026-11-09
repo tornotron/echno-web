@@ -25,3 +25,20 @@ export const INGEST_APPLY_ACCESS: AccessConfig = {
 export const INGEST_ADMIN_ACCESS: AccessConfig = {
   allowOrgRoles: [OrgRole.SYSTEM_ADMIN],
 };
+
+/** Raise a project risk from a contract term or an obligation: the risk register's own manage gate. */
+export const INGEST_RISK_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN, OrgRole.PROJECT_MANAGER],
+};
+
+/**
+ * Copy ITP rows into checklist templates: the inspections module's define
+ * gate. The backend also lets a qa-engineer copy, a role the web's list does
+ * not have yet, so only the system admin sees the button here.
+ */
+export const INGEST_CHECKLIST_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN],
+};
+
+/** Set or clear a person's judgement on a qualification requirement: `document-ingestion:apply`. */
+export const INGEST_QUALIFICATION_ACCESS: AccessConfig = INGEST_APPLY_ACCESS;
