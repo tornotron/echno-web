@@ -28,6 +28,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { BillingSettingsCard } from '@/features/billing';
+import { VisionSettingsCard } from '@/features/vision';
 import { toast } from '@/lib/styles/toast-styles';
 
 interface NotificationSettings {
@@ -193,6 +194,9 @@ export default function SettingsPage() {
 
       {/* Billing Section (system admins only) */}
       <BillingSettingsCard />
+
+      {/* Computer vision (vision module, system admins only) */}
+      <VisionSettingsCard />
 
       {/* Appearance Section */}
       <Card>

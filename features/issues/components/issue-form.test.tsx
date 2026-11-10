@@ -5,6 +5,7 @@ import * as realAttachmentHooks from '@tornotron/echno-core/attachment/hooks';
 import * as realTaskHooks from '@tornotron/echno-core/task/hooks';
 import * as realUserHooks from '@tornotron/echno-core/user/hooks';
 import * as realProjectHooks from '@tornotron/echno-core/project/hooks';
+import * as realWorkCategoryHooks from '@tornotron/echno-core/work-category/hooks';
 import type { IssueFormState } from './issue-form';
 import {
   IssuePriority,
@@ -25,6 +26,10 @@ mock.module('@tornotron/echno-core/user/hooks', () => ({
   ...realUserHooks,
   useUser: () => ({ data: { defaultOrganizationId: 1 } }),
   useUserEmployees: () => ({ data: [{ id: 5, organizationId: 1 }] }),
+}));
+mock.module('@tornotron/echno-core/work-category/hooks', () => ({
+  ...realWorkCategoryHooks,
+  useWorkCategories: () => ({ data: [{ id: 9, name: 'Masonry Works' }] }),
 }));
 mock.module('@tornotron/echno-core/project/hooks', () => ({
   ...realProjectHooks,
@@ -299,7 +304,9 @@ describe('IssueForm restored draft', () => {
     offeredDraft = {
       fields: {
         initialized: true,
+        relatedToTask: true,
         taskId: '11',
+        categoryId: '',
         title: 'Honeycombing on the raft',
         description: 'Voids along the north face of the raft pour.',
         issueType: IssueType.technical,
@@ -320,5 +327,51 @@ describe('IssueForm restored draft', () => {
       (node) => node.textContent?.trim() ?? ''
     );
     expect(badges).not.toContain('Resolved');
+  });
+});
+
+describe('IssueForm without a task', () => {
+  afterEach(() => {
+    cleanup();
+    toast.error.mockClear();
+    offeredDraft = null;
+  });
+
+  // ClickUp 14zdkkvzx60: an issue can be raised without a task, as long as it
+  // belongs to the project (or a domain). Answering no to the task question
+  // must let the form submit with no task picked.
+  test('submits for the project as a whole when the issue is not about a task', () => {
+    const { container, getByText, onSubmit } = renderCreateForm();
+
+    fireEvent.click(getByText('No, the project as a whole'));
+    fireEvent.change(container.querySelector('#title') as HTMLInputElement, {
+      target: { value: 'Water seepage at the site entrance' },
+    });
+    fireEvent.change(
+      container.querySelector('#description') as HTMLTextAreaElement,
+      { target: { value: 'Standing water by the gate after every rain.' } }
+    );
+    fireEvent.submit(container.querySelector(`#${ISSUE_FORM_ID}`)!);
+
+    const data = onSubmit.mock.calls.at(-1)?.[0] as {
+      fields: { relatedToTask: boolean; taskId: string };
+    };
+    expect(data.fields.relatedToTask).toBe(false);
+    expect(data.fields.taskId).toBe('');
+  });
+
+  test('still asks for a task when the issue is about one', () => {
+    const { container, onSubmit } = renderCreateForm();
+
+    fireEvent.change(container.querySelector('#title') as HTMLInputElement, {
+      target: { value: 'Water seepage at the site entrance' },
+    });
+    fireEvent.change(
+      container.querySelector('#description') as HTMLTextAreaElement,
+      { target: { value: 'Standing water by the gate after every rain.' } }
+    );
+    fireEvent.submit(container.querySelector(`#${ISSUE_FORM_ID}`)!);
+
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 });

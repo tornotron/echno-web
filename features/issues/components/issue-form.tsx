@@ -55,6 +55,7 @@ import type { Issue } from '@tornotron/echno-core/issue/types';
 import type { Attachment } from '@tornotron/echno-core/attachment/types';
 import { useDeleteAttachment } from '@tornotron/echno-core/attachment/hooks';
 import { useTasksByProject } from '@tornotron/echno-core/task/hooks';
+import { useWorkCategories } from '@tornotron/echno-core/work-category/hooks';
 import { useUser, useUserEmployees } from '@tornotron/echno-core/user/hooks';
 import { useEmployeesByProject } from '@tornotron/echno-core/project/hooks';
 import { toast } from '@/lib/styles/toast-styles';
@@ -113,7 +114,9 @@ export const ISSUE_FORM_ID = 'issue-form';
 
 const EMPTY_FORM: IssueFormState = {
   initialized: false,
+  relatedToTask: true,
   taskId: '',
+  categoryId: '',
   title: '',
   description: '',
   issueType: IssueType.technical,
@@ -121,6 +124,9 @@ const EMPTY_FORM: IssueFormState = {
   priority: IssuePriority.medium,
   assigneeId: '',
 };
+
+/** The domain control's value for "no domain picked". */
+const NO_DOMAIN = 'none';
 
 /** The order the priority control offers, lowest urgency first. */
 const PRIORITY_OPTIONS: IssuePriority[] = [
@@ -139,6 +145,7 @@ export function IssueForm(props: IssueFormProps) {
   const { projectId, isSubmitting, onCancel } = props;
 
   const { data: tasks = [] } = useTasksByProject(Number.parseInt(projectId));
+  const { data: workCategories = [] } = useWorkCategories();
   const { data: projectMembers = [] } = useEmployeesByProject(
     Number.parseInt(projectId)
   );
@@ -154,7 +161,9 @@ export function IssueForm(props: IssueFormProps) {
       const issue = (props as EditProps).issue;
       return {
         initialized: true,
+        relatedToTask: issue.taskId !== undefined,
         taskId: issue.taskId?.toString() || '',
+        categoryId: issue.categoryId?.toString() || '',
         title: issue.title,
         description: issue.description || '',
         issueType: issue.type,
@@ -191,8 +200,12 @@ export function IssueForm(props: IssueFormProps) {
     (values: { fields: IssueFormState }) =>
       // A draft kept from before the create form fixed the status still carries
       // whatever was picked then, and the create form has no way to show it.
+      // A draft kept before the task question and the domain existed has
+      // neither, so the defaults fill them in.
       setForm(
-        isEdit ? values.fields : { ...values.fields, status: IssueStatus.open }
+        isEdit
+          ? { ...EMPTY_FORM, ...values.fields }
+          : { ...EMPTY_FORM, ...values.fields, status: IssueStatus.open }
       ),
     [isEdit]
   );
@@ -292,7 +305,7 @@ export function IssueForm(props: IssueFormProps) {
       return false;
     }
 
-    if (!isEdit) {
+    if (!isEdit && form.relatedToTask) {
       if (!form.taskId) {
         newErrors.taskId = 'Please select a related task';
       } else if (!tasks.some((t) => t.id.toString() === form.taskId)) {
@@ -373,8 +386,40 @@ export function IssueForm(props: IssueFormProps) {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Is it about a task? Create mode only, unless the task is fixed */}
+              {!isEdit && !isTaskLocked && (
+                <div className="space-y-2">
+                  <Label>Is this issue about a particular task?</Label>
+                  <div className="flex gap-2" role="radiogroup">
+                    {[
+                      { value: true, label: 'Yes, pick the task' },
+                      { value: false, label: 'No, the project as a whole' },
+                    ].map((option) => (
+                      <Button
+                        key={option.label}
+                        type="button"
+                        role="radio"
+                        aria-checked={form.relatedToTask === option.value}
+                        variant={
+                          form.relatedToTask === option.value
+                            ? 'default'
+                            : 'outline'
+                        }
+                        size="sm"
+                        onClick={() => {
+                          setField('relatedToTask', option.value);
+                          if (!option.value) clearError('taskId');
+                        }}
+                      >
+                        {option.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Related Task — create mode only (picker or locked tile) */}
-              {!isEdit && (
+              {!isEdit && form.relatedToTask && (
                 <div className="space-y-2">
                   <Label>
                     Related Task <span className="text-red-500">*</span>
@@ -496,6 +541,39 @@ export function IssueForm(props: IssueFormProps) {
                   </div>
                 </div>
               )}
+
+              {/* Domain: the work category the issue concerns */}
+              <div className="space-y-2">
+                <Label htmlFor="categoryId">
+                  Domain{' '}
+                  <span className="text-muted-foreground text-xs">
+                    (optional)
+                  </span>
+                </Label>
+                <Select
+                  value={form.categoryId || NO_DOMAIN}
+                  onValueChange={(v) =>
+                    setField('categoryId', v === NO_DOMAIN ? '' : v)
+                  }
+                >
+                  <SelectTrigger id="categoryId">
+                    <SelectValue placeholder="Select a domain" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NO_DOMAIN}>None</SelectItem>
+                    {workCategories.map((category) => (
+                      <SelectItem key={category.id} value={String(category.id)}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  What the issue concerns, for example Concrete Works or Masonry
+                  Works. Left as none on an issue raised on a task, it takes the
+                  task&apos;s category.
+                </p>
+              </div>
 
               {/* Issue Title */}
               <div className="space-y-2">

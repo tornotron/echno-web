@@ -95,10 +95,11 @@ describe('ProjectForm status options', () => {
     expect(statusOptions(container)).not.toContain('Approved');
   });
 
-  test('create still offers the statuses the API accepts', () => {
+  test('create still offers a system admin the statuses the API accepts', () => {
     const { container } = render(
       createElement(ProjectForm, {
         mode: 'create',
+        canMarkCompleted: true,
         onSubmit: () => {},
       } as never)
     );
@@ -171,5 +172,31 @@ describe('ProjectForm restored draft', () => {
     // The rest of the draft is still restored; only the status is corrected.
     expect(data.fields.projectName).toBe('Sunrise Tower');
     expect(data.fields.status).toBe(ProjectStatus.upcoming);
+  });
+});
+
+describe('who may mark a project completed by hand', () => {
+  // ClickUp 14zdkkvzzwg: a project completes when its tasks do, and only a
+  // system admin can mark one completed by hand.
+  test('offers Completed to a system admin only', async () => {
+    const { offeredProjectStatuses } = await import('./project-form');
+
+    expect(offeredProjectStatuses(true, true)).toContain(
+      ProjectStatus.completed
+    );
+    expect(offeredProjectStatuses(true, false)).not.toContain(
+      ProjectStatus.completed
+    );
+    expect(offeredProjectStatuses(false, false)).not.toContain(
+      ProjectStatus.completed
+    );
+  });
+
+  test('keeps Completed on a project that already is, so the status shows', async () => {
+    const { offeredProjectStatuses } = await import('./project-form');
+
+    expect(
+      offeredProjectStatuses(true, false, ProjectStatus.completed)
+    ).toContain(ProjectStatus.completed);
   });
 });

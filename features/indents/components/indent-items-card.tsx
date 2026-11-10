@@ -1,5 +1,6 @@
 'use client';
 
+import { MaterialSkuMoq } from '@/components/shared/material-sku-moq';
 import { useState } from 'react';
 import {
   Card,
@@ -295,6 +296,11 @@ export function IndentItemsCard({ indentId, items }: IndentItemsCardProps) {
                           ))}
                         </SelectContent>
                       </Select>
+                      <MaterialSkuMoq
+                        material={materials.find(
+                          (m) => m.id === editItemRow.materialId
+                        )}
+                      />
                     </TableCell>
                     <TableCell>
                       <Input
@@ -450,6 +456,11 @@ export function IndentItemsCard({ indentId, items }: IndentItemsCardProps) {
                         ))}
                       </SelectContent>
                     </Select>
+                    <MaterialSkuMoq
+                      material={materials.find(
+                        (m) => m.id === newItemRow.materialId
+                      )}
+                    />
                   </TableCell>
                   <TableCell>
                     <Input

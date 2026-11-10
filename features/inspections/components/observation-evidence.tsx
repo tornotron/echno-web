@@ -1,13 +1,21 @@
 'use client';
 
+import { useState } from 'react';
 import { FileText, Paperclip } from 'lucide-react';
 import { AttachmentType } from '@tornotron/echno-core/attachment/types';
 import type { Attachment } from '@tornotron/echno-core/attachment/types';
-import type { Observation } from '@tornotron/echno-core/inspection/types';
-import { useObservationEvidence } from '@/hooks/inspection';
+import { isObservationPending } from '@tornotron/echno-core/inspection/types';
+import type {
+  Observation,
+  ObservationRegion,
+} from '@tornotron/echno-core/inspection/types';
+import { useObservation, useObservationEvidence } from '@/hooks/inspection';
 import type { ObservationEvidenceState } from '@/hooks/inspection';
+import { Label } from '@/components/shadcn/label';
 import { Skeleton } from '@/components/shadcn/skeleton';
+import { Switch } from '@/components/shadcn/switch';
 import { cn } from '@/lib/utils/index';
+import { RegionOverlay, toOverlayRegion } from './region-overlay';
 
 /**
  * The attachments an observation cites, images as thumbnails and anything
@@ -97,6 +105,97 @@ export function ObservationEvidenceStrip({
           <Paperclip className="h-3 w-3" />
           {external} capture ref{external === 1 ? '' : 's'}
         </span>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The observation's regions, tolerating a row cached before regions were
+ * served (the field is then absent rather than empty).
+ */
+export function regionsOf(
+  observation: Pick<Observation, 'regions'>
+): ObservationRegion[] {
+  return observation.regions ?? [];
+}
+
+/**
+ * The images a region is drawn on, in the order their first region appears,
+ * followed by no others: an image with nothing on it stays in the strip.
+ */
+export function regionImages(
+  regions: readonly ObservationRegion[],
+  attachments: readonly Attachment[]
+): Attachment[] {
+  const byId = new Map(attachments.map((item) => [item.id, item]));
+  const seen = new Set<number>();
+  const images: Attachment[] = [];
+  for (const region of regions) {
+    if (seen.has(region.attachmentId)) continue;
+    seen.add(region.attachmentId);
+    const attachment = byId.get(region.attachmentId);
+    if (attachment?.fileType === AttachmentType.image) images.push(attachment);
+  }
+  return images;
+}
+
+/**
+ * The evidence viewer: each image that carries a region, drawn full width
+ * with its regions on top. A model's regions are dashed until the
+ * observation is reviewed. "Show history" reloads the observation with its
+ * retired regions, so a corrected box can be compared with what the model
+ * proposed. Regions are part of inspections, so this shows whether or not
+ * the vision module is on.
+ */
+export function ObservationEvidenceViewer({
+  observation,
+}: {
+  observation: Observation;
+}) {
+  const [showHistory, setShowHistory] = useState(false);
+  const { data: attachments } = useObservationEvidence(observation.id);
+  const { data: withHistory } = useObservation(
+    showHistory ? observation.id : undefined,
+    { includeRetiredRegions: true }
+  );
+  const regions = regionsOf(
+    showHistory && withHistory ? withHistory : observation
+  );
+  const images = regionImages(regions, attachments ?? []);
+  if (regionsOf(observation).length === 0 && !showHistory) return null;
+  if (images.length === 0) return null;
+  const hasRetired = observation.reviewedAt !== undefined;
+
+  return (
+    <div className="space-y-2" data-testid="evidence-viewer">
+      {images.map((image) => (
+        <RegionOverlay
+          key={image.id}
+          src={image.file}
+          alt={image.fileName}
+          className="rounded-md border"
+          reviewed={!isObservationPending(observation)}
+          showHistory={showHistory}
+          regions={regions
+            .filter((region) => region.attachmentId === image.id)
+            .map((region) => toOverlayRegion(region))}
+        />
+      ))}
+      {hasRetired && (
+        <div className="flex items-center gap-2">
+          <Switch
+            id={`region-history-${observation.id}`}
+            checked={showHistory}
+            onCheckedChange={setShowHistory}
+          />
+          <Label
+            htmlFor={`region-history-${observation.id}`}
+            className="text-xs"
+          >
+            Show history
+          </Label>
+        </div>
       )}
     </div>
   );

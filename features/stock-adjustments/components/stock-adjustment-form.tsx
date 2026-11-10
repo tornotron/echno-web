@@ -1,5 +1,6 @@
 'use client';
 
+import { MaterialSkuMoq } from '@/components/shared/material-sku-moq';
 import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import {
@@ -833,6 +834,11 @@ export function StockAdjustmentForm({
                             ))}
                           </SelectContent>
                         </Select>
+                        <MaterialSkuMoq
+                          material={materials.find(
+                            (m) => m.id === item.materialId
+                          )}
+                        />
                         {iErr.materialId && (
                           <p className="text-sm text-red-500">
                             {iErr.materialId}

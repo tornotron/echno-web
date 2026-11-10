@@ -6,9 +6,7 @@ import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 import { useUser } from '@tornotron/echno-core/user/hooks';
 import { useCreateProjectWithFiles } from '@tornotron/echno-core/project/hooks';
-import type {
-  CreateProjectRequest,
-} from '@tornotron/echno-core/project/types';
+import type { CreateProjectRequest } from '@tornotron/echno-core/project/types';
 import { projectKeys } from '@tornotron/echno-core/project/hooks/keys';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCreateStorageLocation } from '@tornotron/echno-core/storage-locations/hooks';
@@ -28,9 +26,13 @@ import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { useDirectAttachmentUpload } from '@/hooks/use-direct-attachment-upload';
 import { AttachmentEntityType } from '@/lib/attachments/entity-types';
 import { optionalOnCreate } from '@/features/projects/lib/location-fields';
+import { useAuthorization } from '@/hooks/use-authorization';
 
 export default function NewProjectPage() {
   const router = useRouter();
+  // Only a system admin may mark a project completed by hand; otherwise it
+  // completes when its tasks do.
+  const { isSystemAdmin } = useAuthorization();
   const { data: currentUser, isLoading: isUserLoading } = useUser();
   const createProjectWithFiles = useCreateProjectWithFiles();
   const createStorageLocation = useCreateStorageLocation();
@@ -210,6 +212,7 @@ export default function NewProjectPage() {
       />
       <ProjectForm
         mode="create"
+        canMarkCompleted={isSystemAdmin}
         uploadStates={directUpload.states}
         onSubmit={handleSubmit}
       />

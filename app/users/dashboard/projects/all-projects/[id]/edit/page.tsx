@@ -8,9 +8,7 @@ import {
   useProject,
   useUpdateProjectWithFiles,
 } from '@tornotron/echno-core/project/hooks';
-import type {
-  UpdateProjectRequest,
-} from '@tornotron/echno-core/project/types';
+import type { UpdateProjectRequest } from '@tornotron/echno-core/project/types';
 import { projectKeys } from '@tornotron/echno-core/project/hooks/keys';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/shadcn/button';
@@ -28,10 +26,14 @@ import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { useDirectAttachmentUpload } from '@/hooks/use-direct-attachment-upload';
 import { AttachmentEntityType } from '@/lib/attachments/entity-types';
 import { optionalOnUpdate } from '@/features/projects/lib/location-fields';
+import { useAuthorization } from '@/hooks/use-authorization';
 
 export default function EditProjectPage() {
   const params = useParams();
   const router = useRouter();
+  // Only a system admin may mark a project completed by hand; otherwise it
+  // completes when its tasks do.
+  const { isSystemAdmin } = useAuthorization();
   const projectId = params.id
     ? Number.parseInt(params.id as string)
     : undefined;
@@ -188,6 +190,7 @@ export default function EditProjectPage() {
       />
       <ProjectForm
         mode="edit"
+        canMarkCompleted={isSystemAdmin}
         project={project}
         uploadStates={directUpload.states}
         onSubmit={handleSubmit}

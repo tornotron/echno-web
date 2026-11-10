@@ -42,10 +42,10 @@ export function MarketingNav({ currentPage }: MarketingNavProps) {
           {/* Logo */}
           <Link href="/" className="flex items-center">
             <Image
-              src="/e-ai-logo.png"
+              src="/echno-logo.svg"
               alt="Echno"
               width={100}
-              height={36}
+              height={39}
               className="dark:invert"
             />
           </Link>

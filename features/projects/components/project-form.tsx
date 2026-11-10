@@ -77,6 +77,34 @@ export const CREATE_PROJECT_STATUSES: ProjectStatus[] = PROJECT_STATUSES.filter(
   (status) => status !== ProjectStatus.approved
 );
 
+/**
+ * The statuses the form offers to this user.
+ *
+ * A project is completed by its tasks: it turns completed by itself once every
+ * task is complete, and only a system admin can mark it completed by hand
+ * (ClickUp 14zdkkvzzwg). The API refuses `completed` from anyone else, so the
+ * option is offered to system admins only. A project that already reads
+ * completed keeps the option, so the control can still show its status.
+ *
+ * @param isEdit - Whether the form edits an existing project.
+ * @param canMarkCompleted - Whether the user is a system admin.
+ * @param currentStatus - The status the project holds now, on edit.
+ * @returns The statuses to list, in display order.
+ */
+export function offeredProjectStatuses(
+  isEdit: boolean,
+  canMarkCompleted: boolean,
+  currentStatus?: ProjectStatus
+): ProjectStatus[] {
+  const base = isEdit ? PROJECT_STATUSES : CREATE_PROJECT_STATUSES;
+  if (canMarkCompleted) return base;
+  return base.filter(
+    (status) =>
+      status !== ProjectStatus.completed ||
+      (isEdit && currentStatus === ProjectStatus.completed)
+  );
+}
+
 const PROJECT_TYPES = [
   ProjectType.RESIDENTIAL,
   ProjectType.COMMERCIAL,
@@ -131,6 +159,8 @@ export interface ProjectFormSubmitData {
 
 interface CreateProps {
   mode: 'create';
+  /** Whether the user is a system admin, who alone may mark a project completed. */
+  canMarkCompleted?: boolean;
   /** Per-file direct-upload progress, index-aligned to the selected files. */
   uploadStates?: FileUploadState[];
   onSubmit: (data: ProjectFormSubmitData) => void;
@@ -139,6 +169,8 @@ interface CreateProps {
 interface EditProps {
   mode: 'edit';
   project: Project;
+  /** Whether the user is a system admin, who alone may mark a project completed. */
+  canMarkCompleted?: boolean;
   /** Per-file direct-upload progress, index-aligned to the selected files. */
   uploadStates?: FileUploadState[];
   onSubmit: (data: ProjectFormSubmitData) => void;
@@ -550,15 +582,21 @@ export function ProjectForm(props: ProjectFormProps) {
                 <SelectValue placeholder="Select project status" />
               </SelectTrigger>
               <SelectContent>
-                {(isEdit ? PROJECT_STATUSES : CREATE_PROJECT_STATUSES).map(
-                  (s) => (
-                    <SelectItem key={s} value={s}>
-                      {getProjectStatusLabel(s)}
-                    </SelectItem>
-                  )
-                )}
+                {offeredProjectStatuses(
+                  isEdit,
+                  props.canMarkCompleted ?? false,
+                  isEdit ? (props as EditProps).project.status : undefined
+                ).map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {getProjectStatusLabel(s)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            <p className="text-muted-foreground text-xs">
+              A project is marked completed automatically once all of its tasks
+              are complete. Only a system admin can mark it completed by hand.
+            </p>
           </div>
 
           {/* Project Type */}

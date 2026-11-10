@@ -17,10 +17,10 @@ export function WelcomeScreen({ errorCode, hasSession }: WelcomeScreenProps) {
     <StarsBackground className="flex min-h-screen items-center justify-center">
       <div className="flex flex-col items-center gap-6 px-4">
         <Image
-          src="/e-ai-logo.png"
+          src="/echno-logo.svg"
           alt="Echno"
           width={160}
-          height={58}
+          height={62}
           priority
           className="invert"
         />
