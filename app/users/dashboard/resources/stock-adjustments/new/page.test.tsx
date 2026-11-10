@@ -23,7 +23,8 @@
  * Assertions are on counts, strings and booleans, never on a rendered Radix
  * node: an assertion that fails while printing one hangs the reporter.
  */
-import { afterEach, describe, expect, mock, test } from 'bun:test';
+import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test';
+import * as realAccessHooks from '@tornotron/echno-core/access/hooks';
 import { createElement } from 'react';
 import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import { SiteTransferStatus } from '@tornotron/echno-core/site-transfers/types';
@@ -36,6 +37,8 @@ import type { StockAdjustmentSubmitData } from '@/features/stock-adjustments/com
 let search = '';
 
 import * as realNavigation from 'next/navigation';
+
+const realAccess = { ...realAccessHooks };
 
 mock.module('next/navigation', () => ({
   ...realNavigation,
@@ -142,6 +145,18 @@ mock.module('@tornotron/echno-core/employee/hooks', () => ({
     isLoading: false,
     error: null,
     employee: { id: 3, name: 'Asha' },
+  }),
+}));
+
+// useCan asks the access matrix too; these gates are on org roles, so a
+// caller with no matrix grants is enough, and no QueryClient is needed.
+mock.module('@tornotron/echno-core/access/hooks', () => ({
+  ...realAccess,
+  useCurrentUserAccess: () => ({
+    access: undefined,
+    can: () => false,
+    isLoading: false,
+    error: null,
   }),
 }));
 
@@ -434,4 +449,8 @@ describe('duplicating an adjustment', () => {
     expect(submitted.form.projectId).toBe(2);
     expect(submitted.items[0].countedStock).toBe(4);
   });
+});
+
+afterAll(() => {
+  mock.module('@tornotron/echno-core/access/hooks', () => realAccess);
 });

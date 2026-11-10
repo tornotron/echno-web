@@ -5,7 +5,7 @@
  * organization's own records, so with nothing on record each one shows an
  * empty state or a real zero.
  */
-import { afterEach, describe, expect, mock, test } from 'bun:test';
+import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test';
 import { cleanup, render } from '@testing-library/react';
 import { OrgRole } from '@tornotron/echno-core/employee/types';
 import * as realEmployeeHooks from '@tornotron/echno-core/employee/hooks';
@@ -33,6 +33,10 @@ const emptyPnl = {
   totalExpense: 0,
   netProfit: 0,
 };
+
+// Copied before mocking. The access hooks are put back after this file: the
+// access screen's tests run later in the suite and need the real ones.
+const realAccess = { ...realAccessHooks };
 
 mock.module('@tornotron/echno-core/employee/hooks', () => ({
   ...realEmployeeHooks,
@@ -97,6 +101,10 @@ afterEach(() => {
   cleanup();
   orgRoles = [OrgRole.SYSTEM_ADMIN];
   projectsResult = ok([]);
+});
+
+afterAll(() => {
+  mock.module('@tornotron/echno-core/access/hooks', () => realAccess);
 });
 
 /** Sample figures the old mock-backed dashboard printed. */
