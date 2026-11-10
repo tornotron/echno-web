@@ -350,12 +350,12 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
         <div className="flex items-center gap-2 px-2 py-1 group-data-[collapsible=icon]:hidden">
           <div className="flex items-center gap-2">
             <Image
-              src="/e-ai-logo.png"
+              src="/echno-logo.svg"
               alt="Echno Logo"
               width={110}
-              height={40}
+              height={43}
               priority
-              style={{ width: 'auto', height: 'auto' }}
+              style={{ width: '110px', height: 'auto' }}
               className="dark:invert"
             />
           </div>
@@ -363,7 +363,7 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
         {/* Collapsed state - centered bigger logo */}
         <div className="relative hidden items-center justify-center py-1 group-data-[collapsible=icon]:flex">
           <Image
-            src="/e-logo.png"
+            src="/echno-mark.svg"
             alt="Echno Logo"
             width={40}
             height={40}

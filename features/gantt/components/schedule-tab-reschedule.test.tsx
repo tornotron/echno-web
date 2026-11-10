@@ -3,7 +3,8 @@
  * A drop now saves the dates for the roles the backend admits, and a refused
  * change puts the bar back.
  */
-import { afterEach, describe, expect, mock, test } from 'bun:test';
+import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test';
+import * as realAccessHooks from '@tornotron/echno-core/access/hooks';
 import { act, cleanup, render, renderHook } from '@testing-library/react';
 import { OrgRole } from '@tornotron/echno-core/employee/types';
 import type { Project } from '@tornotron/echno-core/project/types';
@@ -18,6 +19,8 @@ type MutateOptions = {
 };
 const mutateCalls: { variables: unknown; options: MutateOptions }[] = [];
 const toasts: { kind: string; title: string; description?: string }[] = [];
+
+const realAccess = { ...realAccessHooks };
 
 mock.module('@tornotron/echno-core/employee/hooks', () => ({
   ...realEmployeeHooks,
@@ -43,6 +46,18 @@ mock.module('@/lib/styles/toast-styles', () => ({
     error: (title: string, options?: { description?: string }) =>
       toasts.push({ kind: 'error', title, ...options }),
   },
+}));
+
+// useCan asks the access matrix too; these gates are on org roles, so a
+// caller with no matrix grants is enough, and no QueryClient is needed.
+mock.module('@tornotron/echno-core/access/hooks', () => ({
+  ...realAccess,
+  useCurrentUserAccess: () => ({
+    access: undefined,
+    can: () => false,
+    isLoading: false,
+    error: null,
+  }),
 }));
 
 const { ScheduleTab } = await import('./schedule-tab');
@@ -134,4 +149,8 @@ describe('dropping a bar', () => {
     expect(toasts[0]?.kind).toBe('error');
     expect(result.current.barResetKey).toBe(1);
   });
+});
+
+afterAll(() => {
+  mock.module('@tornotron/echno-core/access/hooks', () => realAccess);
 });

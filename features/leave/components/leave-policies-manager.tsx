@@ -123,7 +123,6 @@ export function LeavePoliciesManager({
     allowHalfDay: true,
     isPaid: true,
     displayOrder: 0,
-    multiLevelApprovalEnabled: true,
     supportingDocumentNote: '',
     accrualMethod: AccrualMethod.MONTHLY,
     weekendHolidayTreatment: WeekendHolidayTreatment.CHARGE_ALL_DAYS,
@@ -149,7 +148,6 @@ export function LeavePoliciesManager({
       allowHalfDay: true,
       isPaid: true,
       displayOrder: 0,
-      multiLevelApprovalEnabled: true,
       supportingDocumentNote: '',
       accrualMethod: AccrualMethod.MONTHLY,
       weekendHolidayTreatment: WeekendHolidayTreatment.CHARGE_ALL_DAYS,
@@ -231,7 +229,6 @@ export function LeavePoliciesManager({
       allowHalfDay: policy.allowHalfDay,
       isPaid: policy.isPaid,
       displayOrder: policy.displayOrder,
-      multiLevelApprovalEnabled: policy.multiLevelApprovalEnabled,
       supportingDocumentNote: policy.supportingDocumentNote || '',
       accrualMethod: policy.accrualMethod,
       weekendHolidayTreatment: policy.weekendHolidayTreatment,
@@ -549,7 +546,6 @@ interface PolicyFormProps {
     allowHalfDay: boolean;
     isPaid: boolean;
     displayOrder: number;
-    multiLevelApprovalEnabled: boolean;
     supportingDocumentNote: string;
     accrualMethod: AccrualMethod;
     weekendHolidayTreatment: WeekendHolidayTreatment;
@@ -855,9 +851,9 @@ function PolicyForm({ formData, setFormData }: PolicyFormProps) {
               </SelectContent>
             </Select>
             <p className="text-muted-foreground text-xs">
-              Reporting manager walks the management line. HR admin or system
-              admin sends the request to one holder of that role in a single
-              step.
+              Reporting manager sends the request to the employee&apos;s
+              immediate manager, who decides it or transfers it upward. HR admin
+              or system admin sends it to one holder of that role.
             </p>
           </div>
           <div className="space-y-2">
@@ -901,27 +897,6 @@ function PolicyForm({ formData, setFormData }: PolicyFormProps) {
           Options
         </h4>
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="multiLevelApprovalEnabled">
-                Multi-level approval
-              </Label>
-              <p className="text-muted-foreground text-xs">
-                Route requests through every approval level. When off, a single
-                approval decides the request.
-              </p>
-            </div>
-            <Switch
-              id="multiLevelApprovalEnabled"
-              checked={formData.multiLevelApprovalEnabled}
-              onCheckedChange={(checked) =>
-                setFormData({
-                  ...formData,
-                  multiLevelApprovalEnabled: checked,
-                })
-              }
-            />
-          </div>
           <div className="flex items-center justify-between">
             <Label htmlFor="allowHalfDay">Allow Half-Day Leave</Label>
             <Switch

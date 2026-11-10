@@ -20,9 +20,9 @@ import type { IssueFormState } from './issue-form-state';
 /**
  * Builds the create body from the form's fields.
  *
- * `projectId` comes from the route rather than the form. Core sends it with the
- * task, the backend checks the two agree, and the mutation also uses it to file
- * the new issue under the right project's cached list.
+ * `projectId` comes from the route rather than the form, and is sent: an
+ * issue belongs to a project or a domain, the task optional (ClickUp
+ * 14zdkkvzx60). The task goes only when the form says the issue is about one.
  *
  * @param fields - The form state at submit time.
  * @param projectId - The project the form was opened under, as a route param.
@@ -39,7 +39,9 @@ export function buildCreateIssuePayload(
     status: fields.status,
     priority: fields.priority || undefined,
     projectId: Number.parseInt(projectId),
-    taskId: fields.taskId ? Number(fields.taskId) : undefined,
+    taskId:
+      fields.relatedToTask && fields.taskId ? Number(fields.taskId) : undefined,
+    categoryId: fields.categoryId ? Number(fields.categoryId) : undefined,
     assigneeId: fields.assigneeId ? Number(fields.assigneeId) : undefined,
   };
 }
@@ -65,5 +67,8 @@ export function buildUpdateIssuePayload(
     status: fields.status,
     priority: fields.priority || undefined,
     assigneeId: fields.assigneeId ? Number(fields.assigneeId) : undefined,
+    // A blank domain control is left out rather than sent as null, for the
+    // same reason as the priority: the form has no control that means "clear".
+    categoryId: fields.categoryId ? Number(fields.categoryId) : undefined,
   };
 }

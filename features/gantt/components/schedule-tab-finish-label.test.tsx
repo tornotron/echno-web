@@ -3,13 +3,16 @@
  * between them, so no critical path is calculated, and the screen now says what
  * it marks.
  */
-import { afterEach, describe, expect, mock, test } from 'bun:test';
+import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test';
+import * as realAccessHooks from '@tornotron/echno-core/access/hooks';
 import { cleanup, render } from '@testing-library/react';
 import { OrgRole } from '@tornotron/echno-core/employee/types';
 import type { Project } from '@tornotron/echno-core/project/types';
 import { TaskStatus, type Task } from '@tornotron/echno-core/task/types';
 import * as realEmployeeHooks from '@tornotron/echno-core/employee/hooks';
 import * as realTaskHooks from '@tornotron/echno-core/task/hooks';
+
+const realAccess = { ...realAccessHooks };
 
 mock.module('@tornotron/echno-core/employee/hooks', () => ({
   ...realEmployeeHooks,
@@ -23,6 +26,18 @@ mock.module('@tornotron/echno-core/employee/hooks', () => ({
 mock.module('@tornotron/echno-core/task/hooks', () => ({
   ...realTaskHooks,
   useUpdateTask: () => ({ mutate: () => {}, isPending: false }),
+}));
+
+// useCan asks the access matrix too; these gates are on org roles, so a
+// caller with no matrix grants is enough, and no QueryClient is needed.
+mock.module('@tornotron/echno-core/access/hooks', () => ({
+  ...realAccess,
+  useCurrentUserAccess: () => ({
+    access: undefined,
+    can: () => false,
+    isLoading: false,
+    error: null,
+  }),
 }));
 
 const { ScheduleTab } = await import('./schedule-tab');
@@ -84,4 +99,8 @@ describe('Schedule tab finish-date wording', () => {
     );
     expect(getByText(/2 tasks set the finish date/)).toBeInTheDocument();
   });
+});
+
+afterAll(() => {
+  mock.module('@tornotron/echno-core/access/hooks', () => realAccess);
 });

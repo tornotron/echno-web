@@ -5,7 +5,7 @@
  * permission), and the same "Access Denied" notice the finance pages show
  * for everyone else.
  */
-import { afterEach, describe, expect, mock, test } from 'bun:test';
+import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test';
 import { cleanup, render } from '@testing-library/react';
 import { OrgRole } from '@tornotron/echno-core/employee/types';
 import {
@@ -25,6 +25,13 @@ let employeeState: {
 } = { orgRoles: [], isLoading: false, error: null, employee: undefined };
 
 import * as realEmployeeHooks from '@tornotron/echno-core/employee/hooks';
+
+// Copied before mocking, so afterAll can put the real modules back for the
+// files that run after this one.
+const originals = {
+  employee: { ...realEmployeeHooks },
+  access: { ...realAccessHooks },
+};
 
 mock.module('@tornotron/echno-core/employee/hooks', () => ({
   ...realEmployeeHooks,
@@ -72,6 +79,11 @@ afterEach(() => {
     employee: undefined,
   };
   accessState = { access: undefined, isLoading: false };
+});
+
+afterAll(() => {
+  mock.module('@tornotron/echno-core/employee/hooks', () => originals.employee);
+  mock.module('@tornotron/echno-core/access/hooks', () => originals.access);
 });
 
 describe('AccessGate', () => {

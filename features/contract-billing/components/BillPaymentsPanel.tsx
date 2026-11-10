@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { AlertCircle, FlaskConical } from 'lucide-react';
+import { AlertCircle, Clock, FlaskConical } from 'lucide-react';
 import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 import {
   useAuthorizeBillPayment,
@@ -40,16 +40,19 @@ import { Skeleton } from '@/components/shadcn/skeleton';
 import { Textarea } from '@/components/shadcn/textarea';
 import { useCan } from '@/hooks/use-can';
 import { toast } from '@/lib/styles/toast-styles';
-import { BILLING_SIGN_ACCESS, PAYABLES_ACCESS } from '@/nav/access/roles';
+import { BILLING_SIGN_ACCESS } from '@/nav/access/roles';
 import { routes } from '@/nav';
 import { formatDate, formatDateTime, formatInr } from '../lib/format';
 import {
   PROVIDER_NOTES,
+  authorizeWaitReason,
+  authorizedByText,
   parsePaymentAmount,
   paymentActions,
   raiseBlockedReason,
 } from '../lib/payments';
 import { PaymentStateChip, PaymentStatusChip } from './chips';
+import { PaymentAuthorizerCard } from './PaymentAuthorizerCard';
 
 function failed(title: string) {
   return (err: unknown) =>
@@ -65,13 +68,17 @@ type Dialogue =
 
 /**
  * Paying an approved bill: what is left to pay, raising a payment for the
- * second signature, and each attempt with what can be done to it next. The
- * figures are the payable's, so a payment recorded in Finance shows here too.
+ * second signature, who gives that signature, and each attempt with what can
+ * be done to it next. The figures are the payable's, so a payment recorded in
+ * Finance shows here too.
+ *
+ * The second signature is the project's payment authorizer's, which no role
+ * grants, so the server says whether the reader holds it and, for each
+ * requested payment, why they may not sign it.
  */
 export function BillPaymentsPanel({ bill }: { bill: Bill }) {
   const { data, isPending, isError, error } = useBillPayments(bill.id);
   const { allowed: canRaise } = useCan(BILLING_SIGN_ACCESS);
-  const { allowed: canAuthorize } = useCan(PAYABLES_ACCESS);
   const [dialogue, setDialogue] = useState<Dialogue | null>(null);
   const sync = useSyncBillPayment();
 
@@ -84,6 +91,7 @@ export function BillPaymentsPanel({ bill }: { bill: Bill }) {
     );
   }
 
+  const projectId = data.projectId ?? bill.projectId;
   const figures = [
     { label: 'Net payable', value: formatInr(data.amountRecorded) },
     { label: 'Paid', value: formatInr(data.amountPaid) },
@@ -123,6 +131,8 @@ export function BillPaymentsPanel({ bill }: { bill: Bill }) {
 
       {canRaise && <RaisePayment bill={bill} view={data} />}
 
+      {projectId ? <PaymentAuthorizerCard projectId={projectId} /> : null}
+
       <Card>
         <CardHeader>
           <CardTitle>Payments</CardTitle>
@@ -138,7 +148,7 @@ export function BillPaymentsPanel({ bill }: { bill: Bill }) {
                 <PaymentRow
                   key={payment.id}
                   payment={payment}
-                  canAuthorize={canAuthorize}
+                  view={data}
                   syncing={sync.isPending}
                   onSync={() =>
                     sync.mutate(payment.id, {
@@ -273,25 +283,23 @@ function RaisePayment({ bill, view }: { bill: Bill; view: BillPayments }) {
 
 function PaymentRow({
   payment,
-  canAuthorize,
+  view,
   syncing,
   onSync,
   onDialogue,
 }: {
   payment: BillPayment;
-  canAuthorize: boolean;
+  view: BillPayments;
   syncing: boolean;
   onSync: () => void;
   onDialogue: (dialogue: Dialogue) => void;
 }) {
-  const actions = paymentActions(payment, canAuthorize);
+  const actions = paymentActions(payment, view.readerIsAuthorizer);
+  const waiting = authorizeWaitReason(payment, view);
   const facts = [
     payment.requestedByName && `Raised by ${payment.requestedByName}`,
     formatDateTime(payment.requestedAt),
-    payment.authorizedByName &&
-      `Authorized by ${payment.authorizedByName}${
-        payment.selfAuthorized ? ', who raised it' : ''
-      }`,
+    authorizedByText(payment),
   ].filter(Boolean);
   return (
     <li className="flex flex-col gap-2 py-3 sm:flex-row sm:items-start sm:justify-between">
@@ -319,6 +327,12 @@ function PaymentRow({
           </p>
         )}
         {payment.note && <p className="text-sm">{payment.note}</p>}
+        {waiting && (
+          <p className="text-muted-foreground flex items-start gap-1.5 text-sm">
+            <Clock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+            <span>{waiting}</span>
+          </p>
+        )}
         {payment.failureReason && (
           <p className="text-destructive text-sm">{payment.failureReason}</p>
         )}

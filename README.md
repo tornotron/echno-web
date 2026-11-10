@@ -1,7 +1,7 @@
 # Echno - Web Client
 
 <div align="center">
-  <img src="public/echno.png" alt="Echno Logo" width="120" height="120">
+  <img src="public/echno-logo.svg" alt="Echno" width="240">
   
   <h3>The Primary Web Client for the Echno Construction Platform</h3>
   <p>An open source construction-management web application built with Next.js 16</p>

@@ -11,7 +11,9 @@ import * as realTaskHooks from '@tornotron/echno-core/task/hooks';
  * across the organisation and nothing at all in project 3, which is the gap the
  * form was hiding.
  */
-const MATERIALS = [{ id: 2, materialName: 'TNT Steel', unit: 'MT' }];
+const MATERIALS = [
+  { id: 2, materialName: 'TNT Steel', unit: 'MT', sku: 'TNT-12', moq: 50 },
+];
 const PROJECTS = [
   { id: 3, projectName: 'Test 2' },
   { id: 6, projectName: 'Riverside' },
@@ -126,6 +128,14 @@ describe('MaterialConsumptionForm', () => {
   afterEach(() => {
     cleanup();
     toast.error.mockClear();
+  });
+
+  test('shows the SKU and MOQ of the material picked', () => {
+    const { container, queryByText, getByText } = renderForm({});
+    expect(queryByText('SKU: TNT-12 · MOQ: 50 MT')).toBeNull();
+
+    chooseOption(container, 'materialId', 'TNT Steel');
+    expect(getByText('SKU: TNT-12 · MOQ: 50 MT')).toBeInTheDocument();
   });
 
   test('shows the balance at the chosen project and location, not the organisation total', () => {

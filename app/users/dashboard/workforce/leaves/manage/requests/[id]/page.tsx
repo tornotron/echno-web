@@ -74,6 +74,7 @@ import {
 } from '@/hooks/leave/use-leave-mutations';
 import { useManagers } from '@tornotron/echno-core/employee/hooks';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
+import { managersAbove } from '@/features/leave/lib/transfer-targets';
 import {
   LeaveStatus,
   ApprovalAction,
@@ -160,6 +161,9 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
   const delegateMutation = useDelegateApproval();
 
   const { data: managers = [], isLoading: managersLoading } = useManagers();
+  // A request can only be transferred upward, to a manager above the approver
+  // in their own reporting line; the backend refuses anyone else.
+  const transferTargets = managersAbove(employee, managers);
 
   const isLoading = requestLoading;
   const canApproveRequest = canActOnLeaveApproval({
@@ -239,7 +243,7 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
         },
       });
 
-      toast.success('Leave request delegated successfully');
+      toast.success('Leave request transferred');
       setShowDelegateForm(false);
       setDelegateComments('');
       setDelegateToId('');
@@ -247,8 +251,8 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
         `${routes.workforce.leaves.manage.requests.href}?tab=approvals`
       );
     } catch (error) {
-      toast.error('Failed to delegate leave request');
-      console.error('Delegate error:', error);
+      toast.error('Failed to transfer leave request');
+      console.error('Transfer error:', error);
     }
   };
 
@@ -543,7 +547,8 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
                   Action Required
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  You can approve, reject, or delegate this leave request
+                  Approve or reject this request, or transfer it to a manager
+                  above you if it needs a more senior decision
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -582,7 +587,7 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
                       }}
                     >
                       <Forward className="mr-2 h-4 w-4" />
-                      Delegate
+                      Transfer
                     </Button>
                   </div>
                 )}
@@ -683,7 +688,7 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="delegate-to">
-                        Delegate To <span className="text-destructive">*</span>
+                        Transfer To <span className="text-destructive">*</span>
                       </Label>
                       <Select
                         value={delegateToId}
@@ -694,23 +699,27 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
                             placeholder={
                               managersLoading
                                 ? 'Loading managers...'
-                                : 'Select a manager'
+                                : transferTargets.length === 0
+                                  ? 'No manager above you'
+                                  : 'Select a manager above you'
                             }
                           />
                         </SelectTrigger>
                         <SelectContent>
-                          {managers
-                            .filter((m) => m.id !== employeeId)
-                            .map((manager) => (
-                              <SelectItem
-                                key={manager.id}
-                                value={manager.id?.toString() || ''}
-                              >
-                                {manager.name} - {manager.designation}
-                              </SelectItem>
-                            ))}
+                          {transferTargets.map((manager) => (
+                            <SelectItem
+                              key={manager.id}
+                              value={manager.id?.toString() || ''}
+                            >
+                              {manager.name} - {manager.designation}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
+                      <p className="text-muted-foreground text-xs">
+                        Only managers above you in your reporting line. They
+                        decide the request instead of you.
+                      </p>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="delegate-comments">
@@ -718,7 +727,7 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
                       </Label>
                       <Textarea
                         id="delegate-comments"
-                        placeholder="Add optional comments for the delegated manager..."
+                        placeholder="Add optional comments for the manager..."
                         value={delegateComments}
                         onChange={(e) => setDelegateComments(e.target.value)}
                         rows={3}
@@ -732,12 +741,12 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
                         {delegateMutation.isPending ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Delegating...
+                            Transferring...
                           </>
                         ) : (
                           <>
                             <Forward className="mr-2 h-4 w-4" />
-                            Confirm Delegation
+                            Confirm Transfer
                           </>
                         )}
                       </Button>

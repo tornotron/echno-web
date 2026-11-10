@@ -45,7 +45,8 @@ export type Permission =
   | 'bim:view'
   | 'bim:manage'
   | 'toolbox-talks:read'
-  | 'toolbox-talks:manage';
+  | 'toolbox-talks:manage'
+  | 'document-ingestion:read';
 
 /** A permission on the backend's access matrix: `<area>:<action>`. */
 export type MatrixPermission = `${string}:${string}`;
@@ -382,6 +383,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     'bim:manage',
     'toolbox-talks:read',
     'toolbox-talks:manage',
+    'document-ingestion:read',
   ],
   manager: [
     'inspections:read',
@@ -390,8 +392,14 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     'bim:manage',
     'toolbox-talks:read',
     'toolbox-talks:manage',
+    'document-ingestion:read',
   ],
-  employee: ['inspections:read', 'bim:view', 'toolbox-talks:read'],
+  employee: [
+    'inspections:read',
+    'bim:view',
+    'toolbox-talks:read',
+    'document-ingestion:read',
+  ],
 };
 
 /** Returns the permissions granted to a role, or none for an unauthenticated user. */

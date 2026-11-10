@@ -7,9 +7,8 @@
  * one, watched the form respond to it, saved, and found nothing recorded.
  *
  * The assertions are on the serialized body rather than on the request object,
- * because that is where a dropped field actually shows: the request object
- * holding a value says nothing about whether the serializer puts it on the
- * wire.
+ * because that is where a dropped field actually shows: the request interface
+ * carries fields the serializer deliberately leaves out.
  */
 import { describe, expect, test } from 'bun:test';
 import {
@@ -29,7 +28,9 @@ import {
 function filledForm(overrides: Partial<IssueFormState> = {}): IssueFormState {
   return {
     initialized: true,
+    relatedToTask: true,
     taskId: '11',
+    categoryId: '',
     title: 'Honeycombing on the raft',
     description: 'Voids along the north face of the raft pour.',
     issueType: IssueType.technical,
@@ -72,16 +73,34 @@ describe('the create payload', () => {
     expect(body.assignedToId).toBe(5);
   });
 
-  test('sends the project from the route alongside the task', () => {
-    // An issue belongs to a project or a domain, and the task is optional, so
-    // core sends the project id whenever the request carries one. The backend
-    // checks it against the task's own project.
+  test('routes on the project and sends it', () => {
+    // From echno-core 11.11.0 an issue belongs to a project or a domain, so
+    // the serializer sends the project (core #172, backend #1014). The
+    // request object also uses it to file the new issue under the right
+    // cached list.
     const request = buildCreateIssuePayload(filledForm(), '3');
-    const body = createIssueToJson(request);
 
     expect(request.projectId).toBe(3);
+    expect(createIssueToJson(request).projectId).toBe(3);
+  });
+
+  test('leaves the task out when the issue is not about one', () => {
+    const body = createIssueToJson(
+      buildCreateIssuePayload(filledForm({ relatedToTask: false }), '3')
+    );
+
+    expect('taskId' in body).toBe(false);
     expect(body.projectId).toBe(3);
-    expect(body.taskId).toBe(11);
+  });
+
+  test('carries the domain the form collected, and none when blank', () => {
+    const picked = createIssueToJson(
+      buildCreateIssuePayload(filledForm({ categoryId: '9' }), '3')
+    );
+    const blank = createIssueToJson(buildCreateIssuePayload(filledForm(), '3'));
+
+    expect(picked.categoryId).toBe(9);
+    expect('categoryId' in blank).toBe(false);
   });
 });
 
