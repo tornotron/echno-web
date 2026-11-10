@@ -1,0 +1,92 @@
+name: Build image
+
+# Build the web image and push it to GHCR, and nothing else: no deploy, no
+# tailnet join, no write to echno-deployment. The image digest, the commit and
+# the storage origin are written to the job summary, for pinning in a production
+# deploy. Run it on any ref that holds this file.
+#
+# The auth provider is not chosen here: AUTH_PROVIDER and the WORKOS_* settings
+# are read when the server runs, so one image serves either provider.
+
+on:
+  workflow_dispatch:
+    inputs:
+      storage_origin:
+        description: Object store origin baked into next/image remotePatterns, for example https://s3.ap-south-1.amazonaws.com
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/echno-web
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
+      - name: Authenticate to the registry
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Derive image metadata
+        id: meta
+        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=sha,format=short,prefix=build-
+
+      # The storage origin is frozen into the standalone build, so it is passed
+      # through the environment and not interpolated into the script.
+      - name: Check the storage origin
+        env:
+          STORAGE_ORIGIN: ${{ inputs.storage_origin }}
+        run: |
+          case "$STORAGE_ORIGIN" in
+            https://*) ;;
+            *) echo "storage_origin must start with https://" >&2; exit 1 ;;
+          esac
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NODE_ENV=production
+            NEXT_PUBLIC_API_URL=/api/v1
+            NEXT_PUBLIC_STORAGE_ORIGIN=${{ inputs.storage_origin }}
+          # Mounted rather than passed as a build arg, so the token to read
+          # @tornotron/echno-core from GitHub Packages never lands in a layer.
+          secrets: |
+            github_token=${{ secrets.GH_PACKAGES_TOKEN }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Write the digest to the summary
+        run: |
+          {
+            echo "### Web image"
+            echo
+            echo "- Image: \`${{ env.IMAGE }}@${{ steps.build.outputs.digest }}\`"
+            echo "- Digest: \`${{ steps.build.outputs.digest }}\`"
+            echo "- Commit: \`${{ github.sha }}\`"
+            echo "- Ref: \`${{ github.ref_name }}\`"
+            echo "- Storage origin: \`${{ inputs.storage_origin }}\`"
+            echo "- Tags: \`${{ steps.meta.outputs.tags }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
