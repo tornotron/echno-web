@@ -164,6 +164,21 @@
    */
   html {
     font-size: 93.75%;
+    /*
+     * Always keep room for the vertical scrollbar. Where scrollbars take up
+     * space (Safari on a Mac with "Show scroll bars: Always", Windows), the
+     * page would otherwise shift sideways whenever it grows taller than the
+     * window or shrinks back, which reads as a jump on every page change.
+     */
+    scrollbar-gutter: stable;
+  }
+  /*
+   * Radix dialogs, sheets and menus lock scrolling by adding the scrollbar's
+   * width as a right margin on body. The gutter above already keeps that
+   * room, so the margin would push the page left when one opens.
+   */
+  html body[data-scroll-locked] {
+    margin-right: 0 !important;
   }
   * {
     @apply border-border outline-ring/50;
